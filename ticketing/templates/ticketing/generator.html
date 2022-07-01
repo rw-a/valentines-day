@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Code Generator</title>
+</head>
+<body>
+    <h1 id="code">{{ code }}</h1>
+    <form method="post"> {% csrf_token %}
+        {{ form.item_type }}
+        <input type="submit" value="Generate">
+    </form>
+</body>
+<script>
+    let button = document.querySelector('input[type="submit"]');
+    button.addEventListener('click', () => {
+        button.hidden = true;
+        setTimeout(() => {
+            button.hidden = false;
+        }, 2000);
+    });
+</script>
+</html>
