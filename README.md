@@ -1,7 +1,8 @@
 # Valentine's Day Ticketing System Backend
 ## Setup
-- Requires Python (3.8.9 or newer is recommended).
+- Requires Python
 - Requires Django
+- Requires ReportLab
 ## Function
 1. Prefects generates codes for tickets using the website.
 2. Prefects physically sell the codes to students.
