@@ -19,9 +19,9 @@ class TicketCodePDFAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request=request, obj=obj, form=form, change=change)
-        ticket_codes = {code: obj.item_type for code in generate_codes(obj.num_of_items)}
-        CodesToPDF(ticket_codes, f'{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf')
-        for code in ticket_codes.keys():
+        ticket_codes = generate_codes(obj.num_of_items)
+        CodesToPDF(ticket_codes, obj.item_type, f'{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf')
+        for code in ticket_codes:
             ticket_code = TicketCode(
                 code=code,
                 item_type=obj.item_type,
