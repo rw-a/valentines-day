@@ -9,9 +9,16 @@ h1, h2, h3, p {
     margin: 0 0 5px
 }
 
-input {
-    border: 1px solid #cccccc;
+.info {
+    font-style: italic;
+    font-size: small;
+}
+
+.input > input {
+    border: 1px solid #ccc;
     border-radius: 3px;
+    font-size: medium;
+    padding: 3px;
 }
 
 div.input {
