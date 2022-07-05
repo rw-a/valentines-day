@@ -18,45 +18,43 @@
 <body>
     <div id="content">
         <form method="post"> {% csrf_token %}
-            <h2>Redeem Your Ticket</h2>
-            <p>Code is a string of 10 random letters</p>
-            <label for="id_code">Code: </label>
-            {{ form.code }}
-            <span id="code_info"></span><br>
-            <label hidden for="id_period">Period:</label>
-            {{ form.period }} <br>
-            <label for="id_recipient_id">Recipient: </label>
-            {{ form.recipient_id }} <br>
-            <label for="id_recipient_nickname">Nickname: </label>
-            {{ form.recipient_nickname }} <br>
-            {{ form.errors.recipient_nickname }}
-            <label for="id_message">Message: </label>
-            {{ form.message }} <br>
-            {{ form.errors.message }}
-            <label for="id_sender">Sender: </label>
-            {{ form.sender }} <br>
-            {{ form.errors.sender }}
+            <h1>Redeem Your Ticket</h1>
+            <div class="input" id="code-form">
+                <h3>Code</h3>
+                <p>Code is a string of 10 random letters</p>
+                {{ form.code }}
+                <p class="info" id="code_info"></p>
+            </div>
+            <div class="input" id="period-form" hidden="true">
+                <h3>Period</h3>
+                <p>Please select which period you would like the Special Serenade to happen in</p>
+                {{ form.period }}
+            </div>
+            <div class="input" id="recipient-form">
+                <h3>Recipient</h3>
+                {{ form.recipient_id }}
+            </div>
+            <div class="input" id="signature-pad">
+                <h3>Message</h3>
+                <p ckass="info">Handwrite your message</p>
+                <canvas id="canvas"></canvas>
+                <div>
+                    <button type="button" id="clear">Clear</button>
+                    <button type="button" id="undo">Undo</button>
+                </div>
+            </div>      
             <input disabled type="submit" value="Redeem">
         </form>
-        <div id="signature-pad">
-            <canvas id="canvas"></canvas>
-            <div>
-                <button type="button" id="clear">Clear</button>
-                <button type="button" id="undo">Undo</button>
-            </div>
-        </div>        
     </div>
 </body>
 <script>
     function set_special_serenade(is_special_serenade) {
         is_special = is_special_serenade;
         if (is_special) {
-            $('#id_period').show();
-            $('label[for="id_period"]').show();
+            $('#period-form').show();
             validate_period();
         } else {
-            $('#id_period').hide();
-            $('label[for="id_period"]').hide();
+            $('#period-form').hide();
             set_period_validity(true);
         }
     }
@@ -146,7 +144,6 @@
     }
 
     // check if period required for special serenade
-    $('#id_period').hide();
     let is_special = false;
 
     // verify code

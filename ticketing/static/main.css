@@ -5,8 +5,17 @@ body {
     margin: 0
 }
 
-h1,h2 {
+h1, h2, h3, p {
     margin: 0 0 5px
+}
+
+input {
+    border: 1px solid #cccccc;
+    border-radius: 3px;
+}
+
+div.input {
+    margin-top: 15px;
 }
 
 #content {
