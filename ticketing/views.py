@@ -108,7 +108,7 @@ def validate_code(request):
     data = {
         'is_exists': is_code_exists(code),
         'is_unconsumed': is_code_unconsumed(code),
-        'item_type': TicketCode.objects.filter_by_item_type(code=code)[0].item_type if is_code_exists(code) else ""
+        'item_type': TicketCode.objects.filter(code=code)[0].item_type if is_code_exists(code) else ""
         # if the code exists, get what item it is. if it doesn't leave it blank
     }
 

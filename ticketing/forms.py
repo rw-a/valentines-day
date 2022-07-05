@@ -67,7 +67,7 @@ class TicketForm(forms.Form):
         # verifies that the period chosen is valid (if special serenade)
         cleaned_data = super().clean()
         if 'code' in cleaned_data:
-            item_type = TicketCode.objects.filter_by_item_type(code=cleaned_data['code'])[0].item_type
+            item_type = TicketCode.objects.filter(code=cleaned_data['code'])[0].item_type
             if item_type == "Special Serenade":
                 period = cleaned_data['period']
                 if period == "-":
