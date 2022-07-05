@@ -2,35 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redeem Ticket</title>
     {% load static %}
     <script type="text/javascript" src="{% static 'jquery-3.6.0.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'chosen.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'signature_pad.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'main.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'chosen.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'signature_pad.css' %}">
     <link rel="icon" type="image/png" href="{% static 'heart.png' %}"/>
+    <style>
+    </style>
 </head>
 <body>
-    <form method="post"> {% csrf_token %}
-        <h2>Redeem Your Ticket</h2>
-        <p>Code is a string of 10 random letters</p>
-        <label for="id_code">Code: </label>
-        {{ form.code }}
-        <span id="code_info"></span><br>
-        <label hidden for="id_period">Period:</label>
-        {{ form.period }} <br>
-        <label for="id_recipient_id">Recipient: </label>
-        {{ form.recipient_id }} <br>
-        <label for="id_recipient_nickname">Nickname: </label>
-        {{ form.recipient_nickname }} <br>
-        {{ form.errors.recipient_nickname }}
-        <label for="id_message">Message: </label>
-        {{ form.message }} <br>
-        {{ form.errors.message }}
-        <label for="id_sender">Sender: </label>
-        {{ form.sender }} <br>
-        {{ form.errors.sender }}
-        <input disabled type="submit" value="Redeem">
-    </form>
+    <div id="content">
+        <form method="post"> {% csrf_token %}
+            <h2>Redeem Your Ticket</h2>
+            <p>Code is a string of 10 random letters</p>
+            <label for="id_code">Code: </label>
+            {{ form.code }}
+            <span id="code_info"></span><br>
+            <label hidden for="id_period">Period:</label>
+            {{ form.period }} <br>
+            <label for="id_recipient_id">Recipient: </label>
+            {{ form.recipient_id }} <br>
+            <label for="id_recipient_nickname">Nickname: </label>
+            {{ form.recipient_nickname }} <br>
+            {{ form.errors.recipient_nickname }}
+            <label for="id_message">Message: </label>
+            {{ form.message }} <br>
+            {{ form.errors.message }}
+            <label for="id_sender">Sender: </label>
+            {{ form.sender }} <br>
+            {{ form.errors.sender }}
+            <input disabled type="submit" value="Redeem">
+        </form>
+        <div id="signature-pad">
+            <canvas id="canvas"></canvas>
+            <div>
+                <button type="button" id="clear">Clear</button>
+                <button type="button" id="undo">Undo</button>
+            </div>
+        </div>        
+    </div>
 </body>
 <script>
     function set_special_serenade(is_special_serenade) {
@@ -100,7 +115,7 @@
         if (inputted_code.length == 10) {
             document.getElementById('code_info').innerText = null;
             $.ajax({
-                url: '{% url 'ticketing:validate_code' %}',
+                url: "{% url 'ticketing:validate_code' %}",
                 data: {
                     'inputted_code': inputted_code
                 },
@@ -147,11 +162,54 @@
     $('#id_recipient_id').chosen();
 
     // on page reload, check if a code is already filled, and validate the inputs
-        window.onload = (event) => {
+    window.onload = (event) => {
         if ($('#id_code').val().length > 0) {
             validate_recipient();
             validate_code();
         }
     }
+
+    // signature pad
+    const wrapper = document.getElementById("signature-pad");
+    const canvas = document.getElementById("canvas");
+    const signaturePad = new SignaturePad(canvas, {
+      backgroundColor: 'rgb(245, 245, 245)',
+      minDistance: 1
+    });
+
+    var signaturePadData = {};
+    signaturePad.addEventListener("endStroke", () => {
+        signaturePadData = signaturePad.toData();
+    });
+
+    // scale canvas for retina display
+    function resizeCanvas() {
+        const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
+        signaturePad.clear();
+        if (Object.keys(signaturePadData).length) {
+            signaturePad.fromData(signaturePadData);
+        }
+    }
+    window.onresize = resizeCanvas;
+    resizeCanvas();
+
+    // clear button
+    const clearButton = document.getElementById("clear");
+    clearButton.addEventListener("click", () => {
+      signaturePad.clear();
+    });
+
+    // undo button
+    const undoButton = document.getElementById("undo");
+    undoButton.addEventListener("click", () => {
+        if (Object.keys(signaturePadData).length) {
+            signaturePadData.pop(); // remove the last dot or line
+            signaturePad.fromData(signaturePadData);
+        }
+    });
+
 </script>
 </html>
