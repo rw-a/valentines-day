@@ -4,9 +4,11 @@ import os
 
 class DirectoryLocations:
     """Directory Locations"""
-    PDF_TEMPLATES = "pdf_templates"        # the folder containing blank PDFs of the ticket codes and tickets
+    STUDENT_INFO = "student_info"           # the folder containing the list of students and their classes as csv files
+    PDF_TEMPLATES = "pdf_templates"             # the folder containing blank PDFs of the ticket codes and tickets
     GENERATED_TICKET_CODES = "generated_codes"  # the folder containing filled PDFs of ticket codes
-    STUDENT_INFO = "student_info"
+    REDEEMED_TICKETS = "redeemed_tickets"       # the folder containing the handwritten messages of redeemed tickets
+    GENERATED_TICKETS = "generated_tickets"     # the folder containing the PDFs of the tickets to print
 
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_dirs__(self):

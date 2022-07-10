@@ -1,23 +1,25 @@
-import random
+from svglib.svglib import svg2rlg
+from reportlab.graphics import renderPM
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate
+from reportlab.platypus import SimpleDocTemplate, Image
 from reportlab.platypus.tables import Table, TableStyle
+from constants import DirectoryLocations
 
 
 class TicketsToPDF:
-    def __init__(self, ticket_codes: list, item_type: str, pdf_output_name: str):
-        self.ticket_codes = ticket_codes
-        self.item_type = item_type
+    def __init__(self, tickets: list,  pdf_output_name: str):
+        self.tickets = tickets
         self.pdf_output_name = pdf_output_name
 
         """Constants"""
-        self.NUM_COLUMNS = 5
-        self.NUM_ROWS = 20
+        self.NUM_COLUMNS = 2
+        self.NUM_ROWS = 5
         self.NUM_CODES_PER_PAGE = self.NUM_COLUMNS * self.NUM_ROWS
 
         self.MARGIN = 1 * cm
+        self.PADDING = 0          # the padding for each cell in the table
         self.WIDTH, self.HEIGHT = A4
 
         self.generate_pdf()
@@ -29,7 +31,7 @@ class TicketsToPDF:
 
         # split the list into pages
         pages = []
-        for codes in self.split_list(self.ticket_codes, self.NUM_CODES_PER_PAGE):     # for each page of codes
+        for tickets in self.split_list(self.tickets, self.NUM_CODES_PER_PAGE):     # for each page of codes
             # calculate table dimensions
             width = self.WIDTH - 2 * self.MARGIN - cm
             height = self.HEIGHT - 2 * self.MARGIN - cm
@@ -37,11 +39,15 @@ class TicketsToPDF:
             row_height = height / self.NUM_ROWS
 
             # split the list again into rows
-            data = self.split_list(self.add_itemtype_to_codes(codes), self.NUM_COLUMNS)
+            data = self.split_list(self.create_images(
+                tickets, col_width - 2 * self.PADDING, row_height - 2 * self.PADDING), self.NUM_COLUMNS)
 
             table = Table(data, colWidths=col_width, rowHeights=row_height)
             table.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
+                # ('LEFTPADDING', (0, 0), (-1, -1), self.PADDING),
+                # ('RIGHTPADDING', (0, 0), (-1, -1), self.PADDING),
+                # ('BOTTOMPADDING', (0, 0), (-1, -1), self.PADDING),
+                # ('TOPPADDING', (0, 0), (-1, -1), self.PADDING),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
@@ -50,8 +56,17 @@ class TicketsToPDF:
             pages.append(table)
         doc.build(pages)
 
-    def add_itemtype_to_codes(self, ticket_codes: list):
-        return [f"{code}\n{self.item_type}" for code in ticket_codes]
+    def create_images(self, tickets: list, width: float, height: float):
+        images = []
+        for ticket_id in tickets:
+            image = Image(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket_id}.png")
+            scale_width = width / image.drawWidth
+            scale_height = height / image.drawHeight
+            scale = min(scale_width, scale_height)  # scales it so that the image always fits and aspect ratio the same
+            image.drawWidth *= scale
+            image.drawHeight *= scale
+            images.append(image)
+        return images
 
     @staticmethod
     def split_list(ticket_codes: list, split_size: int):
@@ -60,7 +75,7 @@ class TicketsToPDF:
 
 
 def main():
-    tickets = []
+    tickets = ["hello", "hi", "nice meme"]
     TicketsToPDF(tickets, 'export.pdf')
 
 
