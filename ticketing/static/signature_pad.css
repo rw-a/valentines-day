@@ -3,9 +3,11 @@
     top: 0;
     width: 600px;
     height: 356px;
-    user-select: none;
+    background-color: #f5f5f5;
+    
     -webkit-user-select: none; /* Safari */
     -khtml-user-select: none; /* Konqueror HTML */
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
 }

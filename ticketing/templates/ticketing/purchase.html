@@ -36,11 +36,12 @@
             </div>
             <div class="input" id="signature-pad">
                 <h3>Message</h3>
-                <p ckass="info">Handwrite your message</p>
+                <p class="info">Handwrite your message</p>
                 <canvas id="canvas"></canvas>
                 <div>
                     <button type="button" id="clear">Clear</button>
                     <button type="button" id="undo">Undo</button>
+                    <button type="button" id="save">Save</button>
                 </div>
             </div>      
             <input disabled id="redeem" type="submit" value="Redeem">
@@ -170,8 +171,9 @@
     const wrapper = document.getElementById("signature-pad");
     const canvas = document.getElementById("canvas");
     const signaturePad = new SignaturePad(canvas, {
-      backgroundColor: 'rgb(245, 245, 245)',
-      minDistance: 1
+      minDistance: 1,
+      minWidth: 0.4,
+      maxWidth: 1.5
     });
 
     var signaturePadData = {};
@@ -181,7 +183,7 @@
 
     // scale canvas for retina display
     function resizeCanvas() {
-        const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+        const ratio =  Math.max(window.devicePixelRatio || 1, 1) * 3;
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
         canvas.getContext("2d").scale(ratio, ratio);
@@ -206,6 +208,46 @@
             signaturePadData.pop(); // remove the last dot or line
             signaturePad.fromData(signaturePadData);
         }
+    });
+
+    function download(dataURL, filename) {
+      const blob = dataURLToBlob(dataURL);
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.style = "display: none";
+      a.href = url;
+      a.download = filename;
+
+      document.body.appendChild(a);
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+    }
+
+    function dataURLToBlob(dataURL) {
+      const parts = dataURL.split(';base64,');
+      const contentType = parts[0].split(":")[1];
+      const raw = window.atob(parts[1]);
+      const rawLength = raw.length;
+      const uInt8Array = new Uint8Array(rawLength);
+
+      for (let i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+      }
+
+      return new Blob([uInt8Array], { type: contentType });
+    }
+
+    // save button
+    const saveButton = document.getElementById("save");
+    saveButton.addEventListener("click", () => {
+       if (signaturePad.isEmpty()) {
+        alert("Please provide a signature first.");
+      } else {
+        const dataURL = signaturePad.toDataURL();
+        download(dataURL, "signature.png");
+      }
     });
 
 </script>
