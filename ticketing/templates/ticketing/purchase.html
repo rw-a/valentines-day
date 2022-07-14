@@ -21,7 +21,7 @@
             <h1>Redeem Your Ticket</h1>
             <div class="input" id="code-form">
                 <h3>Code</h3>
-                <p>Code is a string of 10 random letters</p>
+                <p class="info">The code is a string of 10 random letters. You buy this in person from the prefects.</p>
                 {{ form.code }}
                 <p class="info" id="code_info"></p>
             </div>
@@ -32,18 +32,37 @@
             </div>
             <div class="input" id="recipient-form">
                 <h3>Recipient</h3>
+                <p class="info">This is so we know who to send it to.</p>
                 {{ form.recipient_id }}
+            </div>
+            <div class="input" id="is_handwritten-form">
+                <h3>Handwritten or Typed?</h3>
+                {{ form.is_handwritten }}
+            </div>
+            <div hidden class="input" id="typed-ticket">
+                <div class="input" id="recipient_nickname-form">
+                    <h3>To</h3>
+                    <p class="info">This is the name <u>you</u> give to the recipient. It's what they see, so be creative!</p>
+                    {{ form.recipient_nickname }}
+                </div>
+                <div class="input" id="message-form">
+                    <h3>Message</h3>
+                    {{ form.message }}
+                </div>
+                <div class="input" id="sender-form">
+                    <h3>From</h3>
+                    {{ form.message }}
+                </div>
             </div>
             <div class="input" id="signature-pad">
                 <h3>Message</h3>
-                <p class="info">Handwrite your message</p>
                 <canvas id="canvas"></canvas>
                 <div>
                     <button type="button" id="clear">Clear</button>
                     <button type="button" id="undo">Undo</button>
                     <button type="button" id="save">Save</button>
                 </div>
-            </div>      
+            </div>
             <input disabled id="redeem" type="submit" value="Redeem">
         </form>
     </div>
@@ -144,6 +163,17 @@
         }
     }
 
+    function set_content_mode() {
+        is_handwritten = document.getElementById('id_is_handwritten').value;
+        if (is_handwritten == "True") {
+            $('#typed-ticket').hide();
+            $('#signature-pad').show();
+        } else {
+            $('#typed-ticket').show();
+            $('#signature-pad').hide();
+        }
+    }
+
     // check if period required for special serenade
     let is_special = false;
 
@@ -158,6 +188,10 @@
 
     // add dropdown search for recipient
     $('#id_recipient_id').chosen();
+
+    // check which mode is used to write the ticket
+    let is_handwritten = true;
+    $('#id_is_handwritten').on('change', set_content_mode);
 
     // on page reload, check if a code is already filled, and validate the inputs
     window.onload = (event) => {
@@ -183,7 +217,7 @@
 
     // scale canvas for retina display
     function resizeCanvas() {
-        const ratio =  Math.max(window.devicePixelRatio || 1, 1) * 3;
+        const ratio =  5;
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
         canvas.getContext("2d").scale(ratio, ratio);

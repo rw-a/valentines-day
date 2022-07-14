@@ -25,9 +25,24 @@ class TicketForm(forms.Form):
                for student_id, student_dict in STUDENTS.items()]
     choices.insert(0, ("NONE", ""))
     recipient_id = forms.ChoiceField(choices=choices)      # note: will be stored as an ID
-    recipient_nickname = forms.CharField(max_length=MaxLengths.TICKET_RECIPIENT_NICKNAME)
+
+    templates = [
+        (1, "Classic Ticket"),
+        (2, "Clean Ticket")
+    ]
+
+    """If typed"""
+    recipient_nickname = forms.CharField(max_length=MaxLengths.TICKET_RECIPIENT_NICKNAME, required=False)
     message = forms.CharField(max_length=MaxLengths.TICKET_MESSAGE, required=False)
     sender = forms.CharField(max_length=MaxLengths.TICKET_SENDER, required=False)
+    typed_template = forms.ChoiceField(choices=templates)
+
+    """If handwritten"""
+    is_handwritten = forms.ChoiceField(required=True, choices=[(True, "Handwritten"), (False, 'Typed')])
+    handwritten_message = forms.CharField(min_length=10)    # the dataURL of the png image
+    handwriting_templates = templates[:]
+    handwriting_templates.append((0, 'Blank'))
+    handwriting_template = forms.ChoiceField(choices=handwriting_templates)
 
     def clean_code(self):
         # verifies that the code is valid and hasn't already been used

@@ -71,10 +71,6 @@ class TicketCode(models.Model):
 class Ticket(models.Model):
     recipient_id = models.CharField(max_length=12,  # student ID length is 11
                                     help_text="The Student ID of the recipient of this ticket")
-    recipient_nickname = models.CharField(max_length=MaxLengths.TICKET_RECIPIENT_NICKNAME, null=True, blank=True,
-                                          help_text="The nickname of the recipient given by the sender")
-    message = models.CharField(max_length=MaxLengths.TICKET_MESSAGE, null=True, blank=True)
-    sender = models.CharField(max_length=MaxLengths.TICKET_SENDER, null=True, blank=True)
     item_type = models.CharField(
         max_length=20,
         choices=[
@@ -85,9 +81,19 @@ class Ticket(models.Model):
         ],
         default='Serenade'
     )
+    template = models.IntegerField()
+
     period = models.PositiveIntegerField(null=True, blank=True, help_text="Only add if this is a special serenade.")
-    is_handwritten = models.BooleanField(default=True, help_text="If you are manually adding this ticket, "
-                                                                 "then it is likely handwritten.")
+
+    # These are only if the ticket is typed instead of handwritten
+    recipient_nickname = models.CharField(max_length=MaxLengths.TICKET_RECIPIENT_NICKNAME, null=True, blank=True,
+                                          help_text="The nickname of the recipient given by the sender")
+    message = models.CharField(max_length=MaxLengths.TICKET_MESSAGE, null=True, blank=True)
+    sender = models.CharField(max_length=MaxLengths.TICKET_SENDER, null=True, blank=True)
+
+    # These are if the ticket is handwritten instead of typed
+    is_handwritten = models.BooleanField(default=False)
+    handwritten_message = models.TextField(null=True, blank=True)
 
     # links ticket to the code which made it. can also be null if it was manually created by prefect
     code = models.OneToOneField(TicketCode, on_delete=models.SET_NULL, null=True, blank=True,

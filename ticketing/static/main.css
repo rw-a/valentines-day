@@ -9,6 +9,12 @@ h1, h2, h3, p {
     margin: 0 0 5px
 }
 
+select {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 3px;
+}
+
 .info {
     font-style: italic;
     font-size: small;
