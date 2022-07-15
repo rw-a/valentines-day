@@ -23,7 +23,7 @@ class TicketForm(forms.Form):
 
     choices = [(student_id, f"{student_dict['Name']} [{student_dict['ARC']}]")
                for student_id, student_dict in STUDENTS.items()]
-    choices.insert(0, ("NONE", ""))
+    choices.insert(0, (" ", ""))
     recipient_id = forms.ChoiceField(choices=choices)      # note: will be stored as an ID
 
     templates = [

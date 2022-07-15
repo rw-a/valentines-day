@@ -21,19 +21,21 @@
             <h1>Redeem Your Ticket</h1>
             <div class="input" id="code-form">
                 <h3>Code</h3>
-                <p class="info">The code is a string of 10 random letters. You buy this in person from the prefects.</p>
+                <p class="info">A string of 10 random <u>letters</u>. You buy this in person from the prefects.</p>
                 {{ form.code }}
-                <p class="info" id="code_info"></p>
+                <p hidden class="info error" id="code-error"></p>
             </div>
             <div class="input" id="period-form" hidden="true">
                 <h3>Period</h3>
-                <p>Please select which period you would like the Special Serenade to happen in</p>
+                <p class="info">Please select which period you would like the Special Serenade to happen in.</p>
                 {{ form.period }}
+                <p hidden class="info error" id="'period-error">*Required</p>
             </div>
             <div class="input" id="recipient-form">
                 <h3>Recipient</h3>
                 <p class="info">This is so we know who to send it to.</p>
                 {{ form.recipient_id }}
+                <p hidden class="info error" id="recipient-error">*Required</p>
             </div>
             <div class="input" id="is_handwritten-form">
                 <h3>Handwritten or Typed?</h3>
@@ -44,14 +46,17 @@
                     <h3>To</h3>
                     <p class="info">This is the name <u>you</u> give to the recipient. It's what they see, so be creative!</p>
                     {{ form.recipient_nickname }}
+                    <p hidden class="info error" id="recipient_nickname_error">*Required</p>
                 </div>
                 <div class="input" id="message-form">
                     <h3>Message</h3>
                     {{ form.message }}
+                    <p hidden class="info error" id="message_error">*Required</p>
                 </div>
                 <div class="input" id="sender-form">
                     <h3>From</h3>
-                    {{ form.message }}
+                    {{ form.sender }}
+                    <p hidden class="info error" id="sender_error">*Required</p>
                 </div>
             </div>
             <div class="input" id="signature-pad">
@@ -62,76 +67,40 @@
                     <button type="button" id="undo">Undo</button>
                     <button type="button" id="save">Save</button>
                 </div>
+                <p hidden class="info error" id="handwriting-error">*Required</p>
             </div>
-            <input disabled id="redeem" type="submit" value="Redeem">
+            <br>
+            <button type="button" id="redeem">Redeem</button>
         </form>
     </div>
 </body>
 <script>
-    function set_special_serenade(is_special_serenade) {
-        is_special = is_special_serenade;
-        if (is_special) {
-            $('#period-form').show();
-            validate_period();
-        } else {
-            $('#period-form').hide();
-            set_period_validity(true);
-        }
-    }
-
-    // wraps setting the recipient/code validity so that it also updates the button
-    function set_recipient_validity(recipient_validity) {
-        is_recipient_valid = recipient_validity;
-        check_validity();
-    }
-    function set_code_validity(code_validity) {
-        is_code_valid = code_validity;
-        if (is_code_valid) {
-            document.getElementById('id_code').style.borderColor = "lime";
-        } else {
-            document.getElementById('id_code').style.borderColor = "red";
-            set_special_serenade(false);    // if the code is invalid, it can't be special
-        }
-        check_validity();
-    }
-    function set_period_validity(period_validity) {
-        is_period_valid = period_validity;
-        check_validity();
-    }
-
-    // checks if both code and recipient are valid to disable/enable submit button
+    /* INPUT VALIDATION */
+    let is_special = false;
+    let is_code_valid = false;
     function check_validity() {
-        if (is_recipient_valid && is_code_valid && is_period_valid) {
-            document.querySelector('input[type="submit"]').disabled = false;
+        // these are stored in variables first to prevent short-circuiting
+        let validate_code = is_valid_code();
+        let validate_period = is_valid_period();
+        let validate_recipient = is_valid_recipient();
+        if (document.getElementById('id_is_handwritten').value == "True") {
+            var validate_content = is_valid_handwriting();
         } else {
-            document.querySelector('input[type="submit"]').disabled = true;
+            validate_content = is_valid_typed();
         }
-    }
 
-    function validate_period() {
-        let period = $('#id_period').val();
-        if (period >= 1 && period <= 4) {
-            set_period_validity(true);
-        } else {
-            set_period_validity(false);
-        }
-    }
-
-    function validate_recipient() {
-        // check if the user actually inputted someone
-        let recipient = $('#id_recipient_id').val();
-        if (recipient.length > 3) {
-            set_recipient_validity(true);
-        } else {
-            set_recipient_validity(false);
+        if (is_code_valid && validate_period && validate_recipient && validate_content) {
+            document.querySelector('form').submit();
         }
     }
 
     // btw this is also verified in the backend
-    function validate_code() {
+    function is_valid_code() {
+        document.getElementById('code-error').hidden = false;
+        is_special = false;
+
         let inputted_code = $('#id_code').val();
         if (inputted_code.length == 10) {
-            document.getElementById('code_info').innerText = null;
             $.ajax({
                 url: "{% url 'ticketing:validate_code' %}",
                 data: {
@@ -141,31 +110,106 @@
                 success: function(data) {
                     // on response from server
                     if (data.is_exists) {
-                        document.getElementById('code_info').innerText = data.item_type;
                         if (data.is_unconsumed) {
-                            set_code_validity(true);
-                            if (data.item_type == "Special Serenade") {
-                                set_special_serenade(true);
-                            }
+                            document.getElementById('code-error').innerText = data.item_type;
+                            document.getElementById('code-error').style.color = 'green';
+                            is_code_valid = true;
+                            if (data.item_type == "Special Serenade") is_special = true;
                         } else {
-                            document.getElementById('code_info').innerText = "Code has already been used.";
-                            set_code_validity(false);
+                            document.getElementById('code-error').innerText = "Code has already been used.";
+                            document.getElementById('code-error').style.color = 'red';
+                            is_code_valid = false;
                         }
                     } else {
-                        document.getElementById('code_info').innerText = "Code doesn't exist.";
-                        set_code_validity(false);
+                        document.getElementById('code-error').innerText = "Code doesn't exist.";
+                        document.getElementById('code-error').style.color = 'red';
+                        is_code_valid = false;
                     }
                  }
             });
         } else {
-            document.getElementById('code_info').innerText = "Code must exactly 10 characters long.";
-            set_code_validity(false);
+            document.getElementById('code-error').innerText = "Code must exactly 10 characters long.";
+            document.getElementById('code-error').style.color = 'red';
+            is_code_valid = false;
         }
     }
 
-    function set_content_mode() {
-        is_handwritten = document.getElementById('id_is_handwritten').value;
-        if (is_handwritten == "True") {
+    function is_valid_period() {
+        if (is_special) {
+            let period = $('#id_period').val();
+            if (period >= 1 && period <= 4) {
+                document.getElementById('period-error').hidden = true;
+                return true;
+            } else {
+                document.getElementById('period-error').hidden = false;
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+    
+    function is_valid_recipient() {
+        // check if the user actually inputted someone
+        let recipient = $('#id_recipient_id').val();
+        if (recipient.length > 3) {
+            document.getElementById('recipient-error').hidden = true;
+            return true;
+        } else {
+            document.getElementById('recipient-error').hidden = false;
+            return false;
+        }
+    }
+
+    function is_valid_handwriting() {
+        if (signaturePad.isEmpty()) {
+            $('#handwriting-error').show();
+            return false;
+        } else {
+            $('#handwriting-error').hide();
+            return true;
+        }
+    }
+
+    function is_valid_typed() {
+        let validate_recipient_nickname = is_valid_recipient_nickname();
+        let validate_message = is_valid_message();
+        let validate_sender = is_valid_sender();
+        return (validate_recipient_nickname && validate_message && validate_sender);
+    }
+
+    function is_valid_recipient_nickname() {
+        if (document.getElementById('id_recipient_nickname').value.length > 0) {
+            document.getElementById('recipient_nickname_error').hidden = true;
+            return true;
+        } else {
+            document.getElementById('recipient_nickname_error').hidden = false;
+            return false;
+        }
+    }
+
+    function is_valid_message() {
+        if (document.getElementById('id_message').value.length > 0) {
+            document.getElementById('message_error').hidden = true;
+            return true;
+        } else {
+            document.getElementById('message_error').hidden = false;
+            return false;
+        }
+    }
+
+    function is_valid_sender() {
+        if (document.getElementById('id_sender').value.length > 0) {
+            document.getElementById('sender_error').hidden = true;
+            return true;
+        } else {
+            document.getElementById('sender_error').hidden = false;
+            return false;
+        }
+    }
+
+    function set_content_mode(event) {
+        if (event.target.value == "True") {
             $('#typed-ticket').hide();
             $('#signature-pad').show();
         } else {
@@ -174,34 +218,17 @@
         }
     }
 
-    // check if period required for special serenade
-    let is_special = false;
+    document.getElementById('id_code').addEventListener('input', is_valid_code);
+    document.getElementById('redeem').addEventListener('click', check_validity);
 
-    // verify code
-    let is_recipient_valid = false;
-    let is_code_valid = false;
-    let is_period_valid = true;
-
-    $('#id_recipient_id').on('change', () => {validate_recipient(); validate_code();});
-    $('#id_code').on('input', validate_code);
-    $('#id_period').on('change', validate_period);
+    // check which mode is used to write the ticket
+    $('#id_is_handwritten').on('change', set_content_mode);
 
     // add dropdown search for recipient
     $('#id_recipient_id').chosen();
+    
 
-    // check which mode is used to write the ticket
-    let is_handwritten = true;
-    $('#id_is_handwritten').on('change', set_content_mode);
-
-    // on page reload, check if a code is already filled, and validate the inputs
-    window.onload = (event) => {
-        if ($('#id_code').val().length > 0) {
-            validate_recipient();
-            validate_code();
-        }
-    }
-
-    // signature pad
+    /* SIGNATURE PAD */
     const wrapper = document.getElementById("signature-pad");
     const canvas = document.getElementById("canvas");
     const signaturePad = new SignaturePad(canvas, {
@@ -241,7 +268,7 @@
         if (Object.keys(signaturePadData).length) {
             signaturePadData.pop(); // remove the last dot or line
             signaturePad.fromData(signaturePadData);
-        }
+        }   
     });
 
     function download(dataURL, filename) {

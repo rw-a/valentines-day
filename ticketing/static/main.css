@@ -37,6 +37,14 @@ div.input {
     margin-top: 15px;
 }
 
+p.error {
+    color: red;
+}
+
+#id_recipient_id {
+    width: 280px
+}
+
 #content {
     margin: auto;
     max-width: 700px;
