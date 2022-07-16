@@ -1,13 +1,22 @@
-#canvas {
-    left: 0;
-    top: 0;
+#canvas_wrapper {
+    position: relative;
     width: 600px;
     height: 356px;
-    background-color: #f5f5f5;
-    
+    margin-bottom: 5px;
+
     -webkit-user-select: none; /* Safari */
     -khtml-user-select: none; /* Konqueror HTML */
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none;
+}
+
+#canvas, #canvas_image {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 600px;
+    height: 356px;
+    background: #fdfdfd;
+    border: 1px solid black;
 }

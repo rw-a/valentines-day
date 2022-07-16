@@ -70,7 +70,10 @@
                 </div>
                 <div class="input">
                     <h3>Message</h3>
-                    <canvas id="canvas"></canvas>
+                    <div id="canvas_wrapper">
+                        <img title="Template" id="canvas_image" src="{% static 'classic_template.png' %}" />
+                        <canvas id="canvas"></canvas>
+                    </div>
                     <div>
                         <button type="button" id="clear">Clear</button>
                         <button type="button" id="undo">Undo</button>
@@ -236,7 +239,11 @@
         }
     }
 
-    function set_content_mode(event) {
+    document.getElementById('id_code').addEventListener('input', is_valid_code);
+    document.getElementById('redeem').addEventListener('click', check_validity);
+
+    /* CHOOSING CONTENT MODE AND TEMPLATE*/
+    document.getElementById('id_is_handwritten').addEventListener('change', () => {
         if (event.target.value == "True") {
             $('#typed-ticket').hide();
             $('#signature-pad').show();
@@ -244,13 +251,18 @@
             $('#typed-ticket').show();
             $('#signature-pad').hide();
         }
-    }
+    })
 
-    document.getElementById('id_code').addEventListener('input', is_valid_code);
-    document.getElementById('redeem').addEventListener('click', check_validity);
-
-    // check which mode is used to write the ticket
-    $('#id_is_handwritten').on('change', set_content_mode);
+    document.getElementById('id_handwriting_template').addEventListener('change', (event) => {
+        console.log(event)
+        let template = event.target.value;
+            if (template == "0") {
+                document.getElementById('canvas').style = "background: #fdfdfd";
+            } else if (template == "1") {
+                document.getElementById('canvas').style = "background: none";
+                document.getElementById('canvas_image').src = "{% static 'classic_template.png' %}";
+            }
+    })
 
     // add dropdown search for recipient
     $('#id_recipient_id').chosen();

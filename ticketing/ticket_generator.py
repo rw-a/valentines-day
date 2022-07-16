@@ -16,7 +16,7 @@ class TicketsToPDF:
         self.NUM_ROWS = 5
         self.NUM_CODES_PER_PAGE = self.NUM_COLUMNS * self.NUM_ROWS
 
-        self.MARGIN = 1 * cm
+        self.MARGIN = 1 * cm      # an additional 0.5cm will be added to the table
         self.PADDING = 0          # the padding for each cell in the table
         self.WIDTH, self.HEIGHT = A4
 
