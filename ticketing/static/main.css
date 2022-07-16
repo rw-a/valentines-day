@@ -19,11 +19,6 @@ select {
     background-position: right center;
 }
 
-button {
-    background: none;
-    border: none;
-}
-
 span {
     border: none;
     width: 30px;
