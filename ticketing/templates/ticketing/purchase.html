@@ -276,7 +276,9 @@
     })
 
     // add dropdown search for recipient
-    $('#id_recipient_id').chosen();
+    $('#id_recipient_id').chosen({
+        placeholder_text_single: "Select a person..."
+    });
     
 
     /* SIGNATURE PAD */
