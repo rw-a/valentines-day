@@ -68,20 +68,20 @@ class TicketsToPDF:
         images = []
         for ticket in tickets:
             # resize the canvas
-            with open(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket}.svg") as file:
+            with open(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket.id}.svg") as file:
                 xml_file = etree.parse(file).getroot()
                 # change the view box to the dimensions of the canvas
                 xml_file.set('viewBox', f'0 0 {self.CELL_WIDTH} {self.CELL_HEIGHT}')
 
             # add the template if required
-            if True:
+            if ticket.template > 0:
                 handwritten_image = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
                     bytestring=etree.tostring(xml_file), write_to=None,
                     output_width=self.CELL_WIDTH * self.RATIO, output_height=self.CELL_HEIGHT * self.RATIO)))
                 combined_image = PIL.Image.new('RGBA', (handwritten_image.width, handwritten_image.height), (255, 255, 255, 0))
                 combined_image.alpha_composite(handwritten_image)
 
-                if True:
+                if ticket.template == 1:
                     combined_image.alpha_composite(classic_template)
 
                 # save as bytes
@@ -91,9 +91,11 @@ class TicketsToPDF:
                 img_bytes = io.BytesIO(cairosvg.svg2png(bytestring=etree.tostring(xml_file), write_to=None))
 
             image = Image(img_bytes)
+
+            # scale image to correct size, while maintaining aspect ratio
             scale_width = width / image.drawWidth
             scale_height = height / image.drawHeight
-            scale = min(scale_width, scale_height)  # scales it so that the image always fits and aspect ratio the same
+            scale = min(scale_width, scale_height)
             image.drawWidth *= scale
             image.drawHeight *= scale
 
@@ -107,7 +109,12 @@ class TicketsToPDF:
 
 
 def main():
-    tickets = ["1", "2", "3", "4"]
+    class Ticket:
+        def __init__(self, id, template: int):
+            self.id = id
+            self.template = template
+
+    tickets = [Ticket(1, 1), Ticket(2, 0), Ticket(3, 1), Ticket(4, 1)]
     TicketsToPDF(tickets, 'export.pdf')
 
 
