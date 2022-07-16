@@ -85,7 +85,6 @@
 }
 
 .chosen-container-single .chosen-single span {
-  display: block;
   overflow: hidden;
   margin-right: 26px;
   text-overflow: ellipsis;
