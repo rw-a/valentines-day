@@ -19,7 +19,7 @@ def stats(request):
     if "count" in request.GET:
         # if refreshing the item count
         data = {}
-        for choice in Ticket.item_type.field.choices:
+        for choice in Ticket.item_type.field.students:
             item_type = choice[0]
             item_type_name = item_type.lower().replace(' ', '_')
             # get total ticket codes created
@@ -72,7 +72,12 @@ def purchase(request):
             # process the data in form.cleaned_data as required
 
             # get the corresponding ticket code
-            ticket_code = TicketCode.objects.filter_by_item_type(code=form.cleaned_data['code'])[0]
+            ticket_code = TicketCode.objects.filter(code=form.cleaned_data['code'])[0]
+
+            if form.cleaned_data['is_handwritten']:
+                template = form.cleaned_data['handwriting_template']
+            else:
+                template = form.cleaned_data['typed_template']
 
             # make the ticket
             ticket = Ticket(
@@ -81,7 +86,8 @@ def purchase(request):
                 message=form.cleaned_data['message'],
                 sender=form.cleaned_data['sender'],
                 item_type=ticket_code.item_type,
-                is_handwritten=False,
+                is_handwritten=form.cleaned_data['is_handwritten'],
+                template=template,
                 code=ticket_code
                 )
             if ticket.item_type == "Special Serenade":

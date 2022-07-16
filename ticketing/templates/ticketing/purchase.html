@@ -25,11 +25,11 @@
                 {{ form.code }}
                 <p hidden class="info error" id="code-error"></p>
             </div>
-            <div class="input" id="period-form" hidden="true">
+            <div hidden class="input" id="period-form">
                 <h3>Period</h3>
                 <p class="info">Please select which period you would like the Special Serenade to happen in.</p>
                 {{ form.period }}
-                <p hidden class="info error" id="'period-error">*Required</p>
+                <p hidden class="info error" id="period-error">*Required</p>
             </div>
             <div class="input" id="recipient-form">
                 <h3>Recipient</h3>
@@ -42,6 +42,10 @@
                 {{ form.is_handwritten }}
             </div>
             <div hidden class="input" id="typed-ticket">
+                <div class="input" id="typed_template_form">
+                    <h3>Template</h3>
+                    {{ form.typed_template }}
+                </div>
                 <div class="input" id="recipient_nickname-form">
                     <h3>To</h3>
                     <p class="info">This is the name <u>you</u> give to the recipient. It's what they see, so be creative!</p>
@@ -60,14 +64,20 @@
                 </div>
             </div>
             <div class="input" id="signature-pad">
-                <h3>Message</h3>
-                <canvas id="canvas"></canvas>
-                <div>
-                    <button type="button" id="clear">Clear</button>
-                    <button type="button" id="undo">Undo</button>
-                    <button type="button" id="save">Save</button>
+                <div class="input" id="typed_template_form">
+                    <h3>Template</h3>
+                    {{ form.handwriting_template }}
                 </div>
-                <p hidden class="info error" id="handwriting-error">*Required</p>
+                <div class="input">
+                    <h3>Message</h3>
+                    <canvas id="canvas"></canvas>
+                    <div>
+                        <button type="button" id="clear">Clear</button>
+                        <button type="button" id="undo">Undo</button>
+                        <button type="button" id="save">Save a copy</button>
+                    </div>
+                    <p hidden class="info error" id="handwriting-error">*Required</p>
+                </div>
             </div>
             <br>
             <button type="button" id="redeem">Redeem</button>
@@ -78,9 +88,14 @@
     /* INPUT VALIDATION */
     let is_special = false;
     let is_code_valid = false;
-    function check_validity() {
+    function check_validity(event, code_validated = false) {
+        console.log("Checking")
         // these are stored in variables first to prevent short-circuiting
-        let validate_code = is_valid_code();
+        if (code_validated) {  // don't validate code if this was called from the is_valid_code function to prevent recursion
+            var validate_code = true;
+        } else {
+            validate_code = is_valid_code(null, true);
+        }
         let validate_period = is_valid_period();
         let validate_recipient = is_valid_recipient();
         if (document.getElementById('id_is_handwritten').value == "True") {
@@ -89,13 +104,13 @@
             validate_content = is_valid_typed();
         }
 
-        if (is_code_valid && validate_period && validate_recipient && validate_content) {
+        if (validate_code && validate_period && validate_recipient && validate_content) {
             document.querySelector('form').submit();
         }
     }
 
     // btw this is also verified in the backend
-    function is_valid_code() {
+    function is_valid_code(event, submit = false) {
         document.getElementById('code-error').hidden = false;
         is_special = false;
 
@@ -115,15 +130,19 @@
                             document.getElementById('code-error').style.color = 'green';
                             is_code_valid = true;
                             if (data.item_type == "Special Serenade") is_special = true;
+                            show_period();
+                            if (submit) check_validity(null, code_validated = true);
                         } else {
                             document.getElementById('code-error').innerText = "Code has already been used.";
                             document.getElementById('code-error').style.color = 'red';
                             is_code_valid = false;
+                            show_period();
                         }
                     } else {
                         document.getElementById('code-error').innerText = "Code doesn't exist.";
                         document.getElementById('code-error').style.color = 'red';
                         is_code_valid = false;
+                        show_period();
                     }
                  }
             });
@@ -131,6 +150,15 @@
             document.getElementById('code-error').innerText = "Code must exactly 10 characters long.";
             document.getElementById('code-error').style.color = 'red';
             is_code_valid = false;
+            show_period();
+        }
+    }
+
+    function show_period() {
+        if (is_special) {
+            document.getElementById('period-form').hidden = false;
+        } else {
+            document.getElementById('period-form').hidden = true;
         }
     }
 

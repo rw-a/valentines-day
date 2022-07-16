@@ -21,10 +21,10 @@ class TicketForm(forms.Form):
     code = forms.CharField(label='Code', max_length=MaxLengths.TICKET_CODE, min_length=MaxLengths.TICKET_CODE)
     period = forms.ChoiceField(required=False, choices=[("-", "-"), (1, 1), (2, 2), (3, 3), (4, 4)])
 
-    choices = [(student_id, f"{student_dict['Name']} [{student_dict['ARC']}]")
-               for student_id, student_dict in STUDENTS.items()]
-    choices.insert(0, (" ", ""))
-    recipient_id = forms.ChoiceField(choices=choices)      # note: will be stored as an ID
+    students = [(student_id, f"{student_dict['Name']} [{student_dict['ARC']}]")
+                for student_id, student_dict in STUDENTS.items()]
+    students.insert(0, (" ", ""))
+    recipient_id = forms.ChoiceField(choices=students)      # note: will be stored as an ID
 
     templates = [
         (1, "Classic Ticket"),
@@ -35,14 +35,14 @@ class TicketForm(forms.Form):
     recipient_nickname = forms.CharField(max_length=MaxLengths.TICKET_RECIPIENT_NICKNAME, required=False)
     message = forms.CharField(max_length=MaxLengths.TICKET_MESSAGE, required=False)
     sender = forms.CharField(max_length=MaxLengths.TICKET_SENDER, required=False)
-    typed_template = forms.ChoiceField(choices=templates)
+    typed_template = forms.ChoiceField(choices=templates, required=False)
 
     """If handwritten"""
     is_handwritten = forms.ChoiceField(required=True, choices=[(True, "Handwritten"), (False, 'Typed')])
-    handwritten_message = forms.CharField(min_length=10)    # the dataURL of the png image
+    handwritten_message = forms.CharField(min_length=10, required=False)    # the dataURL of the png image
     handwriting_templates = templates[:]
-    handwriting_templates.append((0, 'Blank'))
-    handwriting_template = forms.ChoiceField(choices=handwriting_templates)
+    handwriting_templates.insert(0, (0, 'Blank'))
+    handwriting_template = forms.ChoiceField(choices=handwriting_templates, required=False)
 
     def clean_code(self):
         # verifies that the code is valid and hasn't already been used

@@ -43,7 +43,7 @@ class TicketCodePDFAdmin(admin.ModelAdmin):
                 os.remove(f"{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf")
         super().delete_queryset(request=request, queryset=queryset)
 
-    @admin.action(description="Delete selected Ticket Code PDFs and all the codes they generated")
+    @admin.action(description="Delete selected Ticket Codes PDFs and all the codes they generated")
     def delete_queryset_and_children(self, request, queryset):
         for obj in queryset:
             for child in obj.ticketcode_set.all():
@@ -71,12 +71,12 @@ class TicketCodeAdmin(admin.ModelAdmin):
 
 
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ('recipient_nickname', 'recipient_id', 'item_type', 'period', 'is_handwritten',)
+    list_display = ('recipient', 'item_type', 'period', 'is_handwritten',)
     actions = ('delete_tickets_and_ticket_codes',)
 
     @admin.display(description="Recipient")
-    def recipient_name(self, obj):
-        return STUDENTS[obj.recipient_name]['Name']
+    def recipient(self, obj):
+        return f"{STUDENTS[obj.recipient_id]['Name']} [{STUDENTS[obj.recipient_id]['ARC']}]"
 
     @admin.action(description="Delete selected Tickets and the Ticket Codes which made them.")
     def delete_tickets_and_ticket_codes(self, request, queryset):

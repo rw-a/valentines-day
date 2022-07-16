@@ -1,5 +1,3 @@
-from svglib.svglib import svg2rlg
-from reportlab.graphics import renderPM
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib import colors
@@ -44,10 +42,6 @@ class TicketsToPDF:
 
             table = Table(data, colWidths=col_width, rowHeights=row_height)
             table.setStyle(TableStyle([
-                # ('LEFTPADDING', (0, 0), (-1, -1), self.PADDING),
-                # ('RIGHTPADDING', (0, 0), (-1, -1), self.PADDING),
-                # ('BOTTOMPADDING', (0, 0), (-1, -1), self.PADDING),
-                # ('TOPPADDING', (0, 0), (-1, -1), self.PADDING),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
@@ -75,7 +69,7 @@ class TicketsToPDF:
 
 
 def main():
-    tickets = ["hello", "hi", "nice meme"]
+    tickets = ["1", "2", "3"]
     TicketsToPDF(tickets, 'export.pdf')
 
 
