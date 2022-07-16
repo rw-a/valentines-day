@@ -64,7 +64,7 @@
                 </div>
             </div>
             <div class="input" id="signature-pad">
-                <div class="input" id="typed_template_form">
+                <div class="input" id="handwriting_template_form">
                     <h3>Template</h3>
                     {{ form.handwriting_template }}
                 </div>
@@ -254,7 +254,7 @@
             if (template == "0") {
                 document.getElementById('canvas').style.background = "#fdfdfd";
             } else if (template == "1") {
-                document.getElementById('canvas').style.background = "url({% static 'classic_template.png' %}) 0% 0%/600px 356px";
+                document.getElementById('canvas').style.background = "url({% static 'classic_template.svg' %}) 0% 0%/600px 356px";
             }
     })
 

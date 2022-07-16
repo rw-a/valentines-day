@@ -59,7 +59,7 @@ class TicketsToPDF:
             with open(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket_id}.svg") as file:
                 xml_file = etree.parse(file).getroot()
 
-            xml_file.set('viewBox', '0 0 602 358')
+            xml_file.set('viewBox', '0 0 602 358')  # change the viewbox to the dimensions of the canvas
             image = Image(io.BytesIO(cairosvg.svg2png(bytestring=etree.tostring(xml_file), write_to=None)))
             scale_width = width / image.drawWidth
             scale_height = height / image.drawHeight

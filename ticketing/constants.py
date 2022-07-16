@@ -5,7 +5,6 @@ import os
 class DirectoryLocations:
     """Directory Locations"""
     STUDENT_INFO = "student_info"           # the folder containing the list of students and their classes as csv files
-    PDF_TEMPLATES = "pdf_templates"             # the folder containing blank PDFs of the ticket codes and tickets
     GENERATED_TICKET_CODES = "generated_codes"  # the folder containing filled PDFs of ticket codes
     REDEEMED_TICKETS = "redeemed_tickets"       # the folder containing the handwritten messages of redeemed tickets
     GENERATED_TICKETS = "generated_tickets"     # the folder containing the PDFs of the tickets to print
@@ -22,8 +21,6 @@ class DirectoryLocations:
 
 class FileNames:
     # input files (all_lowercase)
-    TICKET_CODE_TEMPLATE = f"{DirectoryLocations.PDF_TEMPLATES}/ticket_code_template.pdf"  # blank PDF of ticket codes
-    TICKET_TEMPLATE = f"{DirectoryLocations.PDF_TEMPLATES}/ticket_template.pdf"
     STUDENT_LIST = f"{DirectoryLocations.STUDENT_INFO}/student_list.csv"           # format: ID, Name, ARC_Class
     STUDENT_CLASSES = f"{DirectoryLocations.STUDENT_INFO}/student_classes.csv"     # format: ID, P1_class, P2_class, P3_class, P4_class
 
