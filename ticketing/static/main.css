@@ -19,6 +19,18 @@ select {
     background-position: right center;
 }
 
+button {
+    background: none;
+    border: none;
+}
+
+span {
+    border: none;
+    width: 30px;
+    height: 30px;
+    background-size: 30px 30px;
+}
+
 .info {
     font-style: italic;
     font-size: small;
@@ -42,8 +54,57 @@ p.error {
     width: 280px
 }
 
+#buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#undo {
+    background-image: url("undo.svg");
+}
+
+#undo:hover {
+    background-image: url("undo_thick.svg");
+}
+
+#clear {
+    background-image: url("delete.svg");
+}
+
+#clear:hover {
+    background-image: url("delete_thick.svg");
+}
+
+#redeem {
+    width: 50px;
+    height: 50px;
+    background-image: url("add.svg");
+    background-size: 50px 50px;
+}
+
+#redeem:hover {
+    background-image: url("add_thick.svg");
+}
+
+#redeem-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    margin-right: auto;
+    align-items: center;
+}
+
+#redeem > img {
+    width: 30px;
+    height: 30px;
+}
+
+#handwriting-error {
+    float: left;
+}
+
 #content {
     margin: auto;
-    max-width: 700px;
+    max-width: 602px;
     padding: 50px 20px 20px
 }

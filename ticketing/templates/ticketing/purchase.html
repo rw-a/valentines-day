@@ -72,15 +72,17 @@
                     <h3>Message</h3>
                     <div hidden>{{ form.handwritten_message }}</div>
                     <canvas id="canvas"></canvas>
-                    <div>
-                        <button type="button" id="clear">Clear</button>
-                        <button type="button" id="undo">Undo</button>
-                    </div>
                     <p hidden class="info error" id="handwriting-error">*Required</p>
+                    <div id="buttons">
+                        <span id="undo"></span>
+                        <span id="clear"></span>
+                    </div>
                 </div>
             </div>
-            <br>
-            <button type="button" id="redeem">Redeem</button>
+            <div id="redeem-wrapper" class="centre" style="padding-top:20px">
+                <span title="Redeem" id="redeem"></span>
+                <p>Redeem Ticket</p>
+            </div>
         </form>
     </div>
 </body>
@@ -126,7 +128,7 @@
                     if (data.is_exists) {
                         if (data.is_unconsumed) {
                             document.getElementById('code-error').innerText = data.item_type;
-                            document.getElementById('code-error').style.color = 'green';
+                            document.getElementById('code-error').style.color = '#71d16d';
                             is_code_valid = true;
                             if (data.item_type == "Special Serenade") is_special = true;
                             show_period();
@@ -291,11 +293,10 @@
     });
 
     var signaturePadData = {};
+    var signaturePadDataBackup = {};    // to allow you to undo clearing
     signaturePad.addEventListener("endStroke", () => {
         signaturePadData = signaturePad.toData();
     });
-
-    document.getElementById('canvas').style.touchAction = "pinch-zoom";
 
     // scale canvas for retina display
     function resizeCanvas() {
@@ -314,8 +315,9 @@
     // clear button
     const clearButton = document.getElementById("clear");
     clearButton.addEventListener("click", () => {
-      signaturePad.clear();
-      signaturePadData = {};
+        signaturePad.clear();
+        if (Object.keys(signaturePadData).length) signaturePadDataBackup = signaturePadData;
+        signaturePadData = {};
     });
 
     // undo button
@@ -324,7 +326,9 @@
         if (Object.keys(signaturePadData).length) {
             signaturePadData.pop(); // remove the last dot or line
             signaturePad.fromData(signaturePadData);
-        }   
+        } else if (Object.keys(signaturePadDataBackup).length) {
+            signaturePad.fromData(signaturePadDataBackup);
+        }
     });
 </script>
 </html>
