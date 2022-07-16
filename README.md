@@ -1,10 +1,12 @@
 # Valentine's Day Ticketing System Backend
-## Setup
-- Requires Python
-- Requires Django
-- Requires ReportLab
+## Requirements
+- Python 3.8+
+- Django 4.0+
+- ReportLab 3.6+
+- CairoSVG 2.5+
+- lxml 4.9+
 ## Function
-1. Prefects generates codes for tickets using the website.
+1. Prefects generate codes for tickets using the website.
 2. Prefects physically sell the codes to students.
 3. Students visit the website to redeem the code. They generate a ticket by choosing a recipient and period (if special serenade).
 4. Prefects use the website to generate a PDF/Word file using the inputted tickets by inputting the number of serenading/non-serenading groups. 

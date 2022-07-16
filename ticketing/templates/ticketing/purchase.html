@@ -267,7 +267,7 @@
     const canvas = document.getElementById("canvas");
     const signaturePad = new SignaturePad(canvas, {
       minDistance: 1,
-      minWidth: 0.4,
+      minWidth: 0.7,
       maxWidth: 1.5
     });
 
@@ -280,7 +280,7 @@
 
     // scale canvas for retina display
     function resizeCanvas() {
-        const ratio =  5;
+        const ratio = 5;
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
         canvas.getContext("2d").scale(ratio, ratio);
@@ -342,8 +342,8 @@
        if (signaturePad.isEmpty()) {
         alert("Please provide a signature first.");
       } else {
-        const dataURL = signaturePad.toDataURL();
-        download(dataURL, "signature.png");
+        const dataURL = signaturePad.toDataURL('image/svg+xml');
+        download(dataURL, "signature.svg");
       }
     });
 

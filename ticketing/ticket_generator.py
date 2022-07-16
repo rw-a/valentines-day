@@ -1,3 +1,6 @@
+import cairosvg
+import io
+from lxml import etree
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib import colors
@@ -53,7 +56,11 @@ class TicketsToPDF:
     def create_images(self, tickets: list, width: float, height: float):
         images = []
         for ticket_id in tickets:
-            image = Image(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket_id}.png")
+            with open(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket_id}.svg") as file:
+                xml_file = etree.parse(file).getroot()
+
+            xml_file.set('viewBox', '0 0 602 358')
+            image = Image(io.BytesIO(cairosvg.svg2png(bytestring=etree.tostring(xml_file), write_to=None)))
             scale_width = width / image.drawWidth
             scale_height = height / image.drawHeight
             scale = min(scale_width, scale_height)  # scales it so that the image always fits and aspect ratio the same
@@ -69,7 +76,7 @@ class TicketsToPDF:
 
 
 def main():
-    tickets = ["1", "2", "3"]
+    tickets = ["1", "2", "3", "4"]
     TicketsToPDF(tickets, 'export.pdf')
 
 
