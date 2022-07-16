@@ -110,12 +110,15 @@ class TicketsToPDF:
 
 
 def main():
+    from glob import glob
+
     class Ticket:
         def __init__(self, id, template: int):
             self.id = id
             self.template = template
 
-    tickets = [Ticket(10, 1)]
+    tickets = [Ticket(file.split("/")[-1].split(".svg")[0], 1) for file in glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")]
+
     TicketsToPDF(tickets, 'export.pdf')
 
 
