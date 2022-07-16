@@ -1,5 +1,6 @@
 import cairosvg
 import io
+import PIL
 from lxml import etree
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
@@ -22,6 +23,11 @@ class TicketsToPDF:
         self.MARGIN = 1 * cm      # an additional 0.5cm will be added to the table
         self.PADDING = 0          # the padding for each cell in the table
         self.WIDTH, self.HEIGHT = A4
+
+        # dimensions of canvas from signature pad in pixels
+        self.CELL_WIDTH = 602
+        self.CELL_HEIGHT = 358
+        self.RATIO = 2      # increases DPI by this ratio
 
         self.generate_pdf()
 
@@ -54,18 +60,43 @@ class TicketsToPDF:
         doc.build(pages)
 
     def create_images(self, tickets: list, width: float, height: float):
-        images = []
-        for ticket_id in tickets:
-            with open(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket_id}.svg") as file:
-                xml_file = etree.parse(file).getroot()
+        # get templates
+        classic_template = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
+            url="ticketing/static/classic_template.svg", write_to=None,
+            output_width=self.CELL_WIDTH * self.RATIO, output_height=self.CELL_HEIGHT * self.RATIO)))
 
-            xml_file.set('viewBox', '0 0 602 358')  # change the viewbox to the dimensions of the canvas
-            image = Image(io.BytesIO(cairosvg.svg2png(bytestring=etree.tostring(xml_file), write_to=None)))
+        images = []
+        for ticket in tickets:
+            # resize the canvas
+            with open(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket}.svg") as file:
+                xml_file = etree.parse(file).getroot()
+                # change the view box to the dimensions of the canvas
+                xml_file.set('viewBox', f'0 0 {self.CELL_WIDTH} {self.CELL_HEIGHT}')
+
+            # add the template if required
+            if True:
+                handwritten_image = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
+                    bytestring=etree.tostring(xml_file), write_to=None,
+                    output_width=self.CELL_WIDTH * self.RATIO, output_height=self.CELL_HEIGHT * self.RATIO)))
+                combined_image = PIL.Image.new('RGBA', (handwritten_image.width, handwritten_image.height), (255, 255, 255, 0))
+                combined_image.alpha_composite(handwritten_image)
+
+                if True:
+                    combined_image.alpha_composite(classic_template)
+
+                # save as bytes
+                img_bytes = io.BytesIO()
+                combined_image.save(img_bytes, format='PNG')
+            else:
+                img_bytes = io.BytesIO(cairosvg.svg2png(bytestring=etree.tostring(xml_file), write_to=None))
+
+            image = Image(img_bytes)
             scale_width = width / image.drawWidth
             scale_height = height / image.drawHeight
             scale = min(scale_width, scale_height)  # scales it so that the image always fits and aspect ratio the same
             image.drawWidth *= scale
             image.drawHeight *= scale
+
             images.append(image)
         return images
 
