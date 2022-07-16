@@ -79,10 +79,11 @@ class TicketsToPDF:
                     bytestring=etree.tostring(xml_file), write_to=None,
                     output_width=self.CELL_WIDTH * self.RATIO, output_height=self.CELL_HEIGHT * self.RATIO)))
                 combined_image = PIL.Image.new('RGBA', (handwritten_image.width, handwritten_image.height), (255, 255, 255, 0))
-                combined_image.alpha_composite(handwritten_image)
 
                 if ticket.template == 1:
                     combined_image.alpha_composite(classic_template)
+
+                combined_image.alpha_composite(handwritten_image)
 
                 # save as bytes
                 img_bytes = io.BytesIO()
@@ -114,7 +115,7 @@ def main():
             self.id = id
             self.template = template
 
-    tickets = [Ticket(1, 1), Ticket(2, 0), Ticket(3, 1), Ticket(4, 1)]
+    tickets = [Ticket(10, 1)]
     TicketsToPDF(tickets, 'export.pdf')
 
 

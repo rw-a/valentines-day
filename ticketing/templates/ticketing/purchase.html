@@ -70,6 +70,7 @@
                 </div>
                 <div class="input no_select">
                     <h3>Message</h3>
+                    <div hidden>{{ form.handwritten_message }}</div>
                     <canvas id="canvas"></canvas>
                     <div>
                         <button type="button" id="clear">Clear</button>
@@ -194,6 +195,9 @@
             return false;
         } else {
             $('#handwriting-error').hide();
+            dataURLToBlob(signaturePad.toDataURL("image/svg+xml")).text().then(image_bytes => {
+                document.getElementById('id_handwritten_message').value = image_bytes;
+            });
             return true;
         }
     }
@@ -340,10 +344,10 @@
     const saveButton = document.getElementById("save");
     saveButton.addEventListener("click", () => {
        if (signaturePad.isEmpty()) {
-        alert("Please provide a signature first.");
+        alert("Please write something first.");
       } else {
-        const dataURL = signaturePad.toDataURL('image/svg+xml');
-        download(dataURL, "signature.svg");
+        const dataURL = signaturePad.toDataURL();
+        download(dataURL, "Your Ticket.png");
       }
     });
 

@@ -7,7 +7,7 @@ class DirectoryLocations:
     STUDENT_INFO = "student_info"           # the folder containing the list of students and their classes as csv files
     GENERATED_TICKET_CODES = "generated_codes"  # the folder containing filled PDFs of ticket codes
     REDEEMED_TICKETS = "redeemed_tickets"       # the folder containing the handwritten messages of redeemed tickets
-    GENERATED_TICKETS = "generated_tickets"     # the folder containing the PDFs of the tickets to print
+    SORTED_TICKETS = "generated_tickets"     # the folder containing the PDFs of the tickets to print
 
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_dirs__(self):

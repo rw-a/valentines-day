@@ -70,11 +70,10 @@ def purchase(request):
         # check whether it's valid:
         if form.is_valid():
             # process the data in form.cleaned_data as required
-
-            # get the corresponding ticket code
             ticket_code = TicketCode.objects.filter(code=form.cleaned_data['code'])[0]
+            is_handwritten = form.cleaned_data['is_handwritten']
 
-            if form.cleaned_data['is_handwritten']:
+            if is_handwritten:
                 template = form.cleaned_data['handwriting_template']
             else:
                 template = form.cleaned_data['typed_template']
@@ -82,17 +81,26 @@ def purchase(request):
             # make the ticket
             ticket = Ticket(
                 recipient_id=form.cleaned_data['recipient_id'],
-                recipient_nickname=form.cleaned_data['recipient_nickname'],
-                message=form.cleaned_data['message'],
-                sender=form.cleaned_data['sender'],
                 item_type=ticket_code.item_type,
-                is_handwritten=form.cleaned_data['is_handwritten'],
+                is_handwritten=is_handwritten,
                 template=template,
                 code=ticket_code
                 )
             if ticket.item_type == "Special Serenade":
                 ticket.period = form.cleaned_data['period']
+            if is_handwritten:
+                ticket.handwritten_message = form.cleaned_data['handwritten_message']
+            else:
+                ticket.recipient_nickname = form.cleaned_data['recipient_nickname']
+                ticket.message = form.cleaned_data['message']
+                ticket.sender = form.cleaned_data['sender']
             ticket.save()
+
+            if is_handwritten:
+                with open(f'{DirectoryLocations.REDEEMED_TICKETS}/{ticket.pk}.svg', 'wb') as file:
+                    file.write(bytes(form.cleaned_data['handwritten_message'], 'utf-8'))
+            else:
+                pass
 
             # mark the ticket code as consumed
             ticket_code.is_unconsumed = False
