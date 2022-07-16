@@ -18,19 +18,17 @@ select {
 .info {
     font-style: italic;
     font-size: small;
-    
-    -webkit-user-select: none; /* Safari */
-    -khtml-user-select: none; /* Konqueror HTML */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* Internet Explorer/Edge */
-    user-select: none;
 }
 
-.input > input {
+.input > input, select {
     border: 1px solid #ccc;
     border-radius: 3px;
-    font-size: medium;
     padding: 3px;
+}
+
+select {
+    background-color: white;
+    color: black;
 }
 
 div.input {

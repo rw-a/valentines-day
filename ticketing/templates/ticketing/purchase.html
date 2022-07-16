@@ -68,12 +68,9 @@
                     <h3>Template</h3>
                     {{ form.handwriting_template }}
                 </div>
-                <div class="input">
+                <div class="input no_select">
                     <h3>Message</h3>
-                    <div id="canvas_wrapper">
-                        <img title="Template" id="canvas_image" src="{% static 'classic_template.png' %}" />
-                        <canvas id="canvas"></canvas>
-                    </div>
+                    <canvas id="canvas"></canvas>
                     <div>
                         <button type="button" id="clear">Clear</button>
                         <button type="button" id="undo">Undo</button>
@@ -92,7 +89,6 @@
     let is_special = false;
     let is_code_valid = false;
     function check_validity(event, code_validated = false) {
-        console.log("Checking")
         // these are stored in variables first to prevent short-circuiting
         if (code_validated) {  // don't validate code if this was called from the is_valid_code function to prevent recursion
             var validate_code = true;
@@ -254,13 +250,11 @@
     })
 
     document.getElementById('id_handwriting_template').addEventListener('change', (event) => {
-        console.log(event)
         let template = event.target.value;
             if (template == "0") {
-                document.getElementById('canvas').style = "background: #fdfdfd";
+                document.getElementById('canvas').style.background = "#fdfdfd";
             } else if (template == "1") {
-                document.getElementById('canvas').style = "background: none";
-                document.getElementById('canvas_image').src = "{% static 'classic_template.png' %}";
+                document.getElementById('canvas').style.background = "url({% static 'classic_template.png' %}) 0% 0%/600px 356px";
             }
     })
 
@@ -281,6 +275,8 @@
     signaturePad.addEventListener("endStroke", () => {
         signaturePadData = signaturePad.toData();
     });
+
+    document.getElementById('canvas').style.touchAction = "pinch-zoom";
 
     // scale canvas for retina display
     function resizeCanvas() {

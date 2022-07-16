@@ -1,9 +1,4 @@
-#canvas_wrapper {
-    position: relative;
-    width: 600px;
-    height: 356px;
-    margin-bottom: 5px;
-
+.no_select {
     -webkit-user-select: none; /* Safari */
     -khtml-user-select: none; /* Konqueror HTML */
     -moz-user-select: none; /* Firefox */
@@ -11,12 +6,13 @@
     user-select: none;
 }
 
-#canvas, #canvas_image {
-    position: absolute;
+#canvas {
     left: 0;
     top: 0;
     width: 600px;
     height: 356px;
-    background: #fdfdfd;
+
     border: 1px solid black;
+
+    background: #fdfdfd;
 }
