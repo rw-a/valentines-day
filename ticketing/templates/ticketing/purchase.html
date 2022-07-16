@@ -75,7 +75,6 @@
                     <div>
                         <button type="button" id="clear">Clear</button>
                         <button type="button" id="undo">Undo</button>
-                        <button type="button" id="save">Save a copy</button>
                     </div>
                     <p hidden class="info error" id="handwriting-error">*Required</p>
                 </div>
@@ -239,6 +238,20 @@
         }
     }
 
+    function dataURLToBlob(dataURL) {
+      const parts = dataURL.split(';base64,');
+      const contentType = parts[0].split(":")[1];
+      const raw = window.atob(parts[1]);
+      const rawLength = raw.length;
+      const uInt8Array = new Uint8Array(rawLength);
+
+      for (let i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+      }
+
+      return new Blob([uInt8Array], { type: contentType });
+    }
+
     document.getElementById('id_code').addEventListener('input', is_valid_code);
     document.getElementById('redeem').addEventListener('click', check_validity);
 
@@ -310,46 +323,5 @@
             signaturePad.fromData(signaturePadData);
         }   
     });
-
-    function download(dataURL, filename) {
-      const blob = dataURLToBlob(dataURL);
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.style = "display: none";
-      a.href = url;
-      a.download = filename;
-
-      document.body.appendChild(a);
-      a.click();
-
-      window.URL.revokeObjectURL(url);
-    }
-
-    function dataURLToBlob(dataURL) {
-      const parts = dataURL.split(';base64,');
-      const contentType = parts[0].split(":")[1];
-      const raw = window.atob(parts[1]);
-      const rawLength = raw.length;
-      const uInt8Array = new Uint8Array(rawLength);
-
-      for (let i = 0; i < rawLength; ++i) {
-        uInt8Array[i] = raw.charCodeAt(i);
-      }
-
-      return new Blob([uInt8Array], { type: contentType });
-    }
-
-    // save button
-    const saveButton = document.getElementById("save");
-    saveButton.addEventListener("click", () => {
-       if (signaturePad.isEmpty()) {
-        alert("Please write something first.");
-      } else {
-        const dataURL = signaturePad.toDataURL();
-        download(dataURL, "Your Ticket.png");
-      }
-    });
-
 </script>
 </html>
