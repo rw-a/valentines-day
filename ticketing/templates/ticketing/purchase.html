@@ -8,9 +8,10 @@
     <script type="text/javascript" src="{% static 'jquery-3.6.0.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'chosen.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'signature_pad.min.js' %}"></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'main.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'chosen.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'signature_pad.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'main.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'redeem.css' %}">
     <link rel="icon" type="image/png" href="{% static 'heart.png' %}"/>
     <style>
     </style>
@@ -74,13 +75,13 @@
                     <canvas id="canvas"></canvas>
                     <p hidden class="info error" id="handwriting-error">*Required</p>
                     <div id="buttons">
-                        <span id="undo"></span>
-                        <span id="clear"></span>
+                        <span class="img" id="undo"></span>
+                        <span class="img" id="clear"></span>
                     </div>
                 </div>
             </div>
             <div id="redeem-wrapper" class="centre" style="padding-top:20px">
-                <span title="Redeem" id="redeem"></span>
+                <span class="img" title="Redeem" id="redeem"></span>
                 <p>Redeem Ticket</p>
             </div>
         </form>

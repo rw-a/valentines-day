@@ -1,0 +1,52 @@
+#id_recipient_id {
+    width: 280px
+}
+
+#buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#undo {
+    background-image: url("undo.svg");
+}
+
+#undo:hover {
+    background-image: url("undo_thick.svg");
+}
+
+#clear {
+    background-image: url("delete.svg");
+}
+
+#clear:hover {
+    background-image: url("delete_thick.svg");
+}
+
+#redeem {
+    width: 50px;
+    height: 50px;
+    background-image: url("add.svg");
+    background-size: 50px 50px;
+}
+
+#redeem:hover {
+    background-image: url("add_thick.svg");
+}
+
+#redeem-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    margin-right: auto;
+    align-items: center;
+}
+
+#redeem > img {
+    width: 30px;
+    height: 30px;
+}
+
+#handwriting-error {
+    float: left;
+}
