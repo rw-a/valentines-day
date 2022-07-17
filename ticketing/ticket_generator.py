@@ -19,6 +19,10 @@ class TicketsToPDF:
         self.pdf_output_name = pdf_output_name
 
         """Constants and Settings"""
+        # flip the order of the cells in the back page
+        # required for double-sided printing of tickets flipped along the long edge
+        self.HORIZONTAL_FLIP = True
+
         self.NUM_COLUMNS = 2
         self.NUM_ROWS = 5
         self.NUM_CODES_PER_PAGE = self.NUM_COLUMNS * self.NUM_ROWS
@@ -62,7 +66,10 @@ class TicketsToPDF:
             pages.append(PageBreak())
 
             """Back of tickets"""
-            data = self.split_list(self.create_delivery_info(tickets), self.NUM_COLUMNS)
+            if self.HORIZONTAL_FLIP:
+                data = self.split_list(self.create_delivery_info(tickets), self.NUM_COLUMNS, reverse=True)
+            else:
+                data = self.split_list(self.create_delivery_info(tickets), self.NUM_COLUMNS)
             pages.append(self.create_table(data))
         doc.build(pages)
 
@@ -105,8 +112,8 @@ class TicketsToPDF:
     def create_delivery_info(self, tickets: list) -> list:
         stylesheet = getSampleStyleSheet()
         default_style = ParagraphStyle(name="Default", parent=stylesheet['Normal'], fontSize=14)
-        left_align = ParagraphStyle(name="Left", parent=default_style, alignment=0, leftIndent=1)
-        right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2, rightIndent=1)
+        left_align = ParagraphStyle(name="Left", parent=default_style, alignment=0, leftIndent=2)
+        right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2, rightIndent=2)
         centre_align = ParagraphStyle(name="Centre", parent=default_style, alignment=1)
         large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1, fontSize=16, leading=16)
 
@@ -159,9 +166,12 @@ class TicketsToPDF:
         return ticket_backs
 
     @staticmethod
-    def split_list(ticket_codes: list, split_size: int) -> list:
+    def split_list(ticket_codes: list, split_size: int, reverse: bool = False) -> list:
         # splits a list into smaller lists of a given size
-        return [ticket_codes[i: i + split_size] for i in range(0, len(ticket_codes), split_size)]
+        if reverse:
+            return [list(reversed(ticket_codes[i: i + split_size])) for i in range(0, len(ticket_codes), split_size)]
+        else:
+            return [ticket_codes[i: i + split_size] for i in range(0, len(ticket_codes), split_size)]
 
     @staticmethod
     def scale_image(image: Image, width: float, height: float = None) -> Image:
@@ -211,7 +221,7 @@ def main():
             self.template = template
 
             self.item_type = random.choice(["Chocolate", "Rose", "Serenade", "Special Serenade"])
-            self.recipient_name = "Senugi Dissan Mudiyanselage"
+            self.recipient_name = "Wade Haynes"
 
             self.p1 = "F101"
             self.p2 = "F202"
@@ -223,9 +233,6 @@ def main():
             self.is_p2 = True
             self.is_p3 = False
             self.is_p4 = False
-
-            self.chosen_period = 2
-            self.chosen_classroom = "F202"
 
     tickets = [Ticket(file.split("/")[-1].split(".svg")[0], 1) for file in glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")]
 
