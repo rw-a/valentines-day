@@ -28,7 +28,6 @@ class TicketForm(forms.Form):
 
     templates = [
         (1, "Classic Ticket"),
-        (2, "Clean Ticket")
     ]
 
     """If typed"""
