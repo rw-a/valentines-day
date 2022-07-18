@@ -4,7 +4,7 @@ import os
 
 class DirectoryLocations:
     """Directory Locations"""
-    STUDENT_INFO = "student_info"           # the folder containing the list of students and their classes as csv files
+    INPUTS = "INPUTS"           # the folder containing files that prefects should be able to easily modify
     GENERATED_TICKET_CODES = "generated_codes"  # the folder containing filled PDFs of ticket codes
     REDEEMED_TICKETS = "redeemed_tickets"       # the folder containing the handwritten messages of redeemed tickets
     SORTED_TICKETS = "generated_tickets"     # the folder containing the PDFs of the tickets to print
@@ -21,8 +21,8 @@ class DirectoryLocations:
 
 class FileNames:
     # input files (all_lowercase)
-    STUDENT_LIST = f"{DirectoryLocations.STUDENT_INFO}/student_list.csv"           # format: ID, Name, ARC_Class
-    STUDENT_CLASSES = f"{DirectoryLocations.STUDENT_INFO}/student_classes.csv"     # format: ID, P1_class, P2_class, P3_class, P4_class
+    STUDENT_LIST = f"{DirectoryLocations.INPUTS}/student_list.csv"           # format: ID, Name, ARC_Class
+    STUDENT_CLASSES = f"{DirectoryLocations.INPUTS}/student_classes.csv"     # format: ID, P1_class, P2_class, P3_class, P4_class
 
     # output files (ALL UPPERCASE)
     TICKETS_PRINTED = "TICKETS.pdf"
