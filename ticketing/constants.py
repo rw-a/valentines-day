@@ -24,9 +24,6 @@ class FileNames:
     STUDENT_LIST = f"{DirectoryLocations.INPUTS}/student_list.csv"           # format: ID, Name, ARC_Class
     STUDENT_CLASSES = f"{DirectoryLocations.INPUTS}/student_classes.csv"     # format: ID, P1_class, P2_class, P3_class, P4_class
 
-    # output files (ALL UPPERCASE)
-    TICKETS_PRINTED = "TICKETS.pdf"
-
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_files__(self):
         for attribute in dir(self):
