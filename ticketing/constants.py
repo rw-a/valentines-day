@@ -16,6 +16,7 @@ class DirectoryLocations:
             if not attribute.endswith('__'):   # removes random other attributes
                 directory = getattr(self, attribute)
                 if not os.path.exists(directory):
+                    print(f"{directory} folder doesn't exist yet. Creating {directory}...")
                     os.mkdir(directory)
 
 
@@ -23,6 +24,7 @@ class FileNames:
     # input files (all_lowercase)
     STUDENT_LIST = f"{DirectoryLocations.INPUTS}/student_list.csv"           # format: ID, Name, ARC_Class
     STUDENT_CLASSES = f"{DirectoryLocations.INPUTS}/student_classes.csv"     # format: ID, P1_class, P2_class, P3_class, P4_class
+    PICKUP_LINES = f"{DirectoryLocations.INPUTS}/pickup_lines.txt"
 
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_files__(self):
