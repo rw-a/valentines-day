@@ -9,7 +9,9 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Image, PageBreak, Paragraph
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus.tables import Table, TableStyle
-from constants import DirectoryLocations
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from constants import DirectoryLocations, FileNames
 # from .ticket_sorter import TicketToSort
 
 
@@ -36,16 +38,22 @@ class TicketsToPDF:
         self.CELL_WIDTH = self.TABLE_WIDTH / self.NUM_COLUMNS
         self.CELL_HEIGHT = self.TABLE_HEIGHT / self.NUM_ROWS
 
-        self.ITEM_TYPE_IMAGE_SIZE = 40      # in pts
+        self.ITEM_TYPE_IMAGE_SIZE = 20      # in pts
 
         # dimensions of canvas from signature pad in pixels
         self.CANVAS_WIDTH = 602
         self.CANVAS_HEIGHT = 358
         self.RATIO = 2      # increases DPI by this ratio
 
+        """Pickup Lines"""
+        with open(FileNames.PICKUP_LINES) as file:
+            self.PICKUP_LINES = [line.replace("\n", "") for line in file]
+
         """Templates"""
+        pdfmetrics.registerFont(TTFont('VDay', f'{DirectoryLocations.STATIC}/font.ttf'))
+
         self.CLASSIC_TEMPLATE = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
-            url="ticketing/static/classic_template.svg", write_to=None,
+            url=f"{DirectoryLocations.STATIC}/templates/classic_template.svg", write_to=None,
             output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO)))
 
         self.generate_pdf()
@@ -111,58 +119,52 @@ class TicketsToPDF:
 
     def create_delivery_info(self, tickets: list) -> list:
         stylesheet = getSampleStyleSheet()
-        default_style = ParagraphStyle(name="Default", parent=stylesheet['Normal'], fontSize=14)
-        left_align = ParagraphStyle(name="Left", parent=default_style, alignment=0, leftIndent=2)
-        right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2, rightIndent=2)
-        centre_align = ParagraphStyle(name="Centre", parent=default_style, alignment=1)
-        large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1, fontSize=16, leading=16)
+        default_style = ParagraphStyle(name="Default", parent=stylesheet['Normal'], fontSize=9, leading=10,
+                                       fontName="VDay")
+        centre_align = ParagraphStyle(name="Center", parent=default_style, alignment=1)
+        right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2)
+        large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1, fontSize=15, leading=17)
 
         ticket_backs = []
         for ticket in tickets:
-            """Left Side: Periods"""
-            p1 = [Paragraph("P1: ", right_align), Paragraph(ticket.p1, left_align)] if not ticket.is_p1 else \
-                [Paragraph("<b>P1: </b>", right_align), Paragraph(f"<b>{ticket.p1}</b>", left_align)]
-            p2 = [Paragraph("P2: ", right_align), Paragraph(ticket.p2, left_align)] if not ticket.is_p2 else \
-                [Paragraph("<b>P2: </b>", right_align), Paragraph(f"<b>{ticket.p2}</b>", left_align)]
-            p3 = [Paragraph("P3: ", right_align), Paragraph(ticket.p3, left_align)] if not ticket.is_p3 else \
-                [Paragraph("<b>P3: </b>", right_align), Paragraph(f"<b>{ticket.p3}</b>", left_align)]
-            p4 = [Paragraph("P4: ", right_align), Paragraph(ticket.p4, left_align)] if not ticket.is_p4 else \
-                [Paragraph("<b>P4: </b>", right_align), Paragraph(f"<b>{ticket.p4}</b>", left_align)]
-            period_data = [p1, p2, p3, p4]
-            period_table = self.create_div(period_data, ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                                           colWidths=self.CELL_WIDTH / 6, rowHeights=self.CELL_HEIGHT / 7)
+            """Top Left: Periods"""
+            p1 = f"<b>P1: {ticket.p1} |</b>" if ticket.is_p1 else f"P1: {ticket.p1}"
+            p2 = f"<b>P2: {ticket.p2} |</b>" if ticket.is_p2 else f"P2: {ticket.p2}"
+            p3 = f"<b>P3: {ticket.p3} |</b>" if ticket.is_p3 else f"P3: {ticket.p3}"
+            p4 = f"<b>P4: {ticket.p4} |</b>" if ticket.is_p4 else f"P4: {ticket.p4}"
+            periods = Paragraph(f"{p1}<br/>{p2}<br/>{p3}<br/>{p4}", default_style)
 
-            """Right Side: Item Type (including image)"""
+            """Bottom Right: Item Type (including image)"""
             if ticket.item_type == "Chocolate":
-                item_type_image = self.scale_image(Image('ticketing/static/item_types/chocolate.png'),
+                item_type_image = self.scale_image(Image(f'{DirectoryLocations.STATIC}/item_types/chocolate.png'),
                                                    self.ITEM_TYPE_IMAGE_SIZE, self.ITEM_TYPE_IMAGE_SIZE)
             elif ticket.item_type == "Rose":
-                item_type_image = self.scale_image(Image('ticketing/static/item_types/rose.png'),
+                item_type_image = self.scale_image(Image(f'{DirectoryLocations.STATIC}/item_types/rose.png'),
                                                    self.ITEM_TYPE_IMAGE_SIZE, self.ITEM_TYPE_IMAGE_SIZE)
             elif ticket.item_type == "Serenade":
-                item_type_image = self.scale_image(Image('ticketing/static/item_types/serenade.png'),
+                item_type_image = self.scale_image(Image(f'{DirectoryLocations.STATIC}/item_types/serenade.png'),
                                                    self.ITEM_TYPE_IMAGE_SIZE, self.ITEM_TYPE_IMAGE_SIZE)
             elif ticket.item_type == "Special Serenade":
-                item_type_image = self.scale_image(Image('ticketing/static/item_types/special_serenade.png'),
+                item_type_image = self.scale_image(Image(f'{DirectoryLocations.STATIC}/item_types/special_serenade.png'),
                                                    self.ITEM_TYPE_IMAGE_SIZE, self.ITEM_TYPE_IMAGE_SIZE)
             else:
                 raise KeyError("Unknown item type")
-
             item_type = Paragraph(ticket.item_type, centre_align)
-            item_type_and_period = [[item_type_image], [item_type]]
-            item_type_and_period_table = self.create_div(item_type_and_period)
-
-            left_right_side = [[period_table, item_type_and_period_table]]
-            left_right_table = self.create_div(left_right_side,
-                                               ('VALIGN', (0, 0), (-1, -1), 'CENTER'), colWidths=self.CELL_WIDTH / 2)
+            item_type_table = self.create_div([[item_type_image], [item_type]], colWidths=self.CELL_WIDTH / 5)
 
             """Top Side: Recipient Name"""
-            top_bottom = [[Paragraph(f"{ticket.recipient_name} <br/>", large_style)], [left_right_table]]
-            name_height = 40 if len(ticket.recipient_name) <= 30 else 50
-            top_bottom_table = self.create_div(top_bottom, ('VALIGN', (0, 0), (-1, -1), 'CENTER'),
-                                               rowHeights=[name_height, None])
+            recipient_name_and_pickup = Paragraph(f"* Hey {ticket.recipient_name} *<br/>"
+                                                  f"{random.choice(self.PICKUP_LINES)}", large_style)
 
-            ticket_backs.append(top_bottom_table)
+            vertically_separated_table = self.create_div([[periods], [recipient_name_and_pickup], [item_type_table]],
+                                                         ('VALIGN', (0, 0), (0, -1), 'TOP'),
+                                                         ('ALIGN', (0, -1), (-1, -1), 'RIGHT'),
+                                                         ('VALIGN', (0, -1), (-1, -1), 'BOTTOM'),
+                                                         rowHeights=[self.CELL_HEIGHT * 0.3,
+                                                                     self.CELL_HEIGHT * 0.4,
+                                                                     self.CELL_HEIGHT * 0.3])
+
+            ticket_backs.append(vertically_separated_table)
         return ticket_backs
 
     @staticmethod
@@ -186,13 +188,14 @@ class TicketsToPDF:
         image.drawHeight *= scale
         return image
 
-    def create_table(self, data: list) -> Table:
+    def create_table(self, data: list, *table_styles) -> Table:
         table = Table(data, colWidths=self.CELL_WIDTH, rowHeights=self.CELL_HEIGHT)
         table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-            ('BOX', (0, 0), (-1, -1), 0.25, colors.black)
+            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+            *table_styles
         ]))
         return table
 
@@ -202,9 +205,10 @@ class TicketsToPDF:
         table.setStyle(TableStyle([
                 ('LEFTPADDING', (0, 0), (-1, -1), 0),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-                ('TOPPADDING', (0, 0), (-1, -1), 0),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+                ('TOPPADDING', (0, 0), (-1, -1), 3),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 # ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
                 # ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
                 *table_styles

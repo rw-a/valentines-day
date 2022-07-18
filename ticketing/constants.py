@@ -4,6 +4,7 @@ import os
 
 class DirectoryLocations:
     """Directory Locations"""
+    STATIC = "ticketing/static"     # the static folder
     INPUTS = "INPUTS"           # the folder containing files that prefects should be able to easily modify
     GENERATED_TICKET_CODES = "generated_codes"  # the folder containing filled PDFs of ticket codes
     REDEEMED_TICKETS = "redeemed_tickets"       # the folder containing the handwritten messages of redeemed tickets
