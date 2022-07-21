@@ -50,7 +50,7 @@ class TicketsToPDF:
             self.PICKUP_LINES = [line.replace("\n", "") for line in file]
 
         """Templates"""
-        pdfmetrics.registerFont(TTFont('VDay', f'{DirectoryLocations.STATIC}/font.ttf'))
+        pdfmetrics.registerFont(TTFont('VDay', f'{DirectoryLocations.STATIC}/fonts/I Found My Valentine.ttf'))
 
         self.CLASSIC_TEMPLATE = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
             url=f"{DirectoryLocations.STATIC}/templates/classic_template.svg", write_to=None,
