@@ -1,26 +1,57 @@
-#id_recipient_id {
-    width: 280px
+@font-face {
+    font-family: "Calibri";
+    src: url("../fonts/Calibri\ Regular.ttf");
 }
 
-#buttons {
+@font-face {
+    font-family: 'Bethlove';
+    src: url("../fonts/Bethlove.ttf");
+}
+
+@font-face {
+    font-family: 'Chasing Hearts';
+    src: url("../fonts/Chasing\ Hearts.ttf");
+}
+
+@font-face {
+    font-family: 'Hello Valentine';
+    src: url("../fonts/Hello\ Valentine.ttf");
+}
+
+@font-face {
+    font-family: 'Love Letters';
+    src: url("../fonts/Love\ Letters.ttf");
+}
+
+@font-face {
+    font-family: 'Lovely Valentine';
+    src: url("../fonts/Lovely\ Valentine.ttf");
+}
+
+
+.buttons {
     display: flex;
     justify-content: flex-end;
 }
 
-#undo {
+.undo {
     background-image: url("../icons/undo.svg");
 }
 
-#undo:hover {
+.undo:hover {
     background-image: url("../icons/undo_thick.svg");
 }
 
-#clear {
+.clear {
     background-image: url("../icons/delete.svg");
 }
 
-#clear:hover {
+.clear:hover {
     background-image: url("../icons/delete_thick.svg");
+}
+
+#id_recipient_id {
+    width: 280px
 }
 
 #redeem {

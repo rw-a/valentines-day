@@ -29,19 +29,14 @@ class TicketForm(forms.Form):
     templates = [
         (1, "Classic Ticket"),
     ]
-
-    """If typed"""
-    recipient_nickname = forms.CharField(max_length=MaxLengths.TICKET_RECIPIENT_NICKNAME, required=False)
-    message = forms.CharField(max_length=MaxLengths.TICKET_MESSAGE, required=False)
-    sender = forms.CharField(max_length=MaxLengths.TICKET_SENDER, required=False)
-    typed_template = forms.ChoiceField(choices=templates, required=False)
-
-    """If handwritten"""
-    is_handwritten = forms.ChoiceField(required=True, choices=[(True, "Handwritten"), (False, 'Typed')])
-    handwritten_message = forms.CharField(min_length=10, required=False)    # the dataURL of the png image
     handwriting_templates = templates[:]
     handwriting_templates.insert(0, (0, 'Blank'))
     handwriting_template = forms.ChoiceField(choices=handwriting_templates, required=False)
+    typed_template = forms.ChoiceField(choices=templates, required=False)
+
+    is_handwritten = forms.ChoiceField(required=True, choices=[(True, "Handwritten"), (False, 'Typed')])
+    handwritten_message = forms.CharField(min_length=10, required=False)    # the dataURL of the png image
+    typed_message = forms.CharField(min_length=10, required=False)
 
     def clean_code(self):
         # verifies that the code is valid and hasn't already been used
@@ -59,24 +54,6 @@ class TicketForm(forms.Form):
             raise ValidationError('This recipient does not exist.')
         return recipient
 
-    def clean_recipient_nickname(self):
-        recipient_nickname = self.cleaned_data['recipient_nickname']
-        if not recipient_nickname.isascii():
-            raise ValidationError('Can only use regular (ASCII) characters.')
-        return recipient_nickname
-
-    def clean_message(self):
-        message = self.cleaned_data['message']
-        if not message.isascii():
-            raise ValidationError('Can only use regular (ASCII) characters.')
-        return message
-
-    def clean_sender(self):
-        sender = self.cleaned_data['sender']
-        if not sender.isascii():
-            raise ValidationError('Can only use regular (ASCII) characters.')
-        return sender
-
     def clean(self):
         # verifies that the period chosen is valid (if special serenade)
         cleaned_data = super().clean()
@@ -86,6 +63,6 @@ class TicketForm(forms.Form):
                 period = cleaned_data['period']
                 if period == "-":
                     raise ValidationError('Please choose a period')
-                # I'm hard coding it because converting to int gives too many errors if it's not convertable
+                # I'm hard coding it because converting to int gives too many errors if it's not convertible
                 elif not (period == "1" or period == "2" or period == "3" or period == "4"):
                     raise ValidationError('This is an invalid period.')

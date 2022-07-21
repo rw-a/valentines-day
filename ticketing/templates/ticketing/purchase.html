@@ -8,6 +8,8 @@
     <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/chosen.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/signature_pad.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/fabric.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/fontfaceobserver.min.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/chosen.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/signature_pad.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
@@ -39,44 +41,45 @@
                 <p hidden class="info error" id="recipient-error">*Required</p>
             </div>
             <div class="input" id="is_handwritten-form">
-                <h3>Handwritten or Typed?</h3>
+                <h3>Handwrite or Type?</h3>
+                <p class="info">Do you want to handwrite or type your message?</p>
                 {{ form.is_handwritten }}
             </div>
-            <div hidden class="input" id="typed-ticket">
+            <div hidden class="input" id="form_typed">
                 <div class="input" id="typed_template_form">
                     <h3>Template</h3>
                     {{ form.typed_template }}
                 </div>
-                <div class="input" id="recipient_nickname-form">
-                    <h3>To</h3>
-                    <p class="info">This is the name <u>you</u> give to the recipient. It's what they see, so be creative!</p>
-                    {{ form.recipient_nickname }}
-                    <p hidden class="info error" id="recipient_nickname_error">*Required</p>
+                <div class="input">
+                    <h3>Font</h3>
+                    <select id="font_selector"></select>
                 </div>
-                <div class="input" id="message-form">
+                <div class="input">
                     <h3>Message</h3>
-                    {{ form.message }}
-                    <p hidden class="info error" id="message_error">*Required</p>
+                    <p class="info">Edit the text to type a message</p>
+                    <canvas id="fabric" width="600" height="356" style="border: 1px solid black"></canvas>
+                    <div hidden>{{ form.recipient_nickname }}</div>
                 </div>
-                <div class="input" id="sender-form">
-                    <h3>From</h3>
-                    {{ form.sender }}
-                    <p hidden class="info error" id="sender_error">*Required</p>
+                <div class="buttons">
+                    <span class="img undo" id="fabric_undo"></span>
+                    <span class="img redo" id="fabric_redo"></span>
+                    <span class="img clear" id="fabric_clear"></span>
                 </div>
             </div>
-            <div class="input" id="signature-pad">
-                <div class="input" id="handwriting_template_form">
+            <div class="input" id="form_handwriting">
+                <div class="input">
                     <h3>Template</h3>
                     {{ form.handwriting_template }}
                 </div>
                 <div class="input no_select">
                     <h3>Message</h3>
+                    <p class="info">Handwrite a message!</p>
                     <div hidden>{{ form.handwritten_message }}</div>
-                    <canvas id="canvas"></canvas>
+                    <canvas id="signature_pad"></canvas>
                     <p hidden class="info error" id="handwriting-error">*Required</p>
-                    <div id="buttons">
-                        <span class="img" id="undo"></span>
-                        <span class="img" id="clear"></span>
+                    <div class="buttons">
+                        <span class="img undo" id="signature_pad_undo"></span>
+                        <span class="img clear" id="signature_pad_clear"></span>
                     </div>
                 </div>
             </div>
@@ -205,40 +208,7 @@
     }
 
     function is_valid_typed() {
-        let validate_recipient_nickname = is_valid_recipient_nickname();
-        let validate_message = is_valid_message();
-        let validate_sender = is_valid_sender();
-        return (validate_recipient_nickname && validate_message && validate_sender);
-    }
-
-    function is_valid_recipient_nickname() {
-        if (document.getElementById('id_recipient_nickname').value.length > 0) {
-            document.getElementById('recipient_nickname_error').hidden = true;
-            return true;
-        } else {
-            document.getElementById('recipient_nickname_error').hidden = false;
-            return false;
-        }
-    }
-
-    function is_valid_message() {
-        if (document.getElementById('id_message').value.length > 0) {
-            document.getElementById('message_error').hidden = true;
-            return true;
-        } else {
-            document.getElementById('message_error').hidden = false;
-            return false;
-        }
-    }
-
-    function is_valid_sender() {
-        if (document.getElementById('id_sender').value.length > 0) {
-            document.getElementById('sender_error').hidden = true;
-            return true;
-        } else {
-            document.getElementById('sender_error').hidden = false;
-            return false;
-        }
+        return true;
     }
 
     function dataURLToBlob(dataURL) {
@@ -261,21 +231,12 @@
     /* CHOOSING CONTENT MODE AND TEMPLATE*/
     document.getElementById('id_is_handwritten').addEventListener('change', () => {
         if (event.target.value == "True") {
-            $('#typed-ticket').hide();
-            $('#signature-pad').show();
+            $('#form_typed').hide();
+            $('#form_handwriting').show();
         } else {
-            $('#typed-ticket').show();
-            $('#signature-pad').hide();
+            $('#form_typed').show();
+            $('#form_handwriting').hide();
         }
-    })
-
-    document.getElementById('id_handwriting_template').addEventListener('change', (event) => {
-        let template = event.target.value;
-            if (template == "0") {
-                document.getElementById('canvas').style.background = "#fdfdfd";
-            } else if (template == "1") {
-                document.getElementById('canvas').style.background = "url({% static 'templates/classic_template.svg' %}) 0% 0%/600px 356px";
-            }
     })
 
     // add dropdown search for recipient
@@ -285,8 +246,8 @@
     
 
     /* SIGNATURE PAD */
-    const wrapper = document.getElementById("signature-pad");
-    const canvas = document.getElementById("canvas");
+    const wrapper = document.getElementById("form_handwriting");
+    const canvas = document.getElementById("signature_pad");
     const signaturePad = new SignaturePad(canvas, {
       minDistance: 1,
       minWidth: 0.7,
@@ -314,16 +275,14 @@
     resizeCanvas();
 
     // clear button
-    const clearButton = document.getElementById("clear");
-    clearButton.addEventListener("click", () => {
+    document.getElementById("signature_pad_clear").addEventListener("click", () => {
         signaturePad.clear();
         if (Object.keys(signaturePadData).length) signaturePadDataBackup = signaturePadData;
         signaturePadData = {};
     });
 
     // undo button
-    const undoButton = document.getElementById("undo");
-    undoButton.addEventListener("click", () => {
+    document.getElementById("signature_pad_undo").addEventListener("click", () => {
         if (Object.keys(signaturePadData).length) {
             signaturePadData.pop(); // remove the last dot or line
             signaturePad.fromData(signaturePadData);
@@ -331,5 +290,140 @@
             signaturePad.fromData(signaturePadDataBackup);
         }
     });
+
+    // choosing handwritten template
+    document.getElementById('id_handwriting_template').addEventListener('change', (event) => {
+        let template = event.target.value;
+            if (template == "0") {
+                document.getElementById('signature_pad').style.background = "#fdfdfd";
+            } else if (template == "1") {
+                document.getElementById('signature_pad').style.background = "url({% static 'templates/classic_template.svg' %}) 0% 0%/600px 356px";
+            }
+    })
+
+    /* FABRIC */
+
+    /* Loading Template */
+    function load_background_image(template_src) {
+        fabric_canvas.clear();
+
+        fabric.Image.fromURL(template_src, function(img) {
+            fabric_canvas.setBackgroundImage(img, fabric_canvas.renderAll.bind(fabric_canvas), {
+                scaleX: fabric_canvas.width / img.width,
+                scaleY: fabric_canvas.height / img.height
+            });
+        });
+    }
+
+    function initialise_classic_template() {
+        load_background_image("{% static 'templates/classic_template.svg' %}");
+        let text1 = new fabric.IText('Name', {left: 18, top: 60, fontSize: 30});
+        let text2 = new fabric.IText('Line 1', {left: 170, top: 164, fontSize: 30})
+        let text3 = new fabric.IText('Line 2', {left: 102, top: 212, fontSize: 30})
+        let text4 = new fabric.IText('Line 3', {left: 102, top: 260, fontSize: 30})
+        let text5 = new fabric.IText('From', {left: 157, top: 308, fontSize: 30})
+        fabric_canvas.add(text1, text2, text3, text4, text5);
+    }
+
+    function initialise_template() {
+        load_font('Calibri');
+        template = document.getElementById('id_typed_template').value;
+        if (template == 1) {
+            initialise_classic_template();
+        }
+        save();
+    }
+
+    document.getElementById('id_typed_template').addEventListener('change', (event) => {
+        initialise_template();
+    })
+
+    
+    /* Undo, Redo & Clear */
+    var fabric_canvas_state;
+    var undo_history = [];
+    var redo_history = [];
+
+    function save() {
+        // clear the redo stack
+        redo_history = [];
+        $('#fabric_redo').prop('disabled', true);
+        // initial call won't have a state
+        if (fabric_canvas_state) {
+        undo_history.push(fabric_canvas_state);
+        $('#fabric_undo').prop('disabled', false);
+        }
+        fabric_canvas_state = JSON.stringify(fabric_canvas);
+    }
+
+    function replay(playStack, saveStack, buttonsOn, buttonsOff) {
+        saveStack.push(fabric_canvas_state);
+        fabric_canvas_state = playStack.pop();
+        var on = $(buttonsOn);
+        var off = $(buttonsOff);
+        // turn both buttons off for the moment to prevent rapid clicking
+        on.prop('disabled', true);
+        off.prop('disabled', true);
+        fabric_canvas.clear();
+        fabric_canvas.loadFromJSON(fabric_canvas_state, function() {
+        fabric_canvas.renderAll();
+        // now turn the buttons back on if applicable
+        on.prop('disabled', false);
+        if (playStack.length) {
+            off.prop('disabled', false);
+        }
+        });
+    }
+
+    // clear button
+    document.getElementById("fabric_clear").addEventListener("click", () => {
+        initialise_template();
+    });
+
+    // undo button
+    document.getElementById("fabric_undo").addEventListener("click", () => {
+        replay(undo_history, redo_history, '#fabric_redo', this);
+    });
+
+    // redo button
+    document.getElementById("fabric_redo").addEventListener("click", () => {
+        replay(redo_history, undo_history, '#fabric_undo', this);
+    });
+
+    /* Init */
+    const fabric_canvas = new fabric.Canvas('fabric');
+
+    /* Load Fonts */
+    function load_font(font) {
+        if (font == undefined) {
+            var font = document.getElementById("font_selector").value;
+        }
+        
+        let myfont = new FontFaceObserver(font);
+        myfont.load()
+            .then(function() {
+                fabric_canvas.getObjects().forEach(function(object) {object.set("fontFamily", font);})
+                fabric_canvas.requestRenderAll();
+            }).catch(function(e) {
+                console.log(e)
+                alert('Failed to load font: ' + font);
+        });
+    }
+
+    let fonts = ["Calibri", "Bethlove", "Chasing Hearts", "Hello Valentine", "Love Letters", "Lovely Valentine"];
+    let font_selector = document.getElementById("font_selector");
+    fonts.forEach(function(font) {
+        let option = document.createElement('option');
+        option.innerHTML = font;
+        option.value = font;
+        font_selector.appendChild(option);
+    });
+
+    font_selector.onchange = function() {
+        load_font();
+    }
+    load_font('Calibri');
+
+    initialise_template();
 </script>
 </html>
