@@ -50,7 +50,7 @@ class TicketsToPDF:
             self.PICKUP_LINES = [line.replace("\n", "") for line in file]
 
         """Templates"""
-        pdfmetrics.registerFont(TTFont('VDay', f'{DirectoryLocations.STATIC}/fonts/I Found My Valentine.ttf'))
+        pdfmetrics.registerFont(TTFont('VDay', f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
 
         self.CLASSIC_TEMPLATE = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
             url=f"{DirectoryLocations.STATIC}/templates/classic_template.svg", write_to=None,
@@ -119,19 +119,19 @@ class TicketsToPDF:
 
     def create_delivery_info(self, tickets: list) -> list:
         stylesheet = getSampleStyleSheet()
-        default_style = ParagraphStyle(name="Default", parent=stylesheet['Normal'], fontSize=9, leading=10,
+        default_style = ParagraphStyle(name="Default", parent=stylesheet['Normal'], fontSize=10, leading=11,
                                        fontName="VDay")
         centre_align = ParagraphStyle(name="Center", parent=default_style, alignment=1)
         right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2)
-        large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1, fontSize=15, leading=17)
+        large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1, fontSize=16, leading=18)
 
         ticket_backs = []
         for ticket in tickets:
             """Top Left: Periods"""
-            p1 = f"<b>P1: {ticket.p1} |</b>" if ticket.is_p1 else f"P1: {ticket.p1}"
-            p2 = f"<b>P2: {ticket.p2} |</b>" if ticket.is_p2 else f"P2: {ticket.p2}"
-            p3 = f"<b>P3: {ticket.p3} |</b>" if ticket.is_p3 else f"P3: {ticket.p3}"
-            p4 = f"<b>P4: {ticket.p4} |</b>" if ticket.is_p4 else f"P4: {ticket.p4}"
+            p1 = f"<b>P1: {ticket.p1} *</b>" if ticket.is_p1 else f"P1: {ticket.p1}"
+            p2 = f"<b>P2: {ticket.p2} *</b>" if ticket.is_p2 else f"P2: {ticket.p2}"
+            p3 = f"<b>P3: {ticket.p3} *</b>" if ticket.is_p3 else f"P3: {ticket.p3}"
+            p4 = f"<b>P4: {ticket.p4} *</b>" if ticket.is_p4 else f"P4: {ticket.p4}"
             periods = Paragraph(f"{p1}<br/>{p2}<br/>{p3}<br/>{p4}", default_style)
 
             """Bottom Right: Item Type (including image)"""
