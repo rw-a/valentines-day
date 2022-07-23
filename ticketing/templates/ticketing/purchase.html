@@ -56,13 +56,13 @@
                 </div>
                 <div class="input">
                     <h3>Message</h3>
-                    <p class="info">Edit the text to type a message</p>
+                    <p class="info">Edit the placeholder text to write your message.</p>
                     <canvas id="fabric" width="600" height="356" style="border: 1px solid black"></canvas>
                     <div hidden>{{ form.recipient_nickname }}</div>
                 </div>
+                <p hidden class="info error" id="typed_error">*Don't forget to remove all the placeholder text first!</p>
                 <div class="buttons">
                     <span class="img undo" id="fabric_undo"></span>
-                    <span class="img redo" id="fabric_redo"></span>
                     <span class="img clear" id="fabric_clear"></span>
                 </div>
             </div>
@@ -208,7 +208,16 @@
     }
 
     function is_valid_typed() {
-        return true;
+        fabric_canvas.discardActiveObject();
+        if (fabric_canvas_data.includes(`"text":"Placeholder"`)) {
+            document.getElementById('typed_error').hidden = false;
+            return false;
+        } else {
+            document.getElementById('typed_error').hidden = true;
+            fabric_canvas.backgroundImage = null;
+            document.getElementById('id_typed_message').value = fabric_canvas.toSVG();
+            return true;
+        }
     }
 
     function dataURLToBlob(dataURL) {
@@ -304,7 +313,7 @@
     /* FABRIC */
 
     /* Loading Template */
-    function load_background_image(template_src) {
+    function load_background_image(template_src, default_font) {
         fabric_canvas.clear();
 
         fabric.Image.fromURL(template_src, function(img) {
@@ -312,26 +321,25 @@
                 scaleX: fabric_canvas.width / img.width,
                 scaleY: fabric_canvas.height / img.height
             });
+            load_font(default_font);
         });
     }
 
     function initialise_classic_template() {
-        load_background_image("{% static 'templates/classic_template.svg' %}");
-        let text1 = new fabric.IText('Name', {left: 18, top: 60, fontSize: 30});
-        let text2 = new fabric.IText('Line 1', {left: 170, top: 164, fontSize: 30})
-        let text3 = new fabric.IText('Line 2', {left: 102, top: 212, fontSize: 30})
-        let text4 = new fabric.IText('Line 3', {left: 102, top: 260, fontSize: 30})
-        let text5 = new fabric.IText('From', {left: 157, top: 308, fontSize: 30})
+        load_background_image("{% static 'templates/classic_template.svg' %}", 'Calibri');
+        let text1 = new fabric.IText('Placeholder', {left: 18, top: 60, fontSize: 30});
+        let text2 = new fabric.IText('Placeholder', {left: 170, top: 164, fontSize: 30})
+        let text3 = new fabric.IText('Placeholder', {left: 102, top: 212, fontSize: 30})
+        let text4 = new fabric.IText('Placeholder', {left: 102, top: 260, fontSize: 30})
+        let text5 = new fabric.IText('Placeholder', {left: 157, top: 308, fontSize: 30})
         fabric_canvas.add(text1, text2, text3, text4, text5);
     }
 
     function initialise_template() {
-        load_font('Calibri');
         template = document.getElementById('id_typed_template').value;
         if (template == 1) {
             initialise_classic_template();
         }
-        save();
     }
 
     document.getElementById('id_typed_template').addEventListener('change', (event) => {
@@ -339,40 +347,17 @@
     })
 
     
-    /* Undo, Redo & Clear */
-    var fabric_canvas_state;
+    /* Undo & Clear */
+    var fabric_canvas_data;
     var undo_history = [];
-    var redo_history = [];
 
-    function save() {
-        // clear the redo stack
-        redo_history = [];
-        $('#fabric_redo').prop('disabled', true);
+    function save() {       // this should not be called by itself. only called by load font and event listeners
         // initial call won't have a state
-        if (fabric_canvas_state) {
-        undo_history.push(fabric_canvas_state);
-        $('#fabric_undo').prop('disabled', false);
+        if (fabric_canvas_data) {
+            undo_history.push(fabric_canvas_data);
+            $('#fabric_undo').prop('disabled', false);
         }
-        fabric_canvas_state = JSON.stringify(fabric_canvas);
-    }
-
-    function replay(playStack, saveStack, buttonsOn, buttonsOff) {
-        saveStack.push(fabric_canvas_state);
-        fabric_canvas_state = playStack.pop();
-        var on = $(buttonsOn);
-        var off = $(buttonsOff);
-        // turn both buttons off for the moment to prevent rapid clicking
-        on.prop('disabled', true);
-        off.prop('disabled', true);
-        fabric_canvas.clear();
-        fabric_canvas.loadFromJSON(fabric_canvas_state, function() {
-        fabric_canvas.renderAll();
-        // now turn the buttons back on if applicable
-        on.prop('disabled', false);
-        if (playStack.length) {
-            off.prop('disabled', false);
-        }
-        });
+        fabric_canvas_data = JSON.stringify(fabric_canvas);
     }
 
     // clear button
@@ -382,16 +367,23 @@
 
     // undo button
     document.getElementById("fabric_undo").addEventListener("click", () => {
-        replay(undo_history, redo_history, '#fabric_redo', this);
-    });
-
-    // redo button
-    document.getElementById("fabric_redo").addEventListener("click", () => {
-        replay(redo_history, undo_history, '#fabric_undo', this);
+        if (undo_history.length > 0) {
+            fabric_canvas_data = undo_history.pop();
+            this.disabled = true;
+            fabric_canvas.clear();
+            fabric_canvas.loadFromJSON(fabric_canvas_data, function() {
+                fabric_canvas.renderAll();
+                this.disabled = false;
+            });
+        }
     });
 
     /* Init */
     const fabric_canvas = new fabric.Canvas('fabric');
+
+    fabric_canvas.on('object:modified', function() {
+        save();
+    });
 
     /* Load Fonts */
     function load_font(font) {
@@ -404,6 +396,7 @@
             .then(function() {
                 fabric_canvas.getObjects().forEach(function(object) {object.set("fontFamily", font);})
                 fabric_canvas.requestRenderAll();
+                save();
             }).catch(function(e) {
                 console.log(e)
                 alert('Failed to load font: ' + font);
@@ -422,7 +415,6 @@
     font_selector.onchange = function() {
         load_font();
     }
-    load_font('Calibri');
 
     initialise_template();
 </script>
