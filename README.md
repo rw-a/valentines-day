@@ -5,6 +5,7 @@
 - ReportLab 3.6+
 - CairoSVG 2.5+
 - lxml 4.9+
+- Intall custom fonts found in [the fonts folder](ticketing/static/fonts) into the OS font library.
 ## How the System Works
 1. Prefects generate codes for tickets using the website.
 2. Prefects physically sell the codes to students.
