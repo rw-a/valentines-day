@@ -6,12 +6,17 @@
     <title>Ticket Redeemed!</title>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/redeemed.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'icons/done.svg' %}"/>
 </head>
 <body>
     <div id="content">
-        <h1>Your ticket has been successfully redeemed.</h1>
+        <h1 style="text-align: center">Your ticket has been successfully redeemed!</h1>
         <br>
-        <button type="button" onclick="location.href={% url 'ticketing:purchase' %}">Redeem Another</button>
+        <div class="centre">
+            <span class="img" title="Redeem Another" id="repeat" onclick="location.href={% url 'ticketing:purchase' %}"></span>
+            <p>Redeem Another</p>
+        </div>
     </div>
 </body>
 </html>

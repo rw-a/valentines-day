@@ -19,6 +19,14 @@ select {
     background-position: right center;
 }
 
+.centre {
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    margin-right: auto;
+    align-items: center;
+}
+
 .info {
     font-style: italic;
     font-size: small;
