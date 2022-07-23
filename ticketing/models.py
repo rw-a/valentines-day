@@ -86,12 +86,9 @@ class Ticket(models.Model):
     period = models.PositiveIntegerField(null=True, blank=True, help_text="Only add if this is a special serenade.")
 
     is_handwritten = models.BooleanField(default=False)
-    handwritten_message = models.TextField(null=True, blank=True,
-                                           help_text="This is the DataURL of the handwritten image. "
-                                                     "Leave it blank if you are manually creating the ticket.")
-    typed_message = models.TextField(null=True, blank=True,
-                                     help_text="This is the DataURL of the typed image. "
-                                               "Leave it blank if you are manually creating the ticket.")
+    message = models.TextField(null=True, blank=True,
+                               help_text="This is the DataURL of the message image. "
+                                         "Leave it blank if you are manually creating the ticket.")
 
     # links ticket to the code which made it. can also be null if it was manually created by prefect
     code = models.OneToOneField(TicketCode, on_delete=models.SET_NULL, null=True, blank=True,

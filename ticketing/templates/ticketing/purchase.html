@@ -45,6 +45,7 @@
                 <p class="info">Do you want to handwrite or type your message?</p>
                 {{ form.is_handwritten }}
             </div>
+            <div hidden>{{ form.message }}</div>
             <div hidden class="input" id="form_typed">
                 <div class="input" id="typed_template_form">
                     <h3>Template</h3>
@@ -74,7 +75,6 @@
                 <div class="input no_select">
                     <h3>Message</h3>
                     <p class="info">Handwrite a message!</p>
-                    <div hidden>{{ form.handwritten_message }}</div>
                     <canvas id="signature_pad"></canvas>
                     <p hidden class="info error" id="handwriting-error">*Required</p>
                     <div class="buttons">
@@ -201,7 +201,7 @@
         } else {
             $('#handwriting-error').hide();
             dataURLToBlob(signaturePad.toDataURL("image/svg+xml")).text().then(image_bytes => {
-                document.getElementById('id_handwritten_message').value = image_bytes;
+                document.getElementById('id_message').value = image_bytes;
             });
             return true;
         }
@@ -215,7 +215,7 @@
         } else {
             document.getElementById('typed_error').hidden = true;
             fabric_canvas.backgroundImage = null;
-            document.getElementById('id_typed_message').value = fabric_canvas.toSVG();
+            document.getElementById('id_message').value = fabric_canvas.toSVG();
             return true;
         }
     }
