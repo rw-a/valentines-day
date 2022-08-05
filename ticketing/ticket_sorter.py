@@ -1,4 +1,4 @@
-# from .class_lookup import get_classes_lookup, STUDENTS
+from .class_lookup import get_classes_lookup, STUDENTS
 import random
 import re
 import csv
@@ -12,15 +12,12 @@ def convert_tickets(tickets) -> list:
     classes_lookup = get_classes_lookup()
     tickets_to_sort = []
     for ticket in tickets:
-        recipient_id = ticket.recipient_name
-        recipient_name = STUDENTS[ticket.recipient_name]['Name']
-        recipient_nickname = ticket.recipient_nickname
-        p1 = classes_lookup[ticket.recipient_name][0]
-        p2 = classes_lookup[ticket.recipient_name][1]
-        p3 = classes_lookup[ticket.recipient_name][2]
-        p4 = classes_lookup[ticket.recipient_name][3]
-        ticket_to_sort = TicketToSort(recipient_id, recipient_name, recipient_nickname, ticket.sender, ticket.message,
-                                      ticket.item_type, p1, p2, p3, p4, ticket.is_handwritten)
+        recipient_id = ticket.recipient_id
+        p1 = classes_lookup[ticket.recipient_id][0]
+        p2 = classes_lookup[ticket.recipient_id][1]
+        p3 = classes_lookup[ticket.recipient_id][2]
+        p4 = classes_lookup[ticket.recipient_id][3]
+        ticket_to_sort = TicketToSort(recipient_id, ticket.item_type, p1, p2, p3, p4)
         if ticket.item_type == "Special Serenade":
             ticket_to_sort.choose_period(ticket.period)
         tickets_to_sort.append(ticket_to_sort)
@@ -35,22 +32,18 @@ def sort_tickets(tickets: list, num_serenading_groups: int, num_non_serenading_g
     ticket_sorter = TicketSorter(tickets_to_sort, num_serenading_groups, num_non_serenading_groups,
                                  max_serenades_per_class, max_non_serenades_per_serenading_class,
                                  extra_special_serenades)
-    groups = {"Serenaders": ticket_sorter.output_serenading_groups_tickets,
-              "Non-Serenaders": ticket_sorter.output_non_serenading_groups_tickets}
+    # groups = {"Serenaders": ticket_sorter.output_serenading_groups_tickets,
+    #           "Non-Serenaders": ticket_sorter.output_non_serenading_groups_tickets}
+    groups = {True: ticket_sorter.output_serenading_groups_tickets,
+              False: ticket_sorter.output_non_serenading_groups_tickets}
     return groups
 
 
 class TicketToSort:
-    def __init__(self, recipient_id, recipient_name: str, recipient_nickname: str, sender: str, message: str,
-                 item_type: str, p1: str, p2: str, p3: str, p4: str, is_handwritten: bool = False):
+    def __init__(self, recipient_id, item_type: str, p1: str, p2: str, p3: str, p4: str):
         # ticket info
         self.recipient_id = recipient_id
-        self.recipient_name = recipient_name
-        self.recipient_nickname = recipient_nickname
-        self.sender = sender
-        self.message = message
         self.item_type = item_type
-        self.is_handwritten = is_handwritten
 
         # where the recipient's classes are for each period don't rename or else setattr() will break
         self.p1 = p1
@@ -440,7 +433,7 @@ class TicketSorter:
         for tickets in self.classrooms.values():
             # sort by person, then item type if same person
             tickets.sort(key=lambda a: a.item_type)
-            tickets.sort(key=lambda a: a.recipient_name)
+            tickets.sort(key=lambda a: a.recipient_id)
 
     def distribute_doubleups(self):
         # if a person is getting multiple things at once,
@@ -451,7 +444,7 @@ class TicketSorter:
             tickets = self.classrooms[classroom]
             # group tickets based on the person
             # requires that the tickets be in order first (tickets of the same people are consecutive)
-            for person, same_person in groupby(tickets, lambda a: a.recipient_name):
+            for person, same_person in groupby(tickets, lambda a: a.recipient_id):
                 tickets_of_same_person = list(same_person)
                 if len(tickets_of_same_person) > 1:  # if someone is receiving more than 1 ticket
                     # group the person's tickets based on their item type

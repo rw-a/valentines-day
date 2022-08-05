@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from .models import Ticket, TicketCode, TicketCodePDF
-from .code_generator import CodesToPDF, generate_codes
 from .constants import DirectoryLocations
 from .class_lookup import STUDENTS
+from .models import Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup
+from .code_generator import CodesToPDF, generate_codes
+from .ticket_sorter import sort_tickets
 import os
 
 
@@ -87,9 +88,59 @@ class TicketAdmin(admin.ModelAdmin):
         super().delete_queryset(request=request, queryset=queryset)
 
 
+class SortTicketAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'num_serenaders', 'num_non_serenaders','url', 'date')
+
+    @admin.display(description='URL')
+    def url(self, obj):
+        return reverse("ticketing:codepdf", args=[obj.pk])
+
+    def save_model(self, request, obj, form, change):
+        num_tickets = Ticket.objects.count()
+        if num_tickets < obj.num_serenaders + obj.num_non_serenaders:
+            raise IndexError(f"Not enough tickets to do a sorting. {num_tickets} exist. "
+                             f"At least {obj.num_serenaders + obj.num_non_serenaders} required.")
+            return False
+        super().save_model(request=request, obj=obj, form=form, change=change)
+        tickets = Ticket.objects.all()
+        groups_split = sort_tickets(tickets, obj.num_serenaders, obj.num_non_serenaders, obj.max_serenades_per_class,
+                                    obj.max_non_serenades_per_serenading_class, obj.extra_special_serenades)
+        for is_serenading, groups in groups_split.items():
+            for index, group in enumerate(groups):
+                tickets = [Ticket.objects.get(code=ticket.code) for ticket in group]
+                code = f"{'S' if is_serenading else 'N'}{index + 1}"
+                delivery_group = DeliveryGroup(
+                    code=code,
+                    is_serenading_group=is_serenading,
+                    sort_request=obj
+                )
+                delivery_group.tickets.add(*tickets)
+                delivery_group.save()
+
+    def response_add(self, request, obj, post_url_continue=None):
+        return HttpResponseRedirect(reverse(f"ticketing:tickets/{obj.pk}", args=[obj.pk]))
+
+    def delete_model(self, request, obj):
+        if os.path.exists(f"{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf"):
+            os.remove(f"{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf")
+        super().delete_model(request=request, obj=obj)
+
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            if os.path.exists(f"{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf"):
+                os.remove(f"{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf")
+        super().delete_queryset(request=request, queryset=queryset)
+
+
+class DeliveryGroupAdmin(admin.ModelAdmin):
+    list_display = ('sort_request', 'code')
+
+
 admin.site.register(Ticket, TicketAdmin)
 admin.site.register(TicketCode, TicketCodeAdmin)
 admin.site.register(TicketCodePDF, TicketCodePDFAdmin)
+admin.site.register(SortTicketsRequest, SortTicketAdmin)
+admin.site.register(DeliveryGroup, DeliveryGroupAdmin)
 
 admin.site.site_header = "BSHS Valentine's Day Ticketing System"
 admin.site.site_title = "BSHS"

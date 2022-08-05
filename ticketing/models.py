@@ -46,7 +46,7 @@ class TicketCode(models.Model):
         default='Serenade'
     )
 
-    # links ticket codes to the pdf which created them. can also be ull if created individually
+    # links ticket codes to the pdf which created them. can also be null if created individually
     pdf = models.ForeignKey(TicketCodePDF, on_delete=models.SET_NULL, null=True, blank=True,
                             verbose_name="Corresponding TicketCodePDF (optional)",
                             help_text="Links the code to the PDF which generated it. "
@@ -121,3 +121,18 @@ class SortTicketsRequest(models.Model):
     max_non_serenades_per_serenading_class = models.IntegerField(default=10)
     extra_special_serenades = models.BooleanField(default=True)
     date = models.DateTimeField(default=timezone.now, help_text="Date created")
+
+    class Meta:
+        verbose_name = "Sort Tickets Request"
+        verbose_name_plural = "Sort Tickets Requests"
+
+
+class DeliveryGroup(models.Model):
+    code = models.CharField(max_length=3)
+    is_serenading_group = models.BooleanField()
+    sort_request = models.ForeignKey(SortTicketsRequest, on_delete=models.CASCADE)
+    tickets = models.ManyToManyField(Ticket)
+
+    class Meta:
+        verbose_name = "Delivery Group"
+        verbose_name_plural = "Delivery Groups"

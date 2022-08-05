@@ -2,12 +2,11 @@ from django.http import HttpResponseRedirect, JsonResponse, FileResponse
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
-from .models import Ticket, TicketCode
+from .models import Ticket, TicketCode, SortTicketsRequest
 from .forms import TicketForm, GeneratorForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
 from .constants import DirectoryLocations
 from .code_generator import generate_codes
-from .ticket_sorter import sort_tickets
 
 
 def index(request):
@@ -53,6 +52,22 @@ def generator(request, code: str = ""):
     return render(request, 'ticketing/generator.html', {'form': form, 'code': code})
 
 
+@staff_member_required
+def tickets(request, pk):
+    sort_tickets_request = SortTicketsRequest.objects.get(pk=pk)
+    ticket_numbers = {group.code: group.tickets_set.count()
+                      for group in sort_tickets_request.deliverygroup_set.all()}
+    return render(request, 'ticketing/tickets.html', {
+        'pk': pk, 'num_serenaders': sort_tickets_request.num_serenaders,
+        'num_non_serenaders': sort_tickets_request.num_non_serenaders,
+        'ticket_numbers': ticket_numbers})
+
+
+@staff_member_required
+def delivery_group(request, pk, group_id):
+    pass
+
+
 def redeemed(request):
     return render(request, 'ticketing/redeemed.html')
 
@@ -65,7 +80,7 @@ def redeem(request):
         # check whether it's valid:
         if form.is_valid():
             # process the data in form.cleaned_data as required
-            ticket_code = TicketCode.objects.filter(code=form.cleaned_data['code'])[0]
+            ticket_code = TicketCode.objects.get(code=form.cleaned_data['code'])
             is_handwritten = form.cleaned_data['is_handwritten']
             if is_handwritten:
                 template = form.cleaned_data['handwriting_template']
@@ -109,7 +124,7 @@ def validate_code(request):
     data = {
         'is_exists': is_code_exists(code),
         'is_unconsumed': is_code_unconsumed(code),
-        'item_type': TicketCode.objects.filter(code=code)[0].item_type if is_code_exists(code) else ""
+        'item_type': TicketCode.objects.get(code=code).item_type if is_code_exists(code) else ""
         # if the code exists, get what item it is. if it doesn't leave it blank
     }
 

@@ -11,6 +11,8 @@ urlpatterns = [
     path('validate_code/', views.validate_code, name='validate_code'),
     path('validate_recipient/', views.validate_recipient, name='validate_recipient'),
     path('codes/<int:pk>', views.codepdf, name='codepdf'),
+    path('tickets/<int:pk>', views.tickets, name='tickets'),
+    path('tickets/<int:pk>/<str:group_id>', views.delivery_group, name='delivery_group'),
     path('generator/', views.generator, name='generator'),
     path('generator/<str:code>/', views.generator),
     path('stats/', views.stats, name='stats')
