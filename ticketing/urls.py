@@ -13,5 +13,5 @@ urlpatterns = [
     path('codes/<int:pk>', views.codepdf, name='codepdf'),
     path('generator/', views.generator, name='generator'),
     path('generator/<str:code>/', views.generator),
-    path('sort/', views.sort, name='sort')
+    path('stats/', views.stats, name='stats')
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

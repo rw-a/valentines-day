@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
 from .models import Ticket, TicketCode
-from .forms import TicketForm, GeneratorForm, SortTicketsForm
+from .forms import TicketForm, GeneratorForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
 from .constants import DirectoryLocations
 from .code_generator import generate_codes
@@ -15,7 +15,7 @@ def index(request):
 
 
 @staff_member_required
-def sort(request):
+def stats(request):
     if "count" in request.GET:
         # if refreshing the item count
         data = {}
@@ -30,8 +30,7 @@ def sort(request):
             data[f'{item_type_name}s_redeemed'] = redeemed
         return JsonResponse(data)
     else:
-        form = SortTicketsForm()
-        return render(request, 'ticketing/sort.html', {'form': form})
+        return render(request, 'ticketing/stats.html')
 
 
 @staff_member_required

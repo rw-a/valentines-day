@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stats & Sort Tickets</title>
+    <title>Stats</title>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/sort.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/stats.css' %}">
     <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
     <link rel="icon" type="image/png" href="{% static 'icons/math.svg' %}"/>
 </head>
 <body>
 <div id="content">
-  <div>
-     <h1>Stats</h1>
+    <h1>Stats</h1>
     <table>
       <tr>
         <th>Item</th>
@@ -47,22 +46,6 @@
       </tr>
     </table>
     <button id="refresh">Refresh</button>
-  </div>
-  <br>
-  <div>
-    <h1>Sort</h1>
-    <form method="post"> {% csrf_token %}
-      <div class="input">
-        <h3>How many serenading groups?</h3>
-        {{ form.serenading_groups }}
-      </div>
-      <div class="input">
-        <h3>How many non-serenading groups?</h3>
-        {{ form.non_serenading_groups }}
-      </div>
-    </form>
-    <button id="sort">Sort</button>
-  </div>
 </div>
 </body>
 <script>
@@ -74,7 +57,7 @@
     });
 
     function refresh() {
-        $.getJSON('{% url 'ticketing:sort' %}', "count", (data) => {
+        $.getJSON('{% url 'ticketing:stats' %}', "count", (data) => {
             $('#chocolates_created')[0].innerText = data.chocolates_created;
             $('#chocolates_redeemed')[0].innerText = data.chocolates_redeemed;
             $('#roses_created')[0].innerText = data.roses_created;

@@ -65,8 +65,3 @@ class TicketForm(forms.Form):
                 # I'm hard coding it because converting to int gives too many errors if it's not convertible
                 elif not (period == "1" or period == "2" or period == "3" or period == "4"):
                     raise ValidationError('This is an invalid period.')
-
-
-class SortTicketsForm(forms.Form):
-    serenading_groups = forms.IntegerField(min_value=1, max_value=99, required=True)
-    non_serenading_groups = forms.IntegerField(min_value=1, max_value=99, required=True)
