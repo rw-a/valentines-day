@@ -2,16 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sort Tickets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats & Sort Tickets</title>
     {% load static %}
-    <script type="text/javascript" src="{% static 'jquery-3.6.0.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/sort.css' %}">
+    <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+    <link rel="icon" type="image/png" href="{% static 'icons/math.svg' %}"/>
 </head>
 <body>
+<div id="content">
+  <div>
+     <h1>Stats</h1>
     <table>
       <tr>
         <th>Item</th>
-        <th>Amount Created</th>
-        <th>Amount Redeemed</th>
+        <th>Number of Created</th>
+        <th>Number of Redeemed</th>
       </tr>
       <tr>
         <td>Chocolate</td>
@@ -33,8 +40,30 @@
         <td id="special_serenades_created"></td>
         <td id="special_serenades_redeemed"></td>
       </tr>
+       <tr>
+        <td><b>Total</b></td>
+        <td id="total_created"></td>
+        <td id="total_redeemed"></td>
+      </tr>
     </table>
     <button id="refresh">Refresh</button>
+  </div>
+  <br>
+  <div>
+    <h1>Sort</h1>
+    <form method="post"> {% csrf_token %}
+      <div class="input">
+        <h3>How many serenading groups?</h3>
+        {{ form.serenading_groups }}
+      </div>
+      <div class="input">
+        <h3>How many non-serenading groups?</h3>
+        {{ form.non_serenading_groups }}
+      </div>
+    </form>
+    <button id="sort">Sort</button>
+  </div>
+</div>
 </body>
 <script>
     $('#sort').on('click', () => {
@@ -54,6 +83,8 @@
             $('#serenades_redeemed')[0].innerText = data.serenades_redeemed;
             $('#special_serenades_created')[0].innerText = data.special_serenades_created;
             $('#special_serenades_redeemed')[0].innerText = data.special_serenades_redeemed;
+            $('#total_created')[0].innerHTML = `<b>${data.chocolates_created + data.roses_created + data.serenades_created + data.special_serenades_created}</b>`;
+            $('#total_redeemed')[0].innerHTML = `<b>${data.chocolates_redeemed + data.roses_redeemed + data.serenades_redeemed + data.special_serenades_redeemed}</b>`;
         });
     }
 

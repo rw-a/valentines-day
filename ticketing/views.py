@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
 from .models import Ticket, TicketCode
-from .forms import TicketForm, GeneratorForm
+from .forms import TicketForm, GeneratorForm, SortTicketsForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
 from .constants import DirectoryLocations
 from .code_generator import generate_codes
@@ -11,31 +11,27 @@ from .ticket_sorter import sort_tickets
 
 
 def index(request):
-    return HttpResponseRedirect(reverse('ticketing:purchase'))
+    return HttpResponseRedirect(reverse('ticketing:redeem'))
 
 
 @staff_member_required
-def stats(request):
+def sort(request):
     if "count" in request.GET:
         # if refreshing the item count
         data = {}
-        for choice in Ticket.item_type.field.students:
+        for choice in Ticket.item_type.field.choices:
             item_type = choice[0]
             item_type_name = item_type.lower().replace(' ', '_')
             # get total ticket codes created
-            created = TicketCode.objects.filter_by_item_type(item_type=item_type).count()
+            created = TicketCode.objects.filter(item_type=item_type).count()
             data[f'{item_type_name}s_created'] = created
             # gets total redeemed ticket codes (actually the number of tickets, in case some were manually added)
-            redeemed = Ticket.objects.filter_by_item_type(item_type=item_type).count()
+            redeemed = Ticket.objects.filter(item_type=item_type).count()
             data[f'{item_type_name}s_redeemed'] = redeemed
         return JsonResponse(data)
     else:
-        return render(request, 'ticketing/stats.html')
-
-
-@staff_member_required
-def sorted_tickets(request):
-    return FileResponse(open(f'sorted_tickets.pdf', 'rb'))
+        form = SortTicketsForm()
+        return render(request, 'ticketing/sort.html', {'form': form})
 
 
 @staff_member_required
@@ -58,11 +54,11 @@ def generator(request, code: str = ""):
     return render(request, 'ticketing/generator.html', {'form': form, 'code': code})
 
 
-def purchased(request):
-    return render(request, 'ticketing/purchased.html')
+def redeemed(request):
+    return render(request, 'ticketing/redeemed.html')
 
 
-def purchase(request):
+def redeem(request):
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -99,13 +95,13 @@ def purchase(request):
             ticket_code.save()
 
             # redirect to the purchased screen
-            return HttpResponseRedirect(reverse('ticketing:purchased'))
+            return HttpResponseRedirect(reverse('ticketing:redeemed'))
 
     # if a GET (or any other method) we'll create a blank form
     else:
         form = TicketForm()
 
-    return render(request, 'ticketing/purchase.html', {'form': form})
+    return render(request, 'ticketing/redeem.html', {'form': form})
 
 
 def validate_code(request):
