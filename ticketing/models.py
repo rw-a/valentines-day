@@ -118,8 +118,18 @@ class SortTicketsRequest(models.Model):
     num_serenaders = models.IntegerField(default=10)
     num_non_serenaders = models.IntegerField(default=10)
     max_serenades_per_class = models.IntegerField(default=5)
-    max_non_serenades_per_serenading_class = models.IntegerField(default=10)
-    extra_special_serenades = models.BooleanField(default=True)
+    max_non_serenades_per_class = models.IntegerField(default=10)
+    extra_special_serenades = models.BooleanField(default=True,
+                                                  help_text="Special serenades will not be grouped with regular "
+                                                            "serenades (no promises). Decreases efficiency.")
+    enforce_distribution = models.BooleanField(default=True,
+                                               help_text="More strictly force tickets to be split over multiple "
+                                                         "periods. Ensures that people do not receive all their items "
+                                                         "at once (no promises). Decreases efficiency.")
+    delivery_group_balance = models.FloatField(default=0.7,
+                                               help_text="The proportion of tickets that serenading groups have "
+                                                         "relative to non-serenading groups.")
+
     date = models.DateTimeField(default=timezone.now, help_text="Date created")
 
     class Meta:

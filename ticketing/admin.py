@@ -103,8 +103,12 @@ class SortTicketAdmin(admin.ModelAdmin):
             return False
         super().save_model(request=request, obj=obj, form=form, change=change)
         tickets = Ticket.objects.all()
-        groups_split = sort_tickets(tickets, obj.num_serenaders, obj.num_non_serenaders, obj.max_serenades_per_class,
-                                    obj.max_non_serenades_per_serenading_class, obj.extra_special_serenades)
+        groups_split = sort_tickets(tickets, obj.num_serenaders, obj.num_non_serenaders,
+                                    max_serenades_per_class=obj.max_serenades_per_class,
+                                    max_non_serenades_per_class=obj.max_non_serenades_per_class,
+                                    extra_special_serenades=obj.extra_special_serenades,
+                                    enforce_distribution=obj.enforce_distribution,
+                                    delivery_group_balance=obj.delivery_group_balance)
         for is_serenading, groups in groups_split.items():
             for index, group in enumerate(groups):
                 tickets = [Ticket.objects.get(code=ticket.code) for ticket in group]
