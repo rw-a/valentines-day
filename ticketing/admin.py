@@ -200,13 +200,6 @@ class SortTicketAdmin(admin.ModelAdmin):
                 shutil.rmtree(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}")
         super().delete_queryset(request=request, queryset=queryset)
 
-    @admin.action(description="Delete selected SortTicketRequests and all the DeliveryGroups they generated")
-    def delete_queryset_and_children(self, request, queryset):
-        for obj in queryset:
-            for group in obj.deliverygroup_set.all():
-                group.delete()
-        self.delete_queryset(request=request, queryset=queryset)
-
 
 class DeliveryGroupAdmin(admin.ModelAdmin):
     list_display = ('code', 'is_serenading_group', 'num_serenades', 'num_non_serenades', 'sort_request')
