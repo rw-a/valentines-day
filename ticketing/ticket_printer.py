@@ -21,7 +21,7 @@ else:
 
 
 class TicketsToPDF:
-    def __init__(self, tickets: list,  pdf_output_name: str):
+    def __init__(self, tickets,  pdf_output_name: str):
         self.tickets = tickets
         self.pdf_output_name = pdf_output_name
 

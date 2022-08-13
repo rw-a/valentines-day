@@ -104,6 +104,10 @@ class Ticket(models.Model):
     p3 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 3 Classroom")
     p4 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 4 Classroom")
 
+    sort_order = models.PositiveIntegerField(null=True, blank=True,
+                                             help_text="Used to determine what order the tickets "
+                                                       "should be when printing.")
+
     def __str__(self):
         return f'{self.recipient_id} ({self.item_type})'
 
@@ -120,6 +124,7 @@ class Ticket(models.Model):
     class Meta:
         verbose_name = "Ticket"
         verbose_name_plural = "Tickets"
+        ordering = ['sort_order', 'pk']
 
 
 class SortTicketsRequest(models.Model):
