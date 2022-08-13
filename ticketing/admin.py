@@ -9,6 +9,7 @@ from .code_generator import CodesToPDF, generate_codes
 from .ticket_sorter import sort_tickets
 import os
 import shutil
+import random
 
 
 class TicketCodePDFAdmin(admin.ModelAdmin):
@@ -62,7 +63,7 @@ class TicketCodePDFAdmin(admin.ModelAdmin):
 
 class TicketCodeAdmin(admin.ModelAdmin):
     list_display = ('code', 'item_type', 'is_unconsumed',)
-    actions = ('delete_ticket_codes_and_tickets',)
+    actions = ('delete_ticket_codes_and_tickets', 'generate_tickets')
 
     @admin.action(description="Delete selected TicketCodes and the Tickets which they made.")
     def delete_ticket_codes_and_tickets(self, request, queryset):
@@ -73,6 +74,41 @@ class TicketCodeAdmin(admin.ModelAdmin):
                     os.remove(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket.pk}.svg")
                 ticket.delete()
         super().delete_queryset(request=request, queryset=queryset)
+
+    @admin.action(description="Randomly generate tickets from unconsumed TicketCodes. For testing use only!")
+    def generate_tickets(self, request, queryset):
+        existing_recipients = [ticket.recipient_id for ticket in Ticket.objects.all()]
+        for index, ticket_code in enumerate(queryset):
+            if ticket_code.is_unconsumed:
+                # 50% chance to double up a person
+                if random.random() > 0.5 and len(existing_recipients) > 0:
+                    recipient_id = random.choice(existing_recipients)
+                else:
+                    recipient_id = random.choice(list(STUDENTS.keys()))
+                existing_recipients.append(recipient_id)
+
+                recipient_name = STUDENTS[recipient_id]['Name']
+                message = f'<?xml version="1.0" encoding="UTF-8" standalone="no" ?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="600" height="356" viewBox="0 0 600 356" xml:space="preserve"><desc>Created with Fabric.js 5.2.1</desc><defs></defs><g transform="matrix(1 0 0 1 57.01 77.45)" style=""  >		<text xml:space="preserve" font-family="Calibri" font-size="30" font-style="normal" font-weight="normal" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1; white-space: pre;" ><tspan x="-38.51" y="9.42" >{recipient_name}</tspan></text></g><g transform="matrix(1 0 0 1 226.26 182.44)" style=""  >		<text xml:space="preserve" font-family="Calibri" font-size="30" font-style="normal" font-weight="normal" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1; white-space: pre;" ><tspan x="-55.76" y="9.42" >{index}</tspan></text></g><g transform="matrix(1 0 0 1 103.5 229.45)" style=""  >		<text xml:space="preserve" font-family="Calibri" font-size="30" font-style="normal" font-weight="normal" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1; white-space: pre;" ></text></g><g transform="matrix(1 0 0 1 103.5 277.45)" style=""  >		<text xml:space="preserve" font-family="Calibri" font-size="30" font-style="normal" font-weight="normal" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1; white-space: pre;" ></text></g><g transform="matrix(1 0 0 1 177.79 325.45)" style=""  >		<text xml:space="preserve" font-family="Calibri" font-size="30" font-style="normal" font-weight="normal" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1; white-space: pre;" ><tspan x="-20.29" y="9.42" >TEST</tspan></text></g></svg>'
+
+                ticket = Ticket(
+                    recipient_id=recipient_id,
+                    item_type=ticket_code.item_type,
+                    is_handwritten=False,
+                    template=1,
+                    message=message,
+                    code=ticket_code
+                )
+                if ticket.item_type == "Special Serenade":
+                    ticket.ss_period = random.choice([1, 2, 3, 4])
+                ticket.save()
+
+                # create the ticket file
+                with open(f'{DirectoryLocations.REDEEMED_TICKETS}/{ticket.pk}.svg', 'wb') as file:
+                    file.write(bytes(message, 'utf-8'))
+
+                # mark the ticket code as consumed
+                ticket_code.is_unconsumed = False
+                ticket_code.save()
 
 
 class TicketAdmin(admin.ModelAdmin):
