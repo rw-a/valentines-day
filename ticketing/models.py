@@ -7,8 +7,9 @@ from .constants import MaxLengths
 
 
 class TicketCodePDF(models.Model):
-    num_of_items = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1), MaxValueValidator(3000)],
-                                               help_text="The number of codes you want to generate")
+    num_of_items = models.PositiveIntegerField(default=100, validators=[MinValueValidator(1), MaxValueValidator(3000)],
+                                               help_text="The number of codes you want to generate. "
+                                                         "Multiple of 100 recommended.")
 
     item_type = models.CharField(
         max_length=20,
@@ -21,7 +22,7 @@ class TicketCodePDF(models.Model):
         default='Serenade'
     )
 
-    date = models.DateTimeField(default=timezone.now, help_text="Date created")
+    date = models.DateTimeField(default=timezone.now, verbose_name="Date Created")
 
     def __str__(self):
         return f'<{self.pk}> {self.num_of_items} {self.item_type}s'

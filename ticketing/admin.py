@@ -68,7 +68,9 @@ class TicketCodeAdmin(admin.ModelAdmin):
     def delete_ticket_codes_and_tickets(self, request, queryset):
         for obj in queryset:
             if hasattr(obj, 'ticket'):
-                ticket = obj.student
+                ticket = obj.ticket
+                if os.path.exists(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket.pk}.svg"):
+                    os.remove(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket.pk}.svg")
                 ticket.delete()
         super().delete_queryset(request=request, queryset=queryset)
 
@@ -88,13 +90,24 @@ class TicketAdmin(admin.ModelAdmin):
         else:
             return None
 
+    def delete_model(self, request, obj):
+        if os.path.exists(f"{DirectoryLocations().REDEEMED_TICKETS}/{obj.pk}.svg"):
+            os.remove(f"{DirectoryLocations().REDEEMED_TICKETS}/{obj.pk}.svg")
+        super().delete_model(request=request, obj=obj)
+
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            if os.path.exists(f"{DirectoryLocations().REDEEMED_TICKETS}/{obj.pk}.svg"):
+                os.remove(f"{DirectoryLocations().REDEEMED_TICKETS}/{obj.pk}.svg")
+        super().delete_queryset(request=request, queryset=queryset)
+
     @admin.action(description="Delete selected Tickets and the Ticket Codes which made them.")
     def delete_tickets_and_ticket_codes(self, request, queryset):
         for obj in queryset:
             ticket_code = obj.code
             if ticket_code is not None:
                 ticket_code.delete()
-        super().delete_queryset(request=request, queryset=queryset)
+        self.delete_queryset(request=request, queryset=queryset)
 
 
 class SortTicketAdmin(admin.ModelAdmin):
