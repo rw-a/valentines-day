@@ -1,4 +1,4 @@
-from .class_lookup import get_classes_lookup, STUDENTS
+from .class_lookup import STUDENTS, STUDENT_CLASSES
 import re
 import csv
 import json
@@ -11,16 +11,15 @@ def convert_tickets(tickets) -> list:
     # converts: tickets -> tickets_to_sort
     # tickets: list of tickets following the SQL Ticket class in model.py
     # tickets_to_sort: list of tickets following the TicketToSort class in sort_tickets.py
-    classes_lookup = get_classes_lookup()
     tickets_to_sort = []
     for ticket in tickets:
         recipient_id = ticket.recipient_id
-        p1 = classes_lookup[ticket.recipient_id][0]
-        p2 = classes_lookup[ticket.recipient_id][1]
-        p3 = classes_lookup[ticket.recipient_id][2]
-        p4 = classes_lookup[ticket.recipient_id][3]
+        p1 = STUDENT_CLASSES[ticket.recipient_id][0]
+        p2 = STUDENT_CLASSES[ticket.recipient_id][1]
+        p3 = STUDENT_CLASSES[ticket.recipient_id][2]
+        p4 = STUDENT_CLASSES[ticket.recipient_id][3]
         if ticket.item_type == "Special Serenade":
-            ticket_to_sort = TicketToSort(ticket.pk, recipient_id, ticket.item_type, p1, p2, p3, p4, ticket.period)
+            ticket_to_sort = TicketToSort(ticket.pk, recipient_id, ticket.item_type, p1, p2, p3, p4, ticket.ss_period)
         else:
             ticket_to_sort = TicketToSort(ticket.pk, recipient_id, ticket.item_type, p1, p2, p3, p4)
         tickets_to_sort.append(ticket_to_sort)

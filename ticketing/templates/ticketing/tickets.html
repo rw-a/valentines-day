@@ -6,18 +6,59 @@
     <title>Tickets</title>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/tickets.css' %}">
     <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
 </head>
 <body>
     <div id="content">
+        <h1>Sort Ticket Request #{{pk}}</h1>
+        <p class="info">Date of Request: {{ date }}</p>
         <table id="groups">
             <tr>
-                <th>Group ID</th>
+                <th>Group</th>
                 <th>Number of Tickets</th>
-                {{ ticket_numbers }}
                 <th>Tickets PDF</th>
               </tr>
         </table>
     </div>
 </body>
+<script>
+    // Generate table
+    let table = document.getElementById("groups");
+    let group_data = {{ group_data|safe }};
+    for (let group of Object.keys(group_data)) {
+        let row = table.insertRow(table.rows.length);
+        row.id = group;
+
+        let group_code = row.insertCell(0);
+        group_code.innerHTML = group;
+
+        let num_tickets = row.insertCell(1);
+        num_tickets.innerHTML = group_data[group]["num_tickets"];
+
+        let tickets_pdf = row.insertCell(2);
+        tickets_pdf.id = `${group}_pdf`;
+        if (group_data[group]['is_printed']) {
+            let link = document.createElement('a');
+            let text = document.createTextNode(group);
+            link.appendChild(text);
+            link.title = "Generated PDF of tickets for group";
+            link.href = `${"{{pk}}"}/${group}`;
+            tickets_pdf.appendChild(link);
+        } else {
+            let generate_button = document.createElement('button');
+            generate_button.innerHTML = "Generate"
+            generate_button.onclick = (event) => {
+                document.querySelectorAll('button').forEach((button) => {
+                    button.disabled = true; 
+                    button.innerHTML = "Generating...";
+                })
+                $.getJSON('{% url 'ticketing:print' %}', {'pk': "{{ pk }}", "group": group}, (data) => {
+                    location.reload();
+                });
+            };
+            tickets_pdf.appendChild(generate_button);
+        }
+    }
+</script>
 </html>

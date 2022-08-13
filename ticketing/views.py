@@ -7,6 +7,9 @@ from .forms import TicketForm, GeneratorForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
 from .constants import DirectoryLocations
 from .code_generator import generate_codes
+from .ticket_printer import TicketsToPDF
+import os
+import json
 
 
 def index(request):
@@ -55,17 +58,32 @@ def generator(request, code: str = ""):
 @staff_member_required
 def tickets(request, pk):
     sort_tickets_request = SortTicketsRequest.objects.get(pk=pk)
-    ticket_numbers = {group.code: group.tickets_set.count()
-                      for group in sort_tickets_request.deliverygroup_set.all()}
+    group_data = {}
+    for group in sort_tickets_request.deliverygroup_set.all():
+        group_data[group.code] = {}
+        group_data[group.code]["num_tickets"] = group.tickets.count()
+        group_data[group.code]["is_printed"] = group.is_printed
+
     return render(request, 'ticketing/tickets.html', {
-        'pk': pk, 'num_serenaders': sort_tickets_request.num_serenaders,
-        'num_non_serenaders': sort_tickets_request.num_non_serenaders,
-        'ticket_numbers': ticket_numbers})
+        'pk': pk, 'date': sort_tickets_request.date, 'group_data': json.dumps(group_data)})
 
 
 @staff_member_required
 def delivery_group(request, pk, group_id):
-    pass
+    return FileResponse(open(f'{DirectoryLocations.SORTED_TICKETS}/{pk}/{group_id}.pdf', 'rb'))
+
+
+@staff_member_required
+def print_tickets(request):
+    pk = request.GET['pk']
+    group_code = request.GET['group']
+    group = SortTicketsRequest.objects.get(pk=pk).deliverygroup_set.get(code=group_code)
+    if not os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{pk}"):
+        os.mkdir(f"{DirectoryLocations().SORTED_TICKETS}/{pk}")
+    TicketsToPDF(group.tickets.all(), f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}.pdf")
+    group.is_printed = True
+    group.save()
+    return JsonResponse({"success": "true"})
 
 
 def redeemed(request):
@@ -97,7 +115,7 @@ def redeem(request):
                 code=ticket_code
                 )
             if ticket.item_type == "Special Serenade":
-                ticket.period = form.cleaned_data['period']
+                ticket.ss_period = form.cleaned_data['period']
             ticket.save()
 
             # create the ticket file

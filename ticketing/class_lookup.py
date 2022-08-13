@@ -28,3 +28,4 @@ def get_classes_lookup() -> dict:
 
 
 STUDENTS = get_students()
+STUDENT_CLASSES = get_classes_lookup()

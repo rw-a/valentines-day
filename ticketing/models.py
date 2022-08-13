@@ -83,7 +83,8 @@ class Ticket(models.Model):
     )
     template = models.IntegerField()
 
-    period = models.PositiveIntegerField(null=True, blank=True, help_text="Only add if this is a special serenade.")
+    ss_period = models.PositiveIntegerField(null=True, blank=True, verbose_name="Special Serenade Period",
+                                            help_text="The period that the special serenade is requested to be in.")
 
     is_handwritten = models.BooleanField(default=False)
     message = models.TextField(null=True, blank=True,
@@ -96,15 +97,21 @@ class Ticket(models.Model):
                                 help_text="Links the ticket to the code which made it. "
                                           "Leave it blank if you are manually creating the ticket.")
 
+    period = models.PositiveIntegerField(null=True, blank=True, help_text="The period chosen by the ticket sorter.")
+    p1 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 1 Classroom")
+    p2 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 2 Classroom")
+    p3 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 3 Classroom")
+    p4 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 4 Classroom")
+
     def __str__(self):
         return f'{self.recipient_id} ({self.item_type})'
 
     def clean(self):
         if self.item_type == "Special Serenade":
-            if self.period is None:
+            if self.ss_period is None:
                 raise ValidationError("Must specify a period for special serenade.")
             else:
-                if not 1 <= self.period <= 4:
+                if not 1 <= self.ss_period <= 4:
                     raise ValidationError("Period must be between 1 and 4 (inclusive).")
         if self.recipient_id not in STUDENTS:
             raise ValidationError("Invalid Recipient (Student ID not found).")
@@ -148,6 +155,7 @@ class SortTicketsRequest(models.Model):
 class DeliveryGroup(models.Model):
     code = models.CharField(max_length=3)
     is_serenading_group = models.BooleanField()
+    is_printed = models.BooleanField(default=False)
     sort_request = models.ForeignKey(SortTicketsRequest, on_delete=models.CASCADE)
     tickets = models.ManyToManyField(Ticket)
 

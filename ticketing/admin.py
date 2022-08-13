@@ -8,6 +8,7 @@ from .models import Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, Deliv
 from .code_generator import CodesToPDF, generate_codes
 from .ticket_sorter import sort_tickets
 import os
+import shutil
 
 
 class TicketCodePDFAdmin(admin.ModelAdmin):
@@ -73,12 +74,19 @@ class TicketCodeAdmin(admin.ModelAdmin):
 
 
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ('recipient', 'item_type', 'period', 'is_handwritten',)
+    list_display = ('recipient', 'item_type', 'period', 'classroom', 'is_handwritten',)
     actions = ('delete_tickets_and_ticket_codes',)
 
     @admin.display(description="Recipient")
     def recipient(self, obj):
         return f"{STUDENTS[obj.recipient_id]['Name']} [{STUDENTS[obj.recipient_id]['ARC']}]"
+
+    @admin.display(description="Chosen Classroom")
+    def classroom(self, obj):
+        if obj.period is not None:
+            return getattr(obj, f'p{obj.period}')
+        else:
+            return None
 
     @admin.action(description="Delete selected Tickets and the Ticket Codes which made them.")
     def delete_tickets_and_ticket_codes(self, request, queryset):
@@ -98,11 +106,6 @@ class SortTicketAdmin(admin.ModelAdmin):
         return reverse("ticketing:tickets", args=[obj.pk])
 
     def save_model(self, request, obj, form, change):
-        num_tickets = Ticket.objects.count()
-        if num_tickets < obj.num_serenaders + obj.num_non_serenaders:
-            raise IndexError(f"Not enough tickets to do a sorting. {num_tickets} exist. "
-                             f"At least {obj.num_serenaders + obj.num_non_serenaders} required.")
-            return False
         super().save_model(request=request, obj=obj, form=form, change=change)
         tickets = Ticket.objects.all()
         groups_split = sort_tickets(tickets, obj.num_serenaders, obj.num_non_serenaders,
@@ -113,7 +116,17 @@ class SortTicketAdmin(admin.ModelAdmin):
                                     delivery_group_balance=obj.delivery_group_balance)
         for is_serenading, groups in groups_split.items():
             for group in groups:
-                tickets = [Ticket.objects.get(pk=ticket.pk) for ticket in group.tickets]
+                tickets = []
+                for ticket_to_sort in group.tickets:
+                    ticket = Ticket.objects.get(pk=ticket_to_sort.pk)
+                    ticket.p1 = ticket_to_sort.p1.clean_name
+                    ticket.p2 = ticket_to_sort.p2.clean_name
+                    ticket.p3 = ticket_to_sort.p3.clean_name
+                    ticket.p4 = ticket_to_sort.p4.clean_name
+                    ticket.period = ticket_to_sort.chosen_period
+                    ticket.save()
+                    tickets.append(ticket)
+
                 delivery_group = DeliveryGroup(
                     code=group.name,
                     is_serenading_group=is_serenading,
@@ -127,20 +140,20 @@ class SortTicketAdmin(admin.ModelAdmin):
 
     def delete_model(self, request, obj):
         if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}"):
-            os.rmdir(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}")
+            shutil.rmtree(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}")
         super().delete_model(request=request, obj=obj)
 
     def delete_queryset(self, request, queryset):
         for obj in queryset:
             if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}"):
-                os.rmdir(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}")
+                shutil.rmtree(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}")
         super().delete_queryset(request=request, queryset=queryset)
 
     @admin.action(description="Delete selected SortTicketRequests and all the DeliveryGroups they generated")
     def delete_queryset_and_children(self, request, queryset):
         for obj in queryset:
-            for child in obj.deliverygroup_set.all():
-                child.delete()
+            for group in obj.deliverygroup_set.all():
+                group.delete()
         self.delete_queryset(request=request, queryset=queryset)
 
 
@@ -157,15 +170,15 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
 
     def delete_model(self, request, obj):
         sort_request = obj.sort_request
-        if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.pk}.pdf"):
-            os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.pk}.pdf")
+        if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}.pdf"):
+            os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}.pdf")
         super().delete_model(request=request, obj=obj)
 
     def delete_queryset(self, request, queryset):
         for obj in queryset:
             sort_request = obj.sort_request
-            if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.pk}.pdf"):
-                os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.pk}.pdf")
+            if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}.pdf"):
+                os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}.pdf")
         super().delete_queryset(request=request, queryset=queryset)
 
 

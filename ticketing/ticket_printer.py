@@ -11,8 +11,13 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus.tables import Table, TableStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from constants import DirectoryLocations, FileNames
-# from .ticket_sorter import TicketToSort
+
+if __name__ == "__main__":
+    STUDENTS = {"89273498237A": {"Name": "Jeff Bezos"}}
+    from constants import DirectoryLocations, FileNames
+else:
+    from .constants import DirectoryLocations, FileNames
+    from .class_lookup import STUDENTS
 
 
 class TicketsToPDF:
@@ -85,7 +90,7 @@ class TicketsToPDF:
         images = []
         for ticket in tickets:
             # resize the canvas
-            with open(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket.id}.svg") as file:
+            with open(f"{DirectoryLocations().REDEEMED_TICKETS}/{ticket.pk}.svg") as file:
                 xml_file = etree.parse(file).getroot()
                 # change the view box to the dimensions of the canvas
                 xml_file.set('viewBox', f'0 0 {self.CANVAS_WIDTH} {self.CANVAS_HEIGHT}')
@@ -122,17 +127,15 @@ class TicketsToPDF:
         default_style = ParagraphStyle(name="Default", parent=stylesheet['Normal'], fontSize=10, leading=11,
                                        fontName="VDay")
         centre_align = ParagraphStyle(name="Center", parent=default_style, alignment=1)
-        right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2)
+        # right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2)
         large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1, fontSize=16, leading=18)
 
         ticket_backs = []
         for ticket in tickets:
             """Top Left: Periods"""
-            p1 = f"<b>P1: {ticket.p1} *</b>" if ticket.is_p1 else f"P1: {ticket.p1}"
-            p2 = f"<b>P2: {ticket.p2} *</b>" if ticket.is_p2 else f"P2: {ticket.p2}"
-            p3 = f"<b>P3: {ticket.p3} *</b>" if ticket.is_p3 else f"P3: {ticket.p3}"
-            p4 = f"<b>P4: {ticket.p4} *</b>" if ticket.is_p4 else f"P4: {ticket.p4}"
-            periods = Paragraph(f"{p1}<br/>{p2}<br/>{p3}<br/>{p4}", default_style)
+            period_classes = [f"P1: {ticket.p1}", f"P2: {ticket.p2}", f"P3: {ticket.p3}", f"P4: {ticket.p4}"]
+            period_classes[ticket.period - 1] += " *"
+            periods = Paragraph("<br/>".join(period_classes), default_style)
 
             """Bottom Right: Item Type (including image)"""
             if ticket.item_type == "Chocolate":
@@ -153,7 +156,7 @@ class TicketsToPDF:
             item_type_table = self.create_div([[item_type_image], [item_type]], colWidths=self.CELL_WIDTH / 5)
 
             """Top Side: Recipient Name"""
-            recipient_name_and_pickup = Paragraph(f"* Hey {ticket.recipient_name} *<br/>"
+            recipient_name_and_pickup = Paragraph(f"* Hey {STUDENTS[ticket.recipient_id]['Name']} *<br/>"
                                                   f"{random.choice(self.PICKUP_LINES)}", large_style)
 
             vertically_separated_table = self.create_div([[periods], [recipient_name_and_pickup], [item_type_table]],
@@ -220,23 +223,18 @@ def main():
     from glob import glob
 
     class Ticket:
-        def __init__(self, id, template: int):
-            self.id = id
+        def __init__(self, pk, template: int):
+            self.pk = pk
             self.template = template
 
             self.item_type = random.choice(["Chocolate", "Rose", "Serenade", "Special Serenade"])
-            self.recipient_name = "Wade Haynes"
+            self.recipient_id = "89273498237A"
 
+            self.period = 2
             self.p1 = "F101"
             self.p2 = "F202"
             self.p3 = "F303"
             self.p4 = "F404"
-
-            # whether the algorithm has chosen this period. don't rename or else setattr() will break
-            self.is_p1 = False
-            self.is_p2 = True
-            self.is_p3 = False
-            self.is_p4 = False
 
     tickets = [Ticket(file.split("/")[-1].split(".svg")[0], 1) for file in glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")]
 
