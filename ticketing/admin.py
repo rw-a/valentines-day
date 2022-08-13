@@ -89,7 +89,7 @@ class TicketAdmin(admin.ModelAdmin):
 
 
 class SortTicketAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'num_serenaders', 'num_non_serenaders','url', 'date')
+    list_display = ('pk', 'num_serenaders', 'num_non_serenaders', 'url', 'date')
 
     @admin.display(description='URL')
     def url(self, obj):
@@ -110,11 +110,10 @@ class SortTicketAdmin(admin.ModelAdmin):
                                     enforce_distribution=obj.enforce_distribution,
                                     delivery_group_balance=obj.delivery_group_balance)
         for is_serenading, groups in groups_split.items():
-            for index, group in enumerate(groups):
-                tickets = [Ticket.objects.get(code=ticket.code) for ticket in group]
-                code = f"{'S' if is_serenading else 'N'}{index + 1}"
+            for group in groups:
+                tickets = [Ticket.objects.get(code=ticket.code) for ticket in group.tickets]
                 delivery_group = DeliveryGroup(
-                    code=code,
+                    code=group.name,
                     is_serenading_group=is_serenading,
                     sort_request=obj
                 )

@@ -1,5 +1,7 @@
-from .class_lookup import get_classes_lookup
+# from .class_lookup import get_classes_lookup
 import re
+import csv
+import json
 
 # tells the algorithm what order the classrooms are physically located in (only linear unfortunately)
 CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
@@ -91,13 +93,6 @@ class TicketToSort:
         setattr(self, f'is_p{chosen_period}', True)  # sets chosen period as true
         self.locked = True
 
-    def lock(self):
-        if self.has_no_choice:
-            chosen_period = self.chosen_period
-            self.choose_period(chosen_period)
-        else:
-            raise Exception("Attempted to lock a ticket that still has multiple options")
-
     @property
     def num_periods_available(self) -> int:
         num_periods = 0
@@ -119,9 +114,8 @@ class TicketToSort:
         return [period for period in range(1, 5) if getattr(self, f"is_p{period}")]
 
     def as_dict(self):
-        return {"Ticket Number": self.ticket_number, "Recipient Name": self.recipient_id,
-                "Chosen Period": self.chosen_period, "Chosen Classroom": self.chosen_classroom,
-                "Item Type": self.item_type, "Group": self.group,
+        return {"Recipient ID": self.recipient_id, "Chosen Period": self.chosen_period,
+                "Chosen Classroom": self.chosen_classroom, "Item Type": self.item_type, "Group": self.group,
                 "P1": self.p1, "P2": self.p2, "P3": self.p3, "P4": self.p4}
 
     def __repr__(self):
@@ -132,7 +126,7 @@ class TicketToSort:
         p4 = '' if self.is_p4 else '\''
         item = "SS" if self.item_type == "Special Serenade" else self.item_type[0]
         # return f"{item}"
-        return f"<{self.ticket_number}: {self.recipient_id} {self.p1}{p1} {self.p2}{p2} {self.p3}{p3} {self.p4}{p4} {item}>"
+        return f"<{self.recipient_id} {self.p1}{p1} {self.p2}{p2} {self.p3}{p3} {self.p4}{p4} {item}>"
         # return f"<{self.chosen_period}-{self.chosen_classroom} {special}>"
 
 
@@ -167,11 +161,6 @@ class TicketList(list):
     @property
     def num_non_serenades(self):
         return self.num_items(("Chocolate", "Rose"))
-
-    def sort_by_person(self):
-        self.sort(key=lambda ticket: ticket.item_type)
-        self.sort(key=lambda ticket: ticket.recipient_name)
-        return self
 
     def sort_by_item_type(self):
         self.sort(key=lambda ticket: ticket.item_type)
@@ -493,20 +482,21 @@ class ClassroomList(list):
 
     def sorted_by_period_distribution(self, tickets: TicketList) -> list:
         """
-        sorts self by in order of ticket distribution
-        classrooms in a period with few tickets are put in the front, while classrooms in full periods are last
-        POSSIBLE IMPROVEMENT: it may be beneficial to add a secondary sorting criteria
-        recalculates the smallest period after each yield so that modifications to the period distribution between
+        Sorts self by order of ticket distribution, then distribution of destroyed classes.
+        Recalculates the smallest period after each yield so that modifications to the period distribution between
             yields are considered
-        tickets input is the TicketList which the period distribution is derived from (should be a list of every ticket)
+        Tickets input is the TicketList which the period distribution is derived from (should be a list of every ticket)
         """
         classroom_copy = self.copy()
-        for i in range(len(self)):
-            period_distribution = tickets.period_distribution
-            classrooms_sorted = sorted(classroom_copy, key=lambda classroom: period_distribution[classroom.period])
-            chosen_classroom = classrooms_sorted[0]
-            classroom_copy.remove(chosen_classroom)
-            yield chosen_classroom
+        for i in range(len(classroom_copy)):
+            if len(classroom_copy) > 1:  # don't bother if only 1 class in list
+                ticket_period_distribution = tickets.period_distribution
+                chosen_classroom = max(classroom_copy,
+                                       key=lambda classroom: ticket_period_distribution[classroom.period])
+                classroom_copy.remove(chosen_classroom)
+                yield chosen_classroom
+            else:
+                yield classroom_copy[0]
 
 
 class Person:
@@ -529,7 +519,7 @@ class People(list):
     def __init__(self, tickets: TicketList):
         super().__init__(self)
         for ticket in tickets:
-            new_person = Person(ticket.recipient_name)
+            new_person = Person(ticket.recipient_id)
             if new_person in self:
                 existing_person = self.get_existing_person(new_person)
                 existing_person.tickets.append(ticket)
@@ -853,10 +843,10 @@ class TicketSorter:
         # in the second pass, the classrooms are already chosen so try to make it evenly distributed
         classrooms_grouped_by_length = self.classrooms.grouped_by_length_reversed if serenade_only_pass \
             else self.classrooms.grouped_by_length
+
         for length, classrooms in classrooms_grouped_by_length.items():
             # systematically removes tickets from classes, starting from the emptiest classes first
             # if classrooms have equal length, the classrooms in full periods are removed first
-
             for classroom in classrooms.sorted_by_period_distribution(self.tickets):
                 period = classroom.period
                 tickets = classroom.tickets
@@ -918,3 +908,80 @@ class TicketSorter:
         num_groups = self.NUM_SERENADING_GROUPS if is_serenading_group else self.NUM_NON_SERENADING_GROUPS
         classrooms = classrooms.sorted_by_geography
         return PeriodGroupList(classrooms, num_groups)
+
+
+def load_tickets() -> dict:
+    with open("tickets.json") as file:
+        tickets_json = json.load(file)
+    return tickets_json
+
+
+def load_classes() -> dict:
+    classes = {}
+    with open("student_classes.csv") as file:
+        reader = csv.reader(file)
+        for line in reader:
+            classes[line[0]] = {'P1': line[1], 'P2': line[2], 'P3': line[3], 'P4': line[4]}
+    return classes
+
+
+def create_tickets(tickets_json: dict, classes: dict):
+    tickets = []
+    for ticket_number, values in tickets_json.items():
+        recipient_name = values['Recipient Name']
+        recipient_classes = classes[recipient_name]
+        item_type = values['Item Type']
+        ticket = TicketToSort(recipient_name, item_type, recipient_classes['P1'], recipient_classes['P2'],
+                              recipient_classes['P3'], recipient_classes['P4'], ss_period=values['Period'])
+        tickets.append(ticket)
+    return tickets
+
+
+def print_statistics(ticket_sorter: TicketSorter):
+    print("\nNumber of Classroom Visits Per Period:")
+    classrooms_per_period = {1: 0, 2: 0, 3: 0, 4: 0}
+    for classroom in ticket_sorter.classrooms:
+        classrooms_per_period[classroom.period] += 1
+    for period, number in classrooms_per_period.items():
+        print(f"\tPeriod {period}: {number}")
+    print(f"Total: {len(ticket_sorter.classrooms)}")
+
+    print("\nNumber of Tickets Per Item Type:")
+    item_type_distribution = {"Chocolate": 0, "Rose": 0, "Serenade": 0, "Special Serenade": 0}
+    for ticket in ticket_sorter.tickets:
+        item_type_distribution[ticket.item_type] += 1
+    for item_type, number in item_type_distribution.items():
+        print(f"\t{item_type}: {number}")
+    print(f"Total: {len(ticket_sorter.tickets)}")
+
+    print("\nNumber of items per classroom visit:")
+    total = 0
+    for size, classrooms in ticket_sorter.classrooms.grouped_by_length.items():
+        print(f"\t{size}: {len(classrooms)}\t{'|' * len(classrooms)}")
+        total += size * len(classrooms)
+    average_classroom_size = round(total / len(ticket_sorter.classrooms), 3)
+    print(f"Average: {average_classroom_size}")
+
+    print("\nTickets per serenading group:")
+    for group in ticket_sorter.output_serenading_groups:
+        print(f"\tClassrooms: {group.num_classrooms} \t|| "
+              f"Serenades: {group.tickets.num_serenades} \t+ Non-serenades: {group.tickets.num_non_serenades}")
+
+    print("\nTickets per non-serenading group:")
+    for group in ticket_sorter.output_non_serenading_groups:
+        print(f"\tClassrooms: {group.num_classrooms} \t|| Non-serenades: {group.tickets.num_non_serenades}")
+
+
+def main():
+    # load data
+    tickets_json = load_tickets()
+    classes = load_classes()
+    tickets = create_tickets(tickets_json, classes)
+
+    ticket_sorter = TicketSorter(tickets, 10, 10)
+
+    print_statistics(ticket_sorter)
+
+
+if __name__ == "__main__":
+    main()
