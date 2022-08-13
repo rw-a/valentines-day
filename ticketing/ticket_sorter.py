@@ -1,7 +1,17 @@
-from .class_lookup import STUDENTS, STUDENT_CLASSES
 import re
 import csv
-import json
+import random
+
+if __name__ == "__main__":
+    from constants import FileNames
+
+    STUDENTS = {}
+    with open(FileNames.STUDENT_LIST) as file:
+        reader = csv.reader(file)
+        for line in reader:
+            STUDENTS[line[0]] = {'Name': line[1], 'ARC': line[2]}
+else:
+    from .class_lookup import STUDENTS, STUDENT_CLASSES
 
 # tells the algorithm what order the classrooms are physically located in (only linear unfortunately)
 CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
@@ -168,6 +178,10 @@ class TicketList(list):
             if ticket.item_type in items:
                 filtered.append(ticket)
         return filtered
+
+    @property
+    def filter_serenades(self):
+        return self.filter_by_item_type(("Serenade", "Special Serenade"))
 
     @property
     def period_distribution(self) -> dict:
@@ -568,7 +582,7 @@ class PeriodGroup:
         self.classrooms = classrooms
 
     def __repr__(self):
-        return f"<PeriodGroup {self.classrooms} N={self.num_tickets}>"
+        return f"<PeriodGroup {self.classrooms} s={self.num_serenades} N={self.num_tickets}>"
 
     @property
     def num_tickets(self) -> int:
@@ -576,6 +590,13 @@ class PeriodGroup:
         for classroom in self.classrooms:
             num_tickets += len(classroom.tickets)
         return num_tickets
+
+    @property
+    def num_serenades(self) -> int:
+        num_serenades = 0
+        for classroom in self.classrooms:
+            num_serenades += classroom.tickets.num_serenades
+        return num_serenades
 
 
 class PeriodGroupList(list):
@@ -649,6 +670,10 @@ class PeriodGroupList(list):
         return [list(map(lambda classroom: len(classroom.tickets), period_group.classrooms)) for period_group in self]
 
     @property
+    def as_classroom_sizes_serenades(self) -> list:
+        return [list(map(lambda classroom: classroom.tickets.num_serenades, period_group.classrooms)) for period_group in self]
+
+    @property
     def fullest_group(self):
         return max(self, key=lambda period_group: period_group.num_tickets)
 
@@ -668,7 +693,8 @@ class DeliveryGroup:
 
     def __repr__(self):
         return f"<DeliveryGroup:{self.name} " \
-               f"{len(self.p1)} {len(self.p2)} {len(self.p3)} {len(self.p4)} N={len(self.tickets)}>"
+               f"{len(self.p1)} {len(self.p2)} {len(self.p3)} {len(self.p4)} " \
+               f"s={self.tickets.num_serenades} N={len(self.tickets)}>"
 
     @property
     def name(self):
@@ -727,7 +753,7 @@ class DeliveryGroupList(list):
 
 class TicketSorter:
     def __init__(self, tickets: list, serenading_groups: int, non_serenading_groups: int,
-                 max_serenades_per_class: int = 5, max_non_serenades_per_class: int = 10,
+                 max_serenades_per_class: int = 2, max_non_serenades_per_class: int = 10,
                  extra_special_serenades: bool = True, enforce_distribution: bool = False,
                  delivery_group_balance: float = 0.7):
         """Options (Disclaimer: enabling an option does not guarantee that it is always true)"""
@@ -773,7 +799,7 @@ class TicketSorter:
         self.all_tickets = TicketList(tickets)
 
         # first pass with only serenades
-        self.tickets = self.all_tickets.filter_by_item_type(("Serenade", "Special Serenade"))
+        self.tickets = self.all_tickets.filter_serenades
         self.classrooms = ClassroomList.from_tickets(self.tickets)
         self.initialise_special_serenades()
         self.make_special_serenades_extra_special()
@@ -786,9 +812,21 @@ class TicketSorter:
         # self.distribute_tickets(("Chocolate", "Rose"))        # optional. massively decreases efficiency (~2x)
         self.eliminate_classrooms(False)
 
+        for ticket in self.tickets:
+            classroom = ticket.chosen_classroom
+            if ticket not in classroom.tickets:
+                print(classroom, ticket)
+
         """for classroom in self.classrooms:
             print(classroom, classroom.tickets)
         print(len(self.classrooms))"""
+
+        num_serenade_classes = 0
+        for classroom in self.classrooms:
+            if classroom.tickets.has_serenades:
+                print(classroom, classroom.tickets.filter_serenades)
+                num_serenade_classes += 1
+        print(num_serenade_classes)
 
         self.assign_tickets_to_groups()
 
@@ -822,12 +860,7 @@ class TicketSorter:
                     person_tickets = person.tickets.filter_by_item_type(items)
                     for num_periods_available, tickets in person_tickets.grouped_by_num_periods_available.items():
                         # num_periods_available is how many free periods each ticket has
-                        if num_tickets == num_periods_available:
-                            # if the number of classes is available is equal to number of tickets, choose them all
-                            for index, ticket in enumerate(tickets):
-                                ticket.choose_period(index + 1)
-                                period_distribution[index + 1] += 1
-                        elif num_periods_available > 1 and \
+                        if num_periods_available > 1 and \
                                 (self.ENFORCE_DISTRIBUTION or num_tickets >= num_periods_available):
                             # if number of classes available is less than number of tickets, let every class be visited
                             for index, ticket in enumerate(tickets):
@@ -912,27 +945,44 @@ class TicketSorter:
 
 
 def load_tickets() -> dict:
-    with open("tickets.json") as file:
-        tickets_json = json.load(file)
-    return tickets_json
+    tickets_data = {}
+    with open("INPUTS/tickets.csv") as file:
+        reader = csv.reader(file)
+        for index, line in enumerate(reader):
+            recipient_id = line[0]
+            if line[1] == "1":
+                item_type = "Chocolate"
+            elif line[2] == "1":
+                item_type = "Rose"
+            elif line[3] == "1":
+                if random.random() < 0.9:
+                    item_type = "Serenade"
+                else:
+                    item_type = "Special Serenade"
+            if item_type == "Special Serenade":
+                period = random.choice([1, 2, 3, 4])
+            else:
+                period = ""
+            tickets_data[index] = {"Recipient ID": recipient_id, "Item Type": item_type, "Period": period}
+    return tickets_data
 
 
 def load_classes() -> dict:
     classes = {}
-    with open("student_classes.csv") as file:
+    with open(FileNames.STUDENT_CLASSES) as file:
         reader = csv.reader(file)
         for line in reader:
             classes[line[0]] = {'P1': line[1], 'P2': line[2], 'P3': line[3], 'P4': line[4]}
     return classes
 
 
-def create_tickets(tickets_json: dict, classes: dict):
+def create_tickets(tickets_data: dict, classes: dict):
     tickets = []
-    for ticket_number, values in tickets_json.items():
-        recipient_name = values['Recipient Name']
-        recipient_classes = classes[recipient_name]
+    for ticket_number, values in tickets_data.items():
+        recipient_id = values['Recipient ID']
+        recipient_classes = classes[recipient_id]
         item_type = values['Item Type']
-        ticket = TicketToSort(ticket_number, recipient_name, item_type, recipient_classes['P1'],
+        ticket = TicketToSort(ticket_number, recipient_id, item_type, recipient_classes['P1'],
                               recipient_classes['P2'], recipient_classes['P3'], recipient_classes['P4'],
                               ss_period=values['Period'])
         tickets.append(ticket)
@@ -966,19 +1016,21 @@ def print_statistics(ticket_sorter: TicketSorter):
 
     print("\nTickets per serenading group:")
     for group in ticket_sorter.output_serenading_groups:
-        print(f"\tClassrooms: {group.num_classrooms} \t|| "
-              f"Serenades: {group.tickets.num_serenades} \t+ Non-serenades: {group.tickets.num_non_serenades}")
+        print(f"\tClassrooms: {group.num_classrooms} \t| "
+              f"Serenades: {group.tickets.num_serenades}\t+ Non-serenades: {group.tickets.num_non_serenades} "
+              f"= Total: {group.tickets.num_serenades + group.tickets.num_non_serenades}")
 
     print("\nTickets per non-serenading group:")
     for group in ticket_sorter.output_non_serenading_groups:
-        print(f"\tClassrooms: {group.num_classrooms} \t|| Non-serenades: {group.tickets.num_non_serenades}")
+        print(f"\tClassrooms: {group.num_classrooms} \t| Non-serenades: {group.tickets.num_non_serenades}")
 
 
 def main():
+    random.seed(56)
     # load data
-    tickets_json = load_tickets()
+    tickets_data = load_tickets()
     classes = load_classes()
-    tickets = create_tickets(tickets_json, classes)
+    tickets = create_tickets(tickets_data, classes)
 
     ticket_sorter = TicketSorter(tickets, 10, 10)
 
