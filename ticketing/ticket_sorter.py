@@ -43,12 +43,13 @@ def sort_tickets(tickets: list, num_serenading_groups: int, num_non_serenading_g
 
 
 class TicketToSort:
-    def __init__(self, pk: str, recipient_id, item_type: str, p1: str, p2: str, p3: str, p4: str, ss_period: int = None):
+    def __init__(self, pk: int, recipient_id: str, item_type: str, p1: str, p2: str, p3: str, p4: str,
+                 ss_period: int = None):
         # ticket info
         self.pk = pk
         self.recipient_id = recipient_id
         self.item_type = item_type
-        self.SS_period = ss_period  # the period chosen by the special serenade (if applicable)
+        self.ss_period = ss_period  # the period chosen by the special serenade (if applicable)
 
         self.group = None
         self.locked = False     # if choose_period has been run and the ticket is only in one classroom
@@ -65,7 +66,7 @@ class TicketToSort:
         self.is_p3 = True
         self.is_p4 = True
 
-        if item_type == "Special Serenade" and self.SS_period is None:
+        if item_type == "Special Serenade" and self.ss_period is None:
             raise AssertionError("SS_period must be specified for special serenades.")
 
     @property
@@ -120,7 +121,7 @@ class TicketToSort:
         p3 = '' if self.is_p3 else '\''
         p4 = '' if self.is_p4 else '\''
         item = "SS" if self.item_type == "Special Serenade" else self.item_type[0]
-        return f"<{self.pk} {STUDENTS[self.recipient_id]} " \
+        return f"<{self.pk} {STUDENTS[self.recipient_id]['Name']} " \
                f"{self.p1}{p1} {self.p2}{p2} {self.p3}{p3} {self.p4}{p4} {item}>"
 
 
@@ -352,6 +353,8 @@ class ClassroomList(list):
                             new_classroom.tickets.append(ticket)
                             setattr(ticket, f"p{period}", new_classroom)
                             self.append(new_classroom)
+                    else:
+                        raise NameError(f"Classroom name is invalid: {new_classroom.clean_name}")
         return self
 
     def get_existing_classroom(self, new_classroom: Classroom):
@@ -614,7 +617,7 @@ class PeriodGroupList(list):
                     last_classroom = period_group.classrooms.pop(0)
                     self[index - 1].classrooms.append(last_classroom)
             else:
-                print("Fullest group and emptiest group are the same.")
+                # print("TicketSorter: Fullest group and emptiest group are the same size.")
                 return
 
             fullest_group = self.fullest_group
@@ -634,9 +637,9 @@ class PeriodGroupList(list):
                     break
 
         # restore from state
-        assert len(self) == len(state)
-        for index, period_group in enumerate(self):
-            period_group.classrooms = ClassroomList(state[index])
+        if len(state) > 0:
+            for index, period_group in enumerate(self):
+                period_group.classrooms = ClassroomList(state[index])
 
     @property
     def as_classroom_sizes(self) -> list:
@@ -792,7 +795,7 @@ class TicketSorter:
     def initialise_special_serenades(self):
         for ticket in self.tickets:
             if ticket.item_type == "Special Serenade":
-                ticket.choose_period(ticket.SS_period)
+                ticket.choose_period(ticket.ss_period)
 
     def make_special_serenades_extra_special(self):
         # removes regular serenades from classrooms that have special serenades
