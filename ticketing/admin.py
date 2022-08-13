@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.db.models import Q
 from .constants import DirectoryLocations
 from .class_lookup import STUDENTS
 from .models import Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup
@@ -90,10 +91,11 @@ class TicketAdmin(admin.ModelAdmin):
 
 class SortTicketAdmin(admin.ModelAdmin):
     list_display = ('pk', 'num_serenaders', 'num_non_serenaders', 'url', 'date')
+    actions = ('delete_queryset_and_children',)
 
     @admin.display(description='URL')
     def url(self, obj):
-        return reverse("ticketing:codepdf", args=[obj.pk])
+        return reverse("ticketing:tickets", args=[obj.pk])
 
     def save_model(self, request, obj, form, change):
         num_tickets = Ticket.objects.count()
@@ -111,32 +113,60 @@ class SortTicketAdmin(admin.ModelAdmin):
                                     delivery_group_balance=obj.delivery_group_balance)
         for is_serenading, groups in groups_split.items():
             for group in groups:
-                tickets = [Ticket.objects.get(code=ticket.code) for ticket in group.tickets]
+                tickets = [Ticket.objects.get(pk=ticket.pk) for ticket in group.tickets]
                 delivery_group = DeliveryGroup(
                     code=group.name,
                     is_serenading_group=is_serenading,
                     sort_request=obj
                 )
-                delivery_group.tickets.add(*tickets)
                 delivery_group.save()
+                delivery_group.tickets.add(*tickets)
 
     def response_add(self, request, obj, post_url_continue=None):
-        return HttpResponseRedirect(reverse(f"ticketing:tickets/{obj.pk}", args=[obj.pk]))
+        return HttpResponseRedirect(reverse(f"ticketing:tickets", args=[obj.pk]))
 
     def delete_model(self, request, obj):
-        if os.path.exists(f"{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf"):
-            os.remove(f"{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf")
+        if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}"):
+            os.rmdir(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}")
         super().delete_model(request=request, obj=obj)
 
     def delete_queryset(self, request, queryset):
         for obj in queryset:
-            if os.path.exists(f"{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf"):
-                os.remove(f"{DirectoryLocations().GENERATED_TICKET_CODES}/{obj.pk}.pdf")
+            if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}"):
+                os.rmdir(f"{DirectoryLocations().SORTED_TICKETS}/{obj.pk}")
         super().delete_queryset(request=request, queryset=queryset)
+
+    @admin.action(description="Delete selected SortTicketRequests and all the DeliveryGroups they generated")
+    def delete_queryset_and_children(self, request, queryset):
+        for obj in queryset:
+            for child in obj.deliverygroup_set.all():
+                child.delete()
+        self.delete_queryset(request=request, queryset=queryset)
 
 
 class DeliveryGroupAdmin(admin.ModelAdmin):
-    list_display = ('sort_request', 'code')
+    list_display = ('code', 'is_serenading_group', 'num_serenades', 'num_non_serenades', 'sort_request')
+
+    @admin.display(description='Number of Serenade Tickets')
+    def num_serenades(self, obj):
+        return obj.tickets.filter(Q(item_type="Serenade") | Q(item_type="Special Serenade")).count()
+
+    @admin.display(description='Number of Non-serenade Tickets')
+    def num_non_serenades(self, obj):
+        return obj.tickets.filter(Q(item_type="Chocolate") | Q(item_type="Rose")).count()
+
+    def delete_model(self, request, obj):
+        sort_request = obj.sort_request
+        if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.pk}.pdf"):
+            os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.pk}.pdf")
+        super().delete_model(request=request, obj=obj)
+
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            sort_request = obj.sort_request
+            if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.pk}.pdf"):
+                os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.pk}.pdf")
+        super().delete_queryset(request=request, queryset=queryset)
 
 
 admin.site.register(Ticket, TicketAdmin)

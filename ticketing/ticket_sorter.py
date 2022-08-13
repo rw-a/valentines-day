@@ -1,4 +1,4 @@
-# from .class_lookup import get_classes_lookup
+from .class_lookup import get_classes_lookup, STUDENTS
 import re
 import csv
 import json
@@ -20,9 +20,9 @@ def convert_tickets(tickets) -> list:
         p3 = classes_lookup[ticket.recipient_id][2]
         p4 = classes_lookup[ticket.recipient_id][3]
         if ticket.item_type == "Special Serenade":
-            ticket_to_sort = TicketToSort(recipient_id, ticket.item_type, p1, p2, p3, p4, ticket.period)
+            ticket_to_sort = TicketToSort(ticket.pk, recipient_id, ticket.item_type, p1, p2, p3, p4, ticket.period)
         else:
-            ticket_to_sort = TicketToSort(recipient_id, ticket.item_type, p1, p2, p3, p4)
+            ticket_to_sort = TicketToSort(ticket.pk, recipient_id, ticket.item_type, p1, p2, p3, p4)
         tickets_to_sort.append(ticket_to_sort)
     return tickets_to_sort
 
@@ -44,8 +44,9 @@ def sort_tickets(tickets: list, num_serenading_groups: int, num_non_serenading_g
 
 
 class TicketToSort:
-    def __init__(self, recipient_id, item_type: str, p1: str, p2: str, p3: str, p4: str, ss_period: int = None):
+    def __init__(self, pk: str, recipient_id, item_type: str, p1: str, p2: str, p3: str, p4: str, ss_period: int = None):
         # ticket info
+        self.pk = pk
         self.recipient_id = recipient_id
         self.item_type = item_type
         self.SS_period = ss_period  # the period chosen by the special serenade (if applicable)
@@ -113,11 +114,6 @@ class TicketToSort:
     def available_periods(self) -> list:
         return [period for period in range(1, 5) if getattr(self, f"is_p{period}")]
 
-    def as_dict(self):
-        return {"Recipient ID": self.recipient_id, "Chosen Period": self.chosen_period,
-                "Chosen Classroom": self.chosen_classroom, "Item Type": self.item_type, "Group": self.group,
-                "P1": self.p1, "P2": self.p2, "P3": self.p3, "P4": self.p4}
-
     def __repr__(self):
         # for dev purposes only
         p1 = '' if self.is_p1 else '\''
@@ -125,9 +121,8 @@ class TicketToSort:
         p3 = '' if self.is_p3 else '\''
         p4 = '' if self.is_p4 else '\''
         item = "SS" if self.item_type == "Special Serenade" else self.item_type[0]
-        # return f"{item}"
-        return f"<{self.recipient_id} {self.p1}{p1} {self.p2}{p2} {self.p3}{p3} {self.p4}{p4} {item}>"
-        # return f"<{self.chosen_period}-{self.chosen_classroom} {special}>"
+        return f"<{self.pk} {STUDENTS[self.recipient_id]} " \
+               f"{self.p1}{p1} {self.p2}{p2} {self.p3}{p3} {self.p4}{p4} {item}>"
 
 
 class TicketList(list):
@@ -744,19 +739,22 @@ class TicketSorter:
         self.ENFORCE_DISTRIBUTION = enforce_distribution
 
         # the proportion of tickets that serenading_groups have compared to non_serenading_groups
-        # higher value means serenading groups get more
+        # higher value means serenading groups get more tickets
         # loosely enforced
+        # set to 0 to disable balancing
         self.DELIVERY_GROUP_BALANCE = delivery_group_balance
 
         # the max number of serenades in a class (ignores non-serenades)
         # increasing these values increases the efficiency (decreases class visits required)
         # however, too a high a value make class visits fat (more than 20 items to hand out per class)
         # has virtually no effect because it is often impossible to enforce
+        # set to 0 to disable limiting
         self.MAX_SERENADES_PER_CLASS = max_serenades_per_class
 
         # the max number of non-serenade items in a class
         # increasing these values increases the efficiency (decreases class visits required)
         # has little effect because it is rarely enforceable
+        # set to 0 to disable limiting
         self.MAX_NON_SERENADES_PER_CLASS = max_non_serenades_per_class
 
         """Constants"""
@@ -886,17 +884,18 @@ class TicketSorter:
             serenade_classes = classrooms_in_period.filter_has_serenades
             no_serenade_classes = classrooms_in_period.filter_has_no_serenades
 
-            # balance serenades and no-serenades classes. a 30 ticket leeway is acceptable
-            if serenade_classes.num_tickets > no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE + 30:
-                # if too many tickets for serenading groups, move some to non-serenading groups
-                while serenade_classes.num_tickets > no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE:
-                    moved_class = serenade_classes.pop()
-                    no_serenade_classes.append(moved_class)
-            elif serenade_classes.num_tickets + 30 < no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE:
-                # if too many tickets for non-serenading groups, move some to serenading groups
-                while serenade_classes.num_tickets < no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE:
-                    moved_class = no_serenade_classes.pop()
-                    serenade_classes.append(moved_class)
+            if self.DELIVERY_GROUP_BALANCE > 0:
+                # balance serenades and no-serenades classes. a 30 ticket leeway is acceptable
+                if serenade_classes.num_tickets > no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE + 30:
+                    # if too many tickets for serenading groups, move some to non-serenading groups
+                    while serenade_classes.num_tickets > no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE:
+                        moved_class = serenade_classes.pop()
+                        no_serenade_classes.append(moved_class)
+                elif serenade_classes.num_tickets + 30 < no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE:
+                    # if too many tickets for non-serenading groups, move some to serenading groups
+                    while serenade_classes.num_tickets < no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE:
+                        moved_class = no_serenade_classes.pop()
+                        serenade_classes.append(moved_class)
 
             serenading_period_groups = self.get_period_groups(serenade_classes, True)
             self.output_serenading_groups.update(serenading_period_groups, period)
@@ -931,8 +930,9 @@ def create_tickets(tickets_json: dict, classes: dict):
         recipient_name = values['Recipient Name']
         recipient_classes = classes[recipient_name]
         item_type = values['Item Type']
-        ticket = TicketToSort(recipient_name, item_type, recipient_classes['P1'], recipient_classes['P2'],
-                              recipient_classes['P3'], recipient_classes['P4'], ss_period=values['Period'])
+        ticket = TicketToSort(ticket_number, recipient_name, item_type, recipient_classes['P1'],
+                              recipient_classes['P2'], recipient_classes['P3'], recipient_classes['P4'],
+                              ss_period=values['Period'])
         tickets.append(ticket)
     return tickets
 
