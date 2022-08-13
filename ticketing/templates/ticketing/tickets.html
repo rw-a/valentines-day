@@ -12,7 +12,7 @@
 <body>
     <div id="content">
         <h1>Sort Ticket Request #{{pk}}</h1>
-        <p class="info">Date of Request: {{ date }}</p>
+        <p class="info">Date Created: {{ date }}</p>
         <table id="groups">
             <tr>
                 <th>Group</th>
@@ -40,7 +40,7 @@
         tickets_pdf.id = `${group}_pdf`;
         if (group_data[group]['is_printed']) {
             let link = document.createElement('a');
-            let text = document.createTextNode(group);
+            let text = document.createTextNode("Download");
             link.appendChild(text);
             link.title = "Generated PDF of tickets for group";
             link.href = `${"{{pk}}"}/${group}`;

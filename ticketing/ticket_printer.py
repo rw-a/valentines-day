@@ -127,6 +127,7 @@ class TicketsToPDF:
         default_style = ParagraphStyle(name="Default", parent=stylesheet['Normal'], fontSize=10, leading=11,
                                        fontName="VDay")
         centre_align = ParagraphStyle(name="Center", parent=default_style, alignment=1)
+        centre_align_small = ParagraphStyle(name="Center", parent=default_style, alignment=1, fontSize=8, leading=9)
         # right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2)
         large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1, fontSize=16, leading=18)
 
@@ -152,7 +153,10 @@ class TicketsToPDF:
                                                    self.ITEM_TYPE_IMAGE_SIZE, self.ITEM_TYPE_IMAGE_SIZE)
             else:
                 raise KeyError("Unknown item type")
-            item_type = Paragraph(ticket.item_type, centre_align)
+            if ticket.item_type == "Special Serenade":
+                item_type = Paragraph(ticket.item_type, centre_align_small)
+            else:
+                item_type = Paragraph(ticket.item_type, centre_align)
             item_type_table = self.create_div([[item_type_image], [item_type]], colWidths=self.CELL_WIDTH / 5)
 
             """Top Side: Recipient Name"""
