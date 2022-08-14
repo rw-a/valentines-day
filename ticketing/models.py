@@ -134,7 +134,7 @@ class SortTicketsRequest(models.Model):
                                                help_text="The proportion of tickets that serenading groups have "
                                                          "relative to non-serenading groups. "
                                                          "Set to 0 to disable balancing.")
-    max_serenades_per_class = models.IntegerField(default=5, verbose_name="Max number of serenades per class visit",
+    max_serenades_per_class = models.IntegerField(default=2, verbose_name="Max number of serenades per class visit",
                                                   help_text="Lower values increase number of class visits required. "
                                                             "Set to 0 to disable limit.")
     max_non_serenades_per_class = models.IntegerField(default=10,
