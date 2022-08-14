@@ -329,30 +329,32 @@ class ClassroomList(list):
         return classroom.extended_name in map(lambda existing_classroom: existing_classroom.extended_name, self)
 
     @classmethod
-    def from_tickets(cls, tickets: TicketList):
+    def from_tickets(cls, tickets: TicketList, existing_tickets: TicketList = None):
         self = cls()
-        for ticket in tickets:
-            for period in range(1, 5):
-                classroom = getattr(ticket, f"p{period}")
-
-                # if creating classrooms from tickets that have already undergone this process
-                if type(classroom) is Classroom:
+        if existing_tickets is not None:
+            for ticket in existing_tickets:
+                for period in range(1, 5):
+                    classroom = getattr(ticket, f"p{period}")
                     if classroom not in self:
                         self.append(classroom)
-                elif type(classroom) is str:
-                    classroom_name = classroom
-                    new_classroom = Classroom(classroom_name, period)
-                    if new_classroom.is_valid:
-                        if new_classroom in self:
-                            existing_classroom = self.get_existing_classroom(new_classroom)
-                            existing_classroom.tickets.append(ticket)
-                            setattr(ticket, f"p{period}", existing_classroom)
-                        else:
-                            new_classroom.tickets.append(ticket)
-                            setattr(ticket, f"p{period}", new_classroom)
-                            self.append(new_classroom)
+
+        for ticket in tickets:
+            if existing_tickets is not None and ticket in existing_tickets:
+                continue
+            for period in range(1, 5):
+                classroom_name = getattr(ticket, f"p{period}")
+                new_classroom = Classroom(classroom_name, period)
+                if new_classroom.is_valid:
+                    if new_classroom in self:
+                        existing_classroom = self.get_existing_classroom(new_classroom)
+                        existing_classroom.tickets.append(ticket)
+                        setattr(ticket, f"p{period}", existing_classroom)
                     else:
-                        raise NameError(f"Classroom name is invalid: {new_classroom.clean_name}")
+                        new_classroom.tickets.append(ticket)
+                        setattr(ticket, f"p{period}", new_classroom)
+                        self.append(new_classroom)
+                else:
+                    raise NameError(f"Classroom name is invalid: {new_classroom.clean_name}")
         return self
 
     def get_existing_classroom(self, new_classroom: Classroom):
@@ -791,33 +793,10 @@ class TicketSorter:
         self.eliminate_classrooms(True)
 
         # second pass with all item types
+        self.classrooms = ClassroomList.from_tickets(self.all_tickets, self.tickets)
         self.tickets = self.all_tickets
-        self.classrooms = ClassroomList.from_tickets(self.tickets)
         # self.distribute_tickets(("Chocolate", "Rose"))        # optional. massively decreases efficiency (~2x)
-
-        num_serenades = 0
-        for classroom in self.classrooms:
-            if classroom.tickets.has_serenades:
-                num_serenades += classroom.tickets.num_serenades
-        print(num_serenades)
-
         self.eliminate_classrooms(False)
-
-        for ticket in self.tickets:
-            classroom = ticket.chosen_classroom
-            if ticket not in classroom.tickets:
-                print(classroom, ticket)
-
-        """for classroom in self.classrooms:
-            print(classroom, classroom.tickets)
-        print(len(self.classrooms))"""
-
-        num_serenade_classes = 0
-        for classroom in self.classrooms:
-            if classroom.tickets.has_serenades:
-                print(classroom, classroom.tickets.filter_serenades)
-                num_serenade_classes += 1
-        print(num_serenade_classes)
 
         self.assign_tickets_to_groups()
 
@@ -925,13 +904,13 @@ class TicketSorter:
             no_serenade_classes = classrooms_in_period.filter_has_no_serenades
 
             if self.DELIVERY_GROUP_BALANCE > 0:
-                # balance serenades and no-serenades classes. a 30 ticket leeway is acceptable
-                if serenade_classes.num_tickets > no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE + 30:
+                # balance serenades and no-serenades classes. a small leeway is acceptable
+                if serenade_classes.num_tickets > no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE + 15:
                     # if too many tickets for serenading groups, move some to non-serenading groups
                     while serenade_classes.num_tickets > no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE:
                         moved_class = serenade_classes.pop()
                         no_serenade_classes.append(moved_class)
-                elif serenade_classes.num_tickets + 30 < no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE:
+                elif serenade_classes.num_tickets + 15 < no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE:
                     # if too many tickets for non-serenading groups, move some to serenading groups
                     while serenade_classes.num_tickets < no_serenade_classes.num_tickets * self.DELIVERY_GROUP_BALANCE:
                         moved_class = no_serenade_classes.pop()
