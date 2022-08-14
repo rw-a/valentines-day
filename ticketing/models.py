@@ -130,17 +130,18 @@ class Ticket(models.Model):
 class SortTicketsRequest(models.Model):
     num_serenaders = models.IntegerField(default=10, verbose_name="Number of serenading delivery groups")
     num_non_serenaders = models.IntegerField(default=10, verbose_name="Number of non-serenading delivery")
-    delivery_group_balance = models.FloatField(default=0.7,
-                                               help_text="The proportion of tickets that serenading groups have "
-                                                         "relative to non-serenading groups. "
-                                                         "Set to 0 to disable balancing.")
     max_serenades_per_class = models.IntegerField(default=2, verbose_name="Max number of serenades per class visit",
-                                                  help_text="Lower values increase number of class visits required. "
+                                                  help_text="Lower values increase number of class visits required and "
+                                                            "shifts load towards serenading groups. "
                                                             "Set to 0 to disable limit.")
-    max_non_serenades_per_class = models.IntegerField(default=10,
-                                                      verbose_name="Max number of non-serenades per class visit",
-                                                      help_text="Lower values increase number of class visits required."
-                                                                " Set to 0 to disable limit.")
+    max_non_serenades_per_serenading_class = models.IntegerField(default=3,
+                                                                 verbose_name="Max number of non-serenades per "
+                                                                              "class visit",
+                                                                 help_text="Only enforced for classes with at least "
+                                                                           "one serenade. Lower values increase number "
+                                                                           "of class visits required and shifts load "
+                                                                           "towards non-serenading groups. Set to 0 to "
+                                                                           "disable limit.")
     extra_special_serenades = models.BooleanField(default=True,
                                                   help_text="Special serenades will not be grouped with regular "
                                                             "serenades (no promises). "
