@@ -596,6 +596,8 @@ class PeriodGroupList(list):
         if len(classrooms) > num_groups:
             self.distribute_classrooms()
 
+        self.sort_tickets_by_person()
+
     @staticmethod
     def split(a, n):
         k, m = divmod(len(a), n)
@@ -647,6 +649,11 @@ class PeriodGroupList(list):
         if len(state) > 0:
             for index, period_group in enumerate(self):
                 period_group.classrooms = ClassroomList(state[index])
+
+    def sort_tickets_by_person(self):
+        for period_group in self:
+            for classroom in period_group.classrooms:
+                classroom.tickets.sort(key=lambda ticket: ticket.recipient_id)
 
     @property
     def as_classroom_sizes(self) -> list:
