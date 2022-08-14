@@ -178,7 +178,7 @@ class SortTicketAdmin(admin.ModelAdmin):
                     tickets.append(ticket)
 
                 delivery_group = DeliveryGroup(
-                    code=group.id,
+                    code=group.name,
                     is_serenading_group=is_serenading,
                     sort_request=obj
                 )
@@ -201,7 +201,7 @@ class SortTicketAdmin(admin.ModelAdmin):
 
 
 class DeliveryGroupAdmin(admin.ModelAdmin):
-    list_display = ('code', 'is_serenading_group', 'num_serenades', 'num_non_serenades', 'sort_request')
+    list_display = ('code', 'is_serenading_group', 'num_serenades', 'num_non_serenades', 'num_tickets', 'sort_request')
 
     @admin.display(description='Number of Serenade Tickets')
     def num_serenades(self, obj):
@@ -210,6 +210,10 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
     @admin.display(description='Number of Non-serenade Tickets')
     def num_non_serenades(self, obj):
         return obj.tickets.filter(Q(item_type="Chocolate") | Q(item_type="Rose")).count()
+
+    @admin.display(description='Total Number of Tickets')
+    def num_tickets(self, obj):
+        return obj.tickets.count()
 
     def delete_model(self, request, obj):
         sort_request = obj.sort_request
