@@ -24,7 +24,7 @@
             <h1>Redeem Your Ticket</h1>
             <div class="input" id="code-form">
                 <h3>Code</h3>
-                <p class="info">A string of 10 random <u>letters</u>. You buy this in person from the prefects.</p>
+                <p class="info">A string of 10 random letters. You buy this in person from the prefects.</p>
                 {{ form.code }}
                 <p hidden class="info error" id="code-error"></p>
             </div>
@@ -233,6 +233,14 @@
 
       return new Blob([uInt8Array], { type: contentType });
     }
+
+    // only allow letters in code input and automatically make uppercase
+    document.getElementById('id_code').addEventListener('input', (event) => {
+        let inputted_code = event.target.value;
+        inputted_code = inputted_code.toUpperCase();
+        inputted_code = inputted_code.replace(/[^a-z]/gi, '');
+        event.target.value = inputted_code;
+    });
 
     document.getElementById('id_code').addEventListener('input', is_valid_code);
     document.getElementById('redeem').addEventListener('click', check_validity);
