@@ -45,6 +45,37 @@
         <td id="total_redeemed"></td>
       </tr>
     </table>
+    <br>
+    <table>
+      <tr>
+        <th>Grade of Recipients</th>
+        <th>Number of Tickets</th>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td id="grade_7"></td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td id="grade_8"></td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td id="grade_9"></td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td id="grade_10"></td>
+      </tr>
+      <tr>
+        <td>11</td>
+        <td id="grade_11"></td>
+      </tr>
+      <tr>
+        <td>12</td>
+        <td id="grade_12"></td>
+      </tr>
+    </table>
     <button id="refresh">Refresh</button>
 </div>
 </body>
@@ -68,6 +99,13 @@
             $('#special_serenades_redeemed')[0].innerText = data.special_serenades_redeemed;
             $('#total_created')[0].innerHTML = `<b>${data.chocolates_created + data.roses_created + data.serenades_created + data.special_serenades_created}</b>`;
             $('#total_redeemed')[0].innerHTML = `<b>${data.chocolates_redeemed + data.roses_redeemed + data.serenades_redeemed + data.special_serenades_redeemed}</b>`;
+
+            $('#grade_7')[0].innerText = data.grade_7;
+            $('#grade_8')[0].innerText = data.grade_8;
+            $('#grade_9')[0].innerText = data.grade_9;
+            $('#grade_10')[0].innerText = data.grade_10;
+            $('#grade_11')[0].innerText = data.grade_11;
+            $('#grade_12')[0].innerText = data.grade_12;
         });
     }
 

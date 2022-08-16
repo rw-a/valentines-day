@@ -6,9 +6,11 @@ from .models import Ticket, TicketCode, SortTicketsRequest
 from .forms import TicketForm, GeneratorForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
 from .constants import DirectoryLocations
+from .class_lookup import STUDENTS
 from .code_generator import generate_codes
 from .ticket_printer import TicketsToPDF
 import os
+import re
 import json
 
 
@@ -21,6 +23,8 @@ def stats(request):
     if "count" in request.GET:
         # if refreshing the item count
         data = {}
+
+        # get number of tickets per item type
         for choice in Ticket.item_type.field.choices:
             item_type = choice[0]
             item_type_name = item_type.lower().replace(' ', '_')
@@ -30,6 +34,17 @@ def stats(request):
             # gets total redeemed ticket codes (actually the number of tickets, in case some were manually added)
             redeemed = Ticket.objects.filter(item_type=item_type).count()
             data[f'{item_type_name}s_redeemed'] = redeemed
+
+        # get number of tickers per grade
+        for grade in range(7, 13):
+            data[f"grade_{grade}"] = 0
+        for ticket in Ticket.objects.all():
+            recipient_arc = STUDENTS[ticket.recipient_id]['ARC']
+            recipient_grade = re.match(r"\d+", recipient_arc)
+            if recipient_grade is not None and f"grade_{recipient_grade[0]}" in data:
+                data[f"grade_{recipient_grade[0]}"] += 1
+            else:
+                print(f"Stats: Error getting grade of {STUDENTS[ticket.recipient_id]}")
         return JsonResponse(data)
     else:
         return render(request, 'ticketing/stats.html')
