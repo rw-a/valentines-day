@@ -2,8 +2,13 @@ import re
 import csv
 import random
 
+# tells the algorithm what order the classrooms are physically located in (only linear unfortunately)
+CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
+
 if __name__ == "__main__":
     from constants import FileNames
+
+    random.seed(56)
 
     STUDENTS = {}
     with open(FileNames.STUDENT_LIST) as file:
@@ -12,10 +17,6 @@ if __name__ == "__main__":
             STUDENTS[line[0]] = {'Name': line[1], 'ARC': line[2]}
 else:
     from .class_lookup import STUDENTS, STUDENT_CLASSES
-
-# tells the algorithm what order the classrooms are physically located in (only linear unfortunately)
-CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
-random.seed(56)
 
 
 def convert_tickets(tickets) -> list:
