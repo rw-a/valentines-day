@@ -6,7 +6,7 @@ import random
 CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
 
 if __name__ == "__main__":
-    from constants import FileNames
+    from constants import FileNames, DirectoryLocations
 
     random.seed(56)
 
@@ -991,7 +991,7 @@ class TicketSorter:
 
 def load_tickets() -> dict:
     tickets_data = {}
-    with open("INPUTS/tickets.csv") as file:
+    with open(f"{DirectoryLocations.STUDENT_DATA}/tickets.csv") as file:
         reader = csv.reader(file)
         for index, line in enumerate(reader):
             recipient_id = line[0]

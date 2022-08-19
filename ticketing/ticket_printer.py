@@ -51,7 +51,7 @@ class TicketsToPDF:
         self.RATIO = 2      # increases DPI by this ratio
 
         """Pickup Lines"""
-        with open(FileNames.PICKUP_LINES) as file:
+        with open(f'{DirectoryLocations.STATIC}/pickup_lines.txt') as file:
             self.PICKUP_LINES = [line.replace("\n", "") for line in file]
 
         """Templates"""

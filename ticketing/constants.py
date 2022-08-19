@@ -5,10 +5,12 @@ import os
 class DirectoryLocations:
     """Directory Locations"""
     STATIC = "ticketing/static"     # the static folder
-    INPUTS = "INPUTS"           # the folder containing files that prefects should be able to easily modify
     GENERATED_TICKET_CODES = "generated_codes"  # the folder containing filled PDFs of ticket codes
     REDEEMED_TICKETS = "redeemed_tickets"       # the folder containing the handwritten messages of redeemed tickets
     SORTED_TICKETS = "sorted_tickets"     # the folder containing the PDFs of the tickets to print
+    STUDENT_DATA = "student_data"
+    TIMETABLES = f"{STUDENT_DATA}/timetables"  # the folder containing the timetable CSVs of each grade
+    TIMETABLES_WEDNESDAY = f"{STUDENT_DATA}/timetables_wednesday"   # wednesday always required so ARC class is known
 
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_dirs__(self):
@@ -23,9 +25,8 @@ class DirectoryLocations:
 
 class FileNames:
     # input files (all_lowercase)
-    STUDENT_LIST = f"{DirectoryLocations.INPUTS}/student_list.csv"           # format: ID, Name, ARC_Class
-    STUDENT_CLASSES = f"{DirectoryLocations.INPUTS}/student_classes.csv"     # format: ID, P1_class, P2_class, P3_class, P4_class
-    PICKUP_LINES = f"{DirectoryLocations.INPUTS}/pickup_lines.txt"
+    STUDENT_LIST = f"{DirectoryLocations.STUDENT_DATA}/student_list.csv"           # format: ID, Name, ARC_Class
+    STUDENT_CLASSES = f"{DirectoryLocations.STUDENT_DATA}/student_classes.csv"     # format: ID, P1_class, P2_class, P3_class, P4_class
 
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_files__(self):
@@ -42,12 +43,6 @@ class FileNames:
 class MaxLengths:
     """WARNING: Changing these values will require migrating the SQL Database afterwards"""
     TICKET_CODE = 10       # the length of the ticket codes (exact value, not just max)
-
-    # attributes of a Ticket
-    TICKET_RECIPIENT_FIRST_NAME = 20    # 15 is the actual max but just to be safe
-    TICKET_RECIPIENT_NICKNAME = 30
-    TICKET_MESSAGE = 80
-    TICKET_SENDER = 25
 
 
 """Verify that the files required exist"""
