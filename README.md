@@ -78,7 +78,7 @@ It is extremely important that you backup the database of this website. Navigate
 
 
 ### Requirements
-These are the libraries that this website uses. You shouldn't need to worry because the libraries are pre-installed on pythonanywhere and I already installed the fonts. If you decide to add fonts, you will have to install these to the pythonanywhere instance. [Here's](https://help.pythonanywhere.com/pages/Fonts/) a tutorial on how to install fonts.
+These are the libraries that this website uses. You shouldn't need to worry because the libraries are pre-installed on pythonanywhere and I already installed the fonts. If you decide to add fonts, you will have to install these to the pythonanywhere instance. [Here's](https://help.pythonanywhere.com/pages/Fonts/) a tutorial on how to install fonts. If you use a version newer than the one stated (e.g. Python 3.10), then there is a chance that this website will break if the newer version depreciated some features that this website uses (quite unlikely to happen anytime soon).
 - Python 3.8+
 - Django 4.0+
 - ReportLab 3.6+
