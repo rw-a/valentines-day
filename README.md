@@ -73,6 +73,9 @@ If you decide to stick with the free plan, you must remember to [activate the we
 
 In case of a last resort, you may need to change to a completely different hosting service. It will be a pain to configure the whole website again, so good luck.
 
+### Backups
+It is extremely important that you backup the database of this website. Navigate to the [website working directory](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day) and look for the file named *db.sqlite3*. This is the most important file in the whole website. If you lose this, you lose all the tickets and all the students who paid for a code will be very sad that they paid for nothing. If everything else breaks but this file is intact, the operation is still salvagable. **I recommend you backup this file everyday**, with a separate file for each day (don't just override and only keep yesterday's copy).
+
 
 ### Requirements
 These are the libraries that this website uses. You shouldn't need to worry because the libraries are pre-installed on pythonanywhere and I already installed the fonts. If you decide to add fonts, you will have to install these to the pythonanywhere instance. [Here's](https://help.pythonanywhere.com/pages/Fonts/) a tutorial on how to install fonts.
