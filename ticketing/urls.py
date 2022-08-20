@@ -20,5 +20,4 @@ urlpatterns = [
     path('validate_code/', views.validate_code, name='validate_code'),
     path('validate_recipient/', views.validate_recipient, name='validate_recipient'),
     path('print/', views.print_tickets, name='print'),
-    path('parse/', views.parse_timetables, name='parse')
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -3,15 +3,17 @@ from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
 from .models import Ticket, TicketCode, SortTicketsRequest
-from .forms import TicketForm, GeneratorForm
+from .forms import TicketForm, CSVFileForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
-from .constants import DirectoryLocations
+from .constants import DirectoryLocations, FileNames
 from .class_lookup import STUDENTS
-from .code_generator import generate_codes
 from .ticket_printer import TicketsToPDF
+from .timetable_parser import get_student_classes
 import os
 import re
+import csv
 import json
+from io import StringIO
 
 
 def index(request):
@@ -20,12 +22,20 @@ def index(request):
 
 @staff_member_required
 def load_students(request):
-    return render(request, 'ticketing/students.html')
-
-
-@staff_member_required
-def parse_timetables(request):
-    return
+    if request.method == 'POST':
+        form = CSVFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            files = [csv.reader(StringIO(file.read().decode())) for file in request.FILES.getlist('files')]
+            with open(FileNames.STUDENTS, 'w') as file:
+                students = get_student_classes(files)
+                writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'First Name', 'Last Name', 'ARC',
+                                                          'P1', 'P2', 'P3', 'P4'])
+                writer.writeheader()
+                writer.writerows(students)
+            return HttpResponseRedirect(reverse("ticketing:redeem"))
+    else:
+        form = CSVFileForm()
+    return render(request, 'ticketing/students.html', {'form': form})
 
 
 @staff_member_required
@@ -63,21 +73,6 @@ def stats(request):
 @staff_member_required
 def codepdf(request, pk):
     return FileResponse(open(f'{DirectoryLocations.GENERATED_TICKET_CODES}/{pk}.pdf', 'rb'))
-
-
-@staff_member_required
-def generator(request, code: str = ""):
-    if request.method == 'POST':
-        form = GeneratorForm(request.POST)
-        if form.is_valid():
-            code = generate_codes(1)[0]
-            ticket_code = TicketCode(code=code, item_type=form.cleaned_data['item_type'])
-            ticket_code.save()
-            return HttpResponseRedirect(f"{reverse('ticketing:generator')}{code}/")
-    else:
-        form = GeneratorForm()
-
-    return render(request, 'ticketing/generator.html', {'form': form, 'code': code})
 
 
 @staff_member_required

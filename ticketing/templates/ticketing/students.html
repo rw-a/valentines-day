@@ -7,9 +7,68 @@
     {% load static %}
     <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/students.css' %}">
     <link rel="icon" type="image/png" href="{% static 'icons/upload.svg' %}"/>
 </head>
 <body>
-
+    <div id="content">
+        <form method="post" enctype="multipart/form-data"> {% csrf_token %}
+            <h1>Load Student Timetables</h1>
+            <h3>Upload CSV Files</h3>
+            <div id="drop_area"></div>
+            {{ form.files }}
+            <h3>Loaded Files</h3>
+            <ul id="list">
+                <li>None!</li>
+            </ul>
+            <input type="submit" title="Upload" value="Upload"></input>
+        </form>
+    </div>
 </body>
+<script>
+    const fileSelector = document.getElementById('drop_area');
+    let files = new DataTransfer();
+    let file_names = [];
+    document.getElementById('id_files').hidden = true;
+
+    if (window.FileList && window.File) {
+        fileSelector.addEventListener('dragover', event => {
+            event.stopPropagation();
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+            event.target.style.backgroundColor = '#dddddd';
+        });
+
+        fileSelector.addEventListener('dragleave', event => {
+            event.target.style.backgroundColor = 'white';
+        });
+
+        fileSelector.addEventListener('drop', event => {
+            event.target.style.backgroundColor = 'white';
+            event.stopPropagation();
+            event.preventDefault();
+            const added_files = event.dataTransfer.files;
+            for (let file of added_files) {
+                if (file.type == "text/csv") {
+                    if (!file_names.includes(file.name)) {
+                        files.items.add(file);
+                        file_names.push(file.name);
+                    }
+                }
+            }
+            update_list();
+        }); 
+    }
+
+    const list = document.getElementById('list');
+    function update_list() {
+        list.innerHTML = '';
+        for (let file_name of file_names) {
+            let li = document.createElement('li');
+            li.textContent = file_name;
+            list.appendChild(li);
+        }
+        document.getElementById('id_files').files = files.files;
+    }
+</script>
 </html>

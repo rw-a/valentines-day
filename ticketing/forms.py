@@ -6,16 +6,6 @@ from .class_lookup import STUDENTS
 from .constants import MaxLengths
 
 
-# the form that admins use to individually generate a code
-class GeneratorForm(forms.Form):
-    item_type = forms.ChoiceField(choices=[
-            ('Chocolate', 'Chocolate'),
-            ('Rose', 'Rose'),
-            ('Serenade', 'Serenade'),
-            ('Special Serenade', 'Special Serenade')
-        ])
-
-
 # the form that users use to redeem their code
 class TicketForm(forms.Form):
     code = forms.CharField(label='Code', max_length=MaxLengths.TICKET_CODE, min_length=MaxLengths.TICKET_CODE)
@@ -66,3 +56,7 @@ class TicketForm(forms.Form):
                 # I'm hard coding it because converting to int gives too many errors if it's not convertible
                 elif not (period == "1" or period == "2" or period == "3" or period == "4"):
                     raise ValidationError('This is an invalid period.')
+
+
+class CSVFileForm(forms.Form):
+    files = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))

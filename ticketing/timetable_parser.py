@@ -17,7 +17,7 @@ def get_student_classes(files):
         for row in file:
             if row != ['', '', '', '', '', '', '', '', '']:
                 rows.append(row)
-
+    # print(rows)
     for row_index in range(len(rows)):
         # do a traditional for loop so that the next row can be found
         row = rows[row_index]
@@ -51,7 +51,7 @@ def get_student_classes(files):
                             pass
 
             students.append(student)
-            print(student)
+            # print(student)
         else:
             # print(row)
             pass
