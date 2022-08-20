@@ -26,39 +26,52 @@
     // Generate table
     let table = document.getElementById("groups");
     let group_data = {{ group_data|safe }};
-    for (let group of Object.keys(group_data)) {
-        let row = table.insertRow(table.rows.length);
-        row.id = group;
 
-        let group_code = row.insertCell(0);
-        group_code.innerHTML = group;
+    function refresh() {
+        // clear table
+        let table_length = table.rows.length;
+        for (let i = 1; i < table_length; i++) {
+            table.deleteRow(1);
+        }
 
-        let num_tickets = row.insertCell(1);
-        num_tickets.innerHTML = group_data[group]["num_tickets"];
+        // rebuild table
+        for (let group of Object.keys(group_data)) {
+            let row = table.insertRow(table.rows.length);
+            row.id = group;
 
-        let tickets_pdf = row.insertCell(2);
-        tickets_pdf.id = `${group}_pdf`;
-        if (group_data[group]['is_printed']) {
-            let link = document.createElement('a');
-            let text = document.createTextNode("Download");
-            link.appendChild(text);
-            link.title = "Generated PDF of tickets for group";
-            link.href = `${"{{pk}}"}/${group}`;
-            tickets_pdf.appendChild(link);
-        } else {
-            let generate_button = document.createElement('button');
-            generate_button.innerHTML = "Generate"
-            generate_button.onclick = (event) => {
-                document.querySelectorAll('button').forEach((button) => {
-                    button.disabled = true; 
-                    button.innerHTML = "Generating...";
-                })
-                $.getJSON('{% url 'ticketing:print' %}', {'pk': "{{ pk }}", "group": group}, (data) => {
-                    location.reload();
-                });
-            };
-            tickets_pdf.appendChild(generate_button);
+            let group_code = row.insertCell(0);
+            group_code.innerHTML = group;
+
+            let num_tickets = row.insertCell(1);
+            num_tickets.innerHTML = group_data[group]["num_tickets"];
+
+            let tickets_pdf = row.insertCell(2);
+            tickets_pdf.id = `${group}_pdf`;
+            if (group_data[group]['is_printed']) {
+                let link = document.createElement('a');
+                let text = document.createTextNode("Download");
+                link.appendChild(text);
+                link.title = "Generated PDF of tickets for group";
+                link.href = `${"{{pk}}"}/${group}`;
+                tickets_pdf.appendChild(link);
+            } else {
+                let generate_button = document.createElement('button');
+                generate_button.innerHTML = "Generate"
+                generate_button.onclick = (event) => {
+                    document.querySelectorAll('button').forEach((button) => {
+                        button.disabled = true; 
+                        button.innerHTML = "Generating...";
+                    })
+                    $.getJSON('{% url 'ticketing:print' %}', {'pk': "{{ pk }}", "group": group}, (data) => {
+                        group_data[group]['is_printed'] = true;
+                        refresh();
+                    });
+                };
+                tickets_pdf.appendChild(generate_button);
+            }
         }
     }
+
+    refresh();
 </script>
 </html>
