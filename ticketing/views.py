@@ -32,10 +32,21 @@ def load_students(request):
                                                           'P1', 'P2', 'P3', 'P4'])
                 writer.writeheader()
                 writer.writerows(students)
-            return HttpResponseRedirect(reverse("ticketing:redeem"))
+
+            for file in request.FILES.getlist('files'):
+                print(file)
+                with open(f"{DirectoryLocations.TIMETABLES}/{file}", 'wb') as csv_file:
+                    for chunk in file.chunks():
+                        csv_file.write(chunk)
+            return HttpResponseRedirect(reverse("ticketing:students_done"))
     else:
         form = CSVFileForm()
     return render(request, 'ticketing/students.html', {'form': form})
+
+
+@staff_member_required
+def students_loaded(request):
+    return render(request, 'ticketing/students_done.html')
 
 
 @staff_member_required
