@@ -1,4 +1,4 @@
-# Valentine's Day Ticketing System Backend
+# Valentine's Day Ticketing System
 ## Requirements
 - Python 3.8+
 - Django 4.0+
@@ -6,10 +6,10 @@
 - CairoSVG 2.5+
 - lxml 4.9+
 - Intall custom fonts found in [the fonts folder](ticketing/static/fonts) into the OS font library.
-## How the System Works
+## Overview of System
 1. Prefects generate codes for tickets using the website.
 2. Prefects physically sell the codes to students.
-3. Students visit the website to redeem the code. They generate a ticket by choosing a recipient and period (if special serenade). 
+3. Students visit the website to redeem the code. They generate a ticket by choosing a recipient, period (if special serenade) and writing a message (digital handwriting or typed). 
 4. The website automatically sorts the tickets and assigns them into a group.
 5. The website generates PDFs of the tickets for each group.
 6. Prefects cut out the tickets from the PDFs and give them to the corresponding group.
