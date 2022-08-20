@@ -19,6 +19,16 @@ def index(request):
 
 
 @staff_member_required
+def load_students(request):
+    return render(request, 'ticketing/students.html')
+
+
+@staff_member_required
+def parse_timetables(request):
+    return
+
+
+@staff_member_required
 def stats(request):
     if "count" in request.GET:
         # if refreshing the item count
