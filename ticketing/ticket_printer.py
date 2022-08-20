@@ -16,7 +16,7 @@ if __name__ == "__main__":
     STUDENTS = {"89273498237A": {"Name": "Jeff Bezos"}}
     from constants import DirectoryLocations
 else:
-    from .constants import DirectoryLocations, STUDENTS
+    from .constants import DirectoryLocations
     from .class_lookup import STUDENTS
 
 

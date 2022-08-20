@@ -1,6 +1,5 @@
 """Settings Files"""
 import os
-import csv
 
 
 class DirectoryLocations:

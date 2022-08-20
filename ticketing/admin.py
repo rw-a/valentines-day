@@ -117,7 +117,10 @@ class TicketAdmin(admin.ModelAdmin):
 
     @admin.display(description="Recipient")
     def recipient(self, obj):
-        return f"{STUDENTS[obj.recipient_id]['Name']} [{STUDENTS[obj.recipient_id]['ARC']}]"
+        try:
+            return f"{STUDENTS[obj.recipient_id]['Name']} [{STUDENTS[obj.recipient_id]['ARC']}]"
+        except KeyError:
+            return "NAME NOT FOUND"
 
     @admin.display(description="Chosen Classroom")
     def classroom(self, obj):

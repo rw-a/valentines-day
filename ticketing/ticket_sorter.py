@@ -1,13 +1,13 @@
 import re
 import csv
 import random
-from timetable_parser import room_format
 
 # tells the algorithm what order the classrooms are physically located in (only linear unfortunately)
 CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
 
 if __name__ == "__main__":
     from constants import FileNames, DirectoryLocations
+    from timetable_parser import room_format
 
     random.seed(56)
 
@@ -18,6 +18,7 @@ if __name__ == "__main__":
             STUDENTS[row['ID']] = row
 else:
     from .class_lookup import STUDENTS
+    from .timetable_parser import room_format
 
 
 def convert_tickets(tickets) -> list:
