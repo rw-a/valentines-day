@@ -180,6 +180,10 @@ class TicketsToPDF:
             """Middle: Recipient Name"""
             recipient_name_and_pickup = Paragraph(f"* Hey {STUDENTS[ticket.recipient_id]['Name']} *<br/>"
                                                   f"{random.choice(self.PICKUP_LINES)}", large_style)
+            recipient_name_and_pickup = self.create_div([[recipient_name_and_pickup]],
+                                                        ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                                                        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                                                        colWidths=self.CELL_WIDTH)
 
             vertically_separated_table = self.create_div([[periods], [recipient_name_and_pickup], [bottom_row]],
                                                          ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
