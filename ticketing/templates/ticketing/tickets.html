@@ -20,12 +20,14 @@
                 <th>Tickets PDF</th>
               </tr>
         </table>
+        <button id="generate_all">Generate All</button>
     </div>
 </body>
 <script>
     // Generate table
     let table = document.getElementById("groups");
     let group_data = {{ group_data|safe }};
+    let generating = [];
 
     function refresh() {
         // clear table
@@ -48,6 +50,7 @@
             let tickets_pdf = row.insertCell(2);
             tickets_pdf.id = `${group}_pdf`;
             if (group_data[group]['is_printed']) {
+                // if already generated
                 let link = document.createElement('a');
                 let text = document.createTextNode("Download");
                 link.appendChild(text);
@@ -56,21 +59,53 @@
                 tickets_pdf.appendChild(link);
             } else {
                 let generate_button = document.createElement('button');
-                generate_button.innerHTML = "Generate"
-                generate_button.onclick = (event) => {
-                    document.querySelectorAll('button').forEach((button) => {
-                        button.disabled = true; 
-                        button.innerHTML = "Generating...";
-                    })
-                    $.getJSON('{% url 'ticketing:print' %}', {'pk': "{{ pk }}", "group": group}, (data) => {
-                        group_data[group]['is_printed'] = true;
-                        refresh();
-                    });
-                };
+                if (generating.includes(group)) {
+                    // if currently generating
+                    generate_button.disabled = true;
+                    generate_button.innerHTML = "Generating..."
+                } else {
+                    // if not yet generated
+                    generate_button.innerHTML = "Generate"
+                    generate_button.onclick = (event) => {
+                        generate_button.disabled = true;
+                        generate_button.innerHTML = "Generating..."
+                        generating.push(group);
+                        $.getJSON('{% url 'ticketing:print' %}', {'pk': "{{ pk }}", "group": group}, (data) => {
+                            group_data[group]['is_printed'] = true;
+                            generating.splice(generating.indexOf(group), 1);
+                            refresh();
+                        });
+                    };
+                }
                 tickets_pdf.appendChild(generate_button);
             }
         }
     }
+
+    let generate_all_button = document.getElementById('generate_all');
+    generate_all_button.onclick = () => {
+        // get the groups which haven't been printed yet
+        let groups = Object.keys(group_data).filter((group) => {return !group_data[group]['is_printed']});
+        generating = [...groups];
+        // disable further print requests
+        refresh();
+        generate_all_button.innerHTML = "Generating all...";
+        generate_all_button.disabled = true;
+
+        // loop through every group sequentially
+        let group_index = 0;
+        function get_next_group() {
+            let group = groups[group_index];
+            $.getJSON('{% url 'ticketing:print' %}', {'pk': "{{ pk }}", "group": group}, (data) => {
+                group_data[group]['is_printed'] = true;
+                generating.splice(generating.indexOf(group), 1);
+                refresh();
+                group_index += 1;
+                if (generating.length > 0) get_next_group();
+            });
+        }
+        get_next_group();
+    };
 
     refresh();
 </script>
