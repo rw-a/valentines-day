@@ -1,5 +1,6 @@
 """Settings Files"""
 import os
+import csv
 
 
 class DirectoryLocations:
@@ -10,7 +11,6 @@ class DirectoryLocations:
     SORTED_TICKETS = "sorted_tickets"     # the folder containing the PDFs of the tickets to print
     STUDENT_DATA = "student_data"
     TIMETABLES = f"{STUDENT_DATA}/timetables"  # the folder containing the timetable CSVs of each grade
-    TIMETABLES_WEDNESDAY = f"{STUDENT_DATA}/timetables_wednesday"   # wednesday always required so ARC class is known
 
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_dirs__(self):
@@ -24,9 +24,12 @@ class DirectoryLocations:
 
 
 class FileNames:
-    # input files (all_lowercase)
-    STUDENT_LIST = f"{DirectoryLocations.STUDENT_DATA}/student_list.csv"           # format: ID, Name, ARC_Class
-    STUDENT_CLASSES = f"{DirectoryLocations.STUDENT_DATA}/student_classes.csv"     # format: ID, P1_class, P2_class, P3_class, P4_class
+    # format: ID, Name, ARC_Class, P1_class, P2_class, P3_class, P4_class
+    STUDENT_LIST = f"{DirectoryLocations.STUDENT_DATA}/student_list.csv"
+    STUDENT_CLASSES = f"{DirectoryLocations.STUDENT_DATA}/student_classes.csv"
+
+    # format: ID, Name, ARC_Class, P1_class, P2_class, P3_class, P4_class
+    STUDENTS = f"{DirectoryLocations.STUDENT_DATA}/students.csv"
 
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_files__(self):
@@ -47,4 +50,4 @@ class MaxLengths:
 
 """Verify that the files required exist"""
 DirectoryLocations().verify_dirs__()
-FileNames().verify_files__()
+# FileNames().verify_files__()

@@ -1,6 +1,7 @@
 import re
 import csv
 import random
+from timetable_parser import room_format
 
 # tells the algorithm what order the classrooms are physically located in (only linear unfortunately)
 CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
@@ -11,12 +12,12 @@ if __name__ == "__main__":
     random.seed(56)
 
     STUDENTS = {}
-    with open(FileNames.STUDENT_LIST) as file:
-        reader = csv.reader(file)
-        for line in reader:
-            STUDENTS[line[0]] = {'Name': line[1], 'ARC': line[2]}
+    with open(FileNames.STUDENTS) as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            STUDENTS[row['ID']] = row
 else:
-    from .class_lookup import STUDENTS, STUDENT_CLASSES
+    from .class_lookup import STUDENTS
 
 
 def convert_tickets(tickets) -> list:
@@ -26,10 +27,10 @@ def convert_tickets(tickets) -> list:
     tickets_to_sort = []
     for ticket in tickets:
         recipient_id = ticket.recipient_id
-        p1 = STUDENT_CLASSES[ticket.recipient_id][0]
-        p2 = STUDENT_CLASSES[ticket.recipient_id][1]
-        p3 = STUDENT_CLASSES[ticket.recipient_id][2]
-        p4 = STUDENT_CLASSES[ticket.recipient_id][3]
+        p1 = STUDENTS[ticket.recipient_id]["P1"]
+        p2 = STUDENTS[ticket.recipient_id]["P2"]
+        p3 = STUDENTS[ticket.recipient_id]["P3"]
+        p4 = STUDENTS[ticket.recipient_id]["P4"]
         if ticket.item_type == "Special Serenade":
             ticket_to_sort = TicketToSort(ticket.pk, recipient_id, ticket.item_type, p1, p2, p3, p4, ticket.ss_period)
         else:
@@ -241,7 +242,8 @@ class TicketList(list):
 class Classroom:
     # the REGEX used to determine what is a valid classroom name
     # if invalid, classroom will not be visited
-    classroom_pattern = r"[A-Z]\d{3}"
+    # classroom_pattern = r"[A-Z]\d{3}"
+    classroom_pattern = room_format
 
     # Lookup dict used to substitute names when cleaning
     SUBSTITUTIONS = {
@@ -1000,7 +1002,7 @@ def load_tickets() -> dict:
             elif line[2] == "1":
                 item_type = "Rose"
             elif line[3] == "1":
-                if random.random() < 0.95:
+                if random.random() < 0.70:
                     item_type = "Serenade"
                 else:
                     item_type = "Special Serenade"
@@ -1012,20 +1014,11 @@ def load_tickets() -> dict:
     return tickets_data
 
 
-def load_classes() -> dict:
-    classes = {}
-    with open(FileNames.STUDENT_CLASSES) as file:
-        reader = csv.reader(file)
-        for line in reader:
-            classes[line[0]] = {'P1': line[1], 'P2': line[2], 'P3': line[3], 'P4': line[4]}
-    return classes
-
-
-def create_tickets(tickets_data: dict, classes: dict):
+def create_tickets(tickets_data: dict):
     tickets = []
     for ticket_number, values in tickets_data.items():
         recipient_id = values['Recipient ID']
-        recipient_classes = classes[recipient_id]
+        recipient_classes = STUDENTS[recipient_id]
         item_type = values['Item Type']
         ticket = TicketToSort(ticket_number, recipient_id, item_type, recipient_classes['P1'],
                               recipient_classes['P2'], recipient_classes['P3'], recipient_classes['P4'],
@@ -1037,10 +1030,11 @@ def create_tickets(tickets_data: dict, classes: dict):
 def main():
     # load data
     tickets_data = load_tickets()
-    classes = load_classes()
-    tickets = create_tickets(tickets_data, classes)
+    tickets = create_tickets(tickets_data)
 
-    ticket_sorter = TicketSorter(tickets, 10, 10, max_serenades_per_class=2, max_non_serenades_per_serenading_class=3)
+    ticket_sorter = TicketSorter(tickets, 10, 10,
+                                 max_serenades_per_class=2, max_non_serenades_per_serenading_class=3,
+                                 extra_special_serenades=True, enforce_distribution=True)
     print("Done")
 
 

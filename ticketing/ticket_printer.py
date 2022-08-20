@@ -14,9 +14,9 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 if __name__ == "__main__":
     STUDENTS = {"89273498237A": {"Name": "Jeff Bezos"}}
-    from constants import DirectoryLocations, FileNames
+    from constants import DirectoryLocations
 else:
-    from .constants import DirectoryLocations, FileNames
+    from .constants import DirectoryLocations, STUDENTS
     from .class_lookup import STUDENTS
 
 

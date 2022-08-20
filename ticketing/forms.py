@@ -21,7 +21,7 @@ class TicketForm(forms.Form):
     code = forms.CharField(label='Code', max_length=MaxLengths.TICKET_CODE, min_length=MaxLengths.TICKET_CODE)
     period = forms.ChoiceField(required=False, choices=[("-", "-"), (1, 1), (2, 2), (3, 3), (4, 4)])
 
-    students = [(student_id, f"{student_dict['Name'].split(' ')[0]} {student_dict['Name'].split(' ')[1][0]} "
+    students = [(student_id, f"{student_dict['First Name']} {student_dict['Last Name'][0]} "
                              f"[{student_dict['ARC']}]")    # only include first letter of last name
                 for student_id, student_dict in STUDENTS.items()]
     students.insert(0, (" ", ""))
