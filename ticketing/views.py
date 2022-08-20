@@ -111,7 +111,7 @@ def print_tickets(request):
     group = SortTicketsRequest.objects.get(pk=pk).deliverygroup_set.get(code=group_code)
     if not os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{pk}"):
         os.mkdir(f"{DirectoryLocations().SORTED_TICKETS}/{pk}")
-    TicketsToPDF(group.tickets.all(), f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}.pdf")
+    TicketsToPDF(group.tickets.all(), f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}.pdf", group_code)
     group.is_printed = True
     group.save()
     return JsonResponse({"success": "true"})

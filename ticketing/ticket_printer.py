@@ -21,9 +21,10 @@ else:
 
 
 class TicketsToPDF:
-    def __init__(self, tickets,  pdf_output_name: str):
+    def __init__(self, tickets, pdf_output_path: str, pdf_name: str):
         self.tickets = tickets
-        self.pdf_output_name = pdf_output_name
+        self.pdf_output_path = pdf_output_path
+        self.pdf_name = pdf_name
 
         """Constants and Settings"""
         # flip the order of the cells in the back page
@@ -64,13 +65,13 @@ class TicketsToPDF:
         self.generate_pdf()
 
     def generate_pdf(self):
-        doc = SimpleDocTemplate(self.pdf_output_name, pageSize=A4,
+        doc = SimpleDocTemplate(self.pdf_output_path, pageSize=A4,
                                 rightMargin=self.MARGIN, leftMargin=self.MARGIN,
                                 topMargin=self.MARGIN, bottomMargin=self.MARGIN)
 
         # split the list into pages
         pages = []
-        for tickets in self.split_list(self.tickets, self.NUM_CODES_PER_PAGE):     # for each page of codes
+        for page_index, tickets in enumerate(self.split_list(self.tickets, self.NUM_CODES_PER_PAGE)):
             """Front of tickets"""
             # split the list again into rows
             data = self.split_list(self.create_images(tickets), self.NUM_COLUMNS)
@@ -80,9 +81,9 @@ class TicketsToPDF:
 
             """Back of tickets"""
             if self.HORIZONTAL_FLIP:
-                data = self.split_list(self.create_delivery_info(tickets), self.NUM_COLUMNS, reverse=True)
+                data = self.split_list(self.create_delivery_info(tickets, page_index), self.NUM_COLUMNS, reverse=True)
             else:
-                data = self.split_list(self.create_delivery_info(tickets), self.NUM_COLUMNS)
+                data = self.split_list(self.create_delivery_info(tickets, page_index), self.NUM_COLUMNS)
             pages.append(self.create_table(data))
         doc.build(pages)
 
@@ -122,21 +123,26 @@ class TicketsToPDF:
             images.append(image)
         return images
 
-    def create_delivery_info(self, tickets: list) -> list:
+    def create_delivery_info(self, tickets: list, page_index: int) -> list:
         stylesheet = getSampleStyleSheet()
         default_style = ParagraphStyle(name="Default", parent=stylesheet['Normal'], fontSize=10, leading=11,
                                        fontName="VDay")
+        left_align_small = ParagraphStyle(name="Left Small", parent=default_style, fontSize=7, leading=8)
         centre_align = ParagraphStyle(name="Center", parent=default_style, alignment=1)
-        centre_align_small = ParagraphStyle(name="Center", parent=default_style, alignment=1, fontSize=8, leading=9)
+        centre_align_small = ParagraphStyle(name="Center Small", parent=default_style, alignment=1, fontSize=8, leading=9)
         # right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2)
         large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1, fontSize=16, leading=18)
 
         ticket_backs = []
-        for ticket in tickets:
+        for index, ticket in enumerate(tickets):
             """Top Left: Periods"""
             period_classes = [f"P1: {ticket.p1}", f"P2: {ticket.p2}", f"P3: {ticket.p3}", f"P4: {ticket.p4}"]
             period_classes[ticket.period - 1] += " *"
             periods = Paragraph("<br/>".join(period_classes), default_style)
+            periods = self.create_div([[periods]],
+                                      ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                                      ('LEFTPADDING', (0, 0), (-1, -1), 3),
+                                      colWidths=self.CELL_WIDTH / 5)
 
             """Bottom Right: Item Type (including image)"""
             if ticket.item_type == "Chocolate":
@@ -159,14 +165,31 @@ class TicketsToPDF:
                 item_type = Paragraph(ticket.item_type, centre_align)
             item_type_table = self.create_div([[item_type_image], [item_type]], colWidths=self.CELL_WIDTH / 5)
 
-            """Top Side: Recipient Name"""
+            """Bottom Left: Delivery Group and Ticket Number"""
+            ticket_number = Paragraph(f"{self.pdf_name}: {page_index * self.NUM_CODES_PER_PAGE + index + 1}", left_align_small)
+
+            bottom_row = self.create_div([[ticket_number, item_type_table]],
+                                         ('LEFTPADDING', (0, 0), (-1, -1), 3),
+                                         ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+                                         ('BOTTOMPADDING', (-1, 0), (-1, -1), 3),
+                                         ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                                         ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+                                         ('VALIGN', (0, 0), (1, -1), 'BOTTOM'),
+                                         colWidths=self.CELL_WIDTH / 2)
+
+            """Middle: Recipient Name"""
             recipient_name_and_pickup = Paragraph(f"* Hey {STUDENTS[ticket.recipient_id]['Name']} *<br/>"
                                                   f"{random.choice(self.PICKUP_LINES)}", large_style)
 
-            vertically_separated_table = self.create_div([[periods], [recipient_name_and_pickup], [item_type_table]],
-                                                         ('VALIGN', (0, 0), (0, -1), 'TOP'),
+            vertically_separated_table = self.create_div([[periods], [recipient_name_and_pickup], [bottom_row]],
+                                                         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                                                         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                                                          ('ALIGN', (0, -1), (-1, -1), 'RIGHT'),
                                                          ('VALIGN', (0, -1), (-1, -1), 'BOTTOM'),
+                                                         ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+                                                         ('TOPPADDING', (0, 0), (-1, -1), 3),
+                                                         ('LEFTPADDING', (0, 0), (-1, -1), 3),
+                                                         ('RIGHTPADDING', (0, 0), (-1, -1), 3),
                                                          rowHeights=[self.CELL_HEIGHT * 0.3,
                                                                      self.CELL_HEIGHT * 0.4,
                                                                      self.CELL_HEIGHT * 0.3])
@@ -212,8 +235,8 @@ class TicketsToPDF:
         table.setStyle(TableStyle([
                 ('LEFTPADDING', (0, 0), (-1, -1), 0),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-                ('TOPPADDING', (0, 0), (-1, -1), 3),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+                ('TOPPADDING', (0, 0), (-1, -1), 0),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 # ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
@@ -240,9 +263,14 @@ def main():
             self.p3 = "F303"
             self.p4 = "F404"
 
-    tickets = [Ticket(file.split("/")[-1].split(".svg")[0], 1) for file in glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")]
+    # tickets = [Ticket(file.split("/")[-1].split(".svg")[0], 1) for file in glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")]
+    tickets = []
+    for index, file in enumerate(glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")):
+        if index >= 100:
+            break
+        tickets.append(Ticket(file.split("/")[-1].split(".svg")[0], 1))
 
-    TicketsToPDF(tickets, 'export.pdf')
+    TicketsToPDF(tickets, 'export.pdf', 'S1')
 
 
 if __name__ == "__main__":
