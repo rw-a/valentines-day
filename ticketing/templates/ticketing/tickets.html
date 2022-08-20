@@ -81,13 +81,32 @@
                 tickets_pdf.appendChild(generate_button);
             }
         }
+        refresh_generate_all();
     }
 
+    /* Generate All Button */
     let generate_all_button = document.getElementById('generate_all');
+
+    function completed_all() {
+        for (let group of Object.keys(group_data)) {
+            if (!group_data[group]['is_printed']) return false;
+        }
+        return true;
+    }
+
+    function refresh_generate_all() {
+        if (completed_all()) {
+            generate_all_button.hidden = true;
+        } else {
+            generate_all_button.hidden = false;
+        }
+    }
+
     generate_all_button.onclick = () => {
         // get the groups which haven't been printed yet
-        let groups = Object.keys(group_data).filter((group) => {return !group_data[group]['is_printed']});
-        generating = [...groups];
+        let groups = Object.keys(group_data).filter((group) => {
+            return !group_data[group]['is_printed'] && !generating.includes(group)});
+        generating = generating.concat(groups);
         // disable further print requests
         refresh();
         generate_all_button.innerHTML = "Generating all...";
@@ -102,7 +121,11 @@
                 generating.splice(generating.indexOf(group), 1);
                 refresh();
                 group_index += 1;
-                if (generating.length > 0) get_next_group();
+                if (generating.length > 0) {
+                    get_next_group();
+                } else {
+                    refresh_generate_all();
+                }
             });
         }
         get_next_group();
