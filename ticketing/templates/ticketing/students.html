@@ -13,9 +13,12 @@
 <body>
     <div id="content">
         <form method="post" enctype="multipart/form-data"> {% csrf_token %}
-            <h1>Load Student Timetables</h1>
+            <h1>Student Timetables</h1>
             <h3>Upload CSV Files</h3>
-            <div id="drop_area"></div>
+            <div id="drop_area">
+                <img id="upload" title="Upload" src="{% static 'icons/upload.svg' %}">
+                <p>Drag and Drop!</p>
+            </div>
             {{ form.files }}
             <h3>Loaded Files</h3>
             <ul id="list">

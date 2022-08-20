@@ -7,11 +7,14 @@ def get_students() -> dict:
     {'872658275W': {'ID': '872658275W', 'Name': 'Gamer', 'ARC': '7A',
     'P1': 'E3.04', 'P2': 'E2.07', 'P3': 'F102', 'P4': 'A2.08'}}"""
     students = {}
-    with open(FileNames.STUDENTS) as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            students[row['ID']] = row
-    return students
+    try:
+        with open(FileNames.STUDENTS) as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                students[row['ID']] = row
+        return students
+    except FileNotFoundError:
+        return students
 
 
 STUDENTS = get_students()
