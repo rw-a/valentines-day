@@ -25,10 +25,12 @@
 5. Refresh the website.
 
 ## Step 2: Create and Sell Ticket Codes
-1. Go the /admin and add a new TicketPDF object for each type of item (Chocolate, Rose, Serenade, Special Serenade).
-2. Ensure you pick an appropriate number of ticket codes to generate (in 2022, there were ~800 chocolates, ~1500 roses, ~400 serenades, ~120 special serenades).
-3. Print out all the PDFs and cut them out.
-4. Sell the individual ticket codes to the students.
+1. Go the /admin and create a new TicketPDF object (pick the item type and the number of codes you want for that item).
+2. Ensure you pick an appropriate number of ticket codes to generate for each item (in 2022, there were ~800 chocolates, ~1500 roses, ~400 serenades, ~120 special serenades).
+3. You should be redirected to a page of a PDF.
+4. Print out all the PDFs and cut them out.
+5. Repeat this for all item types (Chocolate, Rose, Serenade, Special Serenades)
+6. Sell the individual ticket codes to the students.
 
 ## Step 3: Redeem Tickets (this step is for students not prefects)
 1. Buy a ticket code from the prefects for the item type that you want (e.g. if you want a serenade, buy a serenade code).
@@ -41,6 +43,13 @@
 8. If typing, edit the "Placeholder" text on the template. You can resize and drag them around (but can't create more). To delete them, just remove all the text.
 9. Press the redeem button!
 
-## Details
- - When printing the ticket PDFs, make sure to print double-sided **flipped along the horizontal edge**.
- - When cutting out the tickets, cut along the long vertical line in the middle first, then the smaller horizontal ones so that the order is maintained.
+## Step 4: Sort the Tickets
+1. Go to /admin and create a TicketSortRequest object (with the settings you want). 
+2. The website will automatically pick the optimal period for each ticket to be delivered in, and will distribute the tickets to each delivery group (i.e. the groups of serenaders and prefects who hand out the roses/chocolates).
+3. You should be redirected to page listing all the delivery groups.
+4. Here you generate the PDF for each group.
+5. Down the PDFs for each group and print them all out (IMPORTANT: make sure to print double-sided flipped along the **horizontal** edge).
+6. Cut them out and assign them to the corresponding delivery group (Recommended: when cutting out the tickets, cut along the long vertical line in the middle first, then the smaller horizontal ones so that the order is maintained).
+
+## Step 5: VDay has arrived!
+1. You know what to do.
