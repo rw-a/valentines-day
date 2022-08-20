@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Q
+from django.utils.html import format_html
 from .constants import DirectoryLocations
 from .class_lookup import STUDENTS
 from .models import Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup
@@ -19,7 +20,8 @@ class TicketCodePDFAdmin(admin.ModelAdmin):
 
     @admin.display(description='URL')
     def url(self, obj):
-        return reverse("ticketing:codepdf", args=[obj.pk])
+        url = reverse("ticketing:codepdf", args=[obj.pk])
+        return format_html("<a href='{url}'>{url}</a>", url=url)
 
     def save_model(self, request, obj, form, change):
         super().save_model(request=request, obj=obj, form=form, change=change)
@@ -155,7 +157,8 @@ class SortTicketAdmin(admin.ModelAdmin):
 
     @admin.display(description='URL')
     def url(self, obj):
-        return reverse("ticketing:tickets", args=[obj.pk])
+        url = reverse("ticketing:tickets", args=[obj.pk])
+        return format_html("<a href='{url}'>{url}</a>", url=url)
 
     def save_model(self, request, obj, form, change):
         super().save_model(request=request, obj=obj, form=form, change=change)
@@ -204,7 +207,8 @@ class SortTicketAdmin(admin.ModelAdmin):
 
 
 class DeliveryGroupAdmin(admin.ModelAdmin):
-    list_display = ('code', 'is_serenading_group', 'num_serenades', 'num_non_serenades', 'num_tickets', 'sort_request')
+    list_display = ('code', 'is_printed', 'num_serenades', 'num_non_serenades', 'num_tickets', 'sort_request')
+    actions = ('unprint',)
 
     @admin.display(description='Number of Serenade Tickets')
     def num_serenades(self, obj):
@@ -217,6 +221,16 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
     @admin.display(description='Total Number of Tickets')
     def num_tickets(self, obj):
         return obj.tickets.count()
+
+    @admin.action(description="Undo printing of delivery group tickets (delete its PDF).")
+    def unprint(self, request, queryset):
+        for obj in queryset:
+            if obj.is_printed:
+                sort_request = obj.sort_request
+                if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}.pdf"):
+                    os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}.pdf")
+                obj.is_printed = False
+                obj.save()
 
     def delete_model(self, request, obj):
         sort_request = obj.sort_request
