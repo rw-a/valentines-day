@@ -1,5 +1,8 @@
 # Valentine's Day Ticketing System
 
+### Disclaimer
+This was made in 2022. Links may habe broken or changed. Information may be outdated.
+
 ## Tutorial for Prefects
 
 ### Overview of System
@@ -20,11 +23,11 @@
 1. Ask a teacher to go on OneSchool and download the PDF timetables for each year level (and also teachers if necessary).
 2. Convert PDFs to Excel files (using Adobe Acrobat is recommended).
 3. Convert Excel files into CSV files.
-4. Go to /students and upload the CSV files.
+4. Go to [/students](https://statehigh.pythonanywhere.com/students/) and upload the CSV files.
 5. Refresh the website.
 
 ### Step 2: Create and Sell Ticket Codes
-1. Go the /admin and create a new TicketPDF object (pick the item type and the number of codes you want for that item).
+1. Go the [/admin](https://statehigh.pythonanywhere.com/admin/ticketing/ticketcodepdf/) and create a new TicketPDF object (pick the item type and the number of codes you want for that item).
 2. Ensure you pick an appropriate number of ticket codes to generate for each item (in 2022, there were ~800 chocolates, ~1500 roses, ~400 serenades, ~120 special serenades).
 3. You should be redirected to a page of a PDF.
 4. Print out all the PDFs and cut them out.
@@ -33,7 +36,7 @@
 
 ### Step 3: Redeem Tickets (this step is for students not prefects)
 1. Buy a ticket code from the prefects for the item type that you want (e.g. if you want a serenade, buy a serenade code).
-2. Go to /redeem and enter your code.
+2. Go to [/redeem](https://statehigh.pythonanywhere.com/redeem/) and enter your code.
 3. If it's a special serenade, pick which period you want it in.
 4. Find the recipient you want from the list.
 5. Choose whether to handwrite or type your message.
@@ -43,7 +46,7 @@
 9. Press the redeem button!
 
 ### Step 4: Sort the Tickets
-1. Go to /admin and create a TicketSortRequest object (with the settings you want). 
+1. Go to [/admin](https://statehigh.pythonanywhere.com/admin/ticketing/sortticketsrequest/) and create a TicketSortRequest object (with the settings you want). 
 2. The website will automatically pick the optimal period for each ticket to be delivered in, and will distribute the tickets to each delivery group (i.e. the groups of serenaders and prefects who hand out the roses/chocolates).
 3. You should be redirected to page listing all the delivery groups.
 4. Here you generate the PDF for each group.
@@ -56,7 +59,7 @@
 ## Tutorial for the Website Controller
 
 ### Hosting
-This website is currently hosted for free on a server provided by [pythonanywhere](pythonanywhere.com). Since it's free, it probably isn't very good and may be extremely slow or unresponsive. You may need to pay money and upgrade to a better tier. In this case, you should pick the custom tier. Here's what matters and doesn't matter:
+This website is currently hosted for free on a server provided by [pythonanywhere](https://www.pythonanywhere.com). Since it's free, it probably isn't very good and may be extremely slow or unresponsive. You may need to pay money and upgrade to a better tier. In this case, you should pick the custom tier. Here's what matters and doesn't matter:
 
 - CPU Time: doesn't matter because almost nothing will use this up. Pick the lowest possible (2000s).
 - Number of Web Apps: doesn't matter because there's only one website (this one). Pick the lowest possible (1).
@@ -66,7 +69,7 @@ This website is currently hosted for free on a server provided by [pythonanywher
 
 You only need to pay for this while you are using the website (i.e. from the start of school to Valentine's Day, which is about 1 month), so it shouldn't be very expensive at all (just take it out of the budget lol).
 
-If you decide to stick with the free plan, you must remember to activate the website (it automatically disables itself after 3 months unless renewed). This is free to do but you can't forget.
+If you decide to stick with the free plan, you must remember to [activate the website](https://www.pythonanywhere.com/user/statehigh/webapps/#tab_id_statehigh_pythonanywhere_com) (it automatically disables itself after 3 months unless renewed). This is free to do but you can't forget.
 
 
 ### Requirements
