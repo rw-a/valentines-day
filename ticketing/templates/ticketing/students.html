@@ -14,6 +14,7 @@
     <div id="content">
         <form method="post" enctype="multipart/form-data"> {% csrf_token %}
             <h1>Student Timetables</h1>
+            <p>Warning: this page probably won't work on mobile devices.</p>
             <h3>Upload CSV Files</h3>
             <div id="drop_area">
                 <img id="upload" title="Upload" src="{% static 'icons/upload.svg' %}">
