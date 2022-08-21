@@ -8,7 +8,7 @@ def get_students() -> dict:
     'P1': 'E3.04', 'P2': 'E2.07', 'P3': 'F102', 'P4': 'A2.08'}}"""
     students = {}
     try:
-        with open(FileNames.STUDENTS) as file:
+        with open(FileNames.PEOPLE) as file:
             reader = csv.DictReader(file)
             for row in reader:
                 students[row['ID']] = row

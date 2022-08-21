@@ -26,7 +26,7 @@ def load_timetables(request):
         form = CSVFileForm(request.POST, request.FILES)
         if form.is_valid():
             files = [csv.reader(StringIO(file.read().decode())) for file in request.FILES.getlist('files')]
-            with open(FileNames.STUDENTS, 'w') as file:
+            with open(FileNames.PEOPLE, 'w') as file:
                 students = get_student_classes(files)
                 writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'First Name', 'Last Name', 'ARC',
                                                           'P1', 'P2', 'P3', 'P4'])
@@ -35,7 +35,7 @@ def load_timetables(request):
 
             for file in request.FILES.getlist('files'):
                 print(file)
-                with open(f"{DirectoryLocations.TIMETABLES}/{file}", 'wb') as csv_file:
+                with open(f"{DirectoryLocations.INPUT_TIMETABLES}/{file}", 'wb') as csv_file:
                     for chunk in file.chunks():
                         csv_file.write(chunk)
             return HttpResponseRedirect(reverse("ticketing:timetables_done"))

@@ -4,12 +4,12 @@ import os
 
 class DirectoryLocations:
     """Directory Locations"""
-    STATIC = "ticketing/static"     # the static folder
+    STATIC = "ticketing/static"                 # the folder containing all the static assets
     GENERATED_TICKET_CODES = "generated_codes"  # the folder containing filled PDFs of ticket codes
     REDEEMED_TICKETS = "redeemed_tickets"       # the folder containing the handwritten messages of redeemed tickets
-    SORTED_TICKETS = "sorted_tickets"     # the folder containing the PDFs of the tickets to print
-    STUDENT_DATA = "student_data"
-    TIMETABLES = f"{STUDENT_DATA}/timetables"  # the folder containing the timetable CSVs of each grade
+    SORTED_TICKETS = "sorted_tickets"           # the folder containing the PDFs of the tickets to print
+    TIMETABLES = "timetables"                   # the folder containing the CSV with all the people data
+    INPUT_TIMETABLES = f"{TIMETABLES}/uploaded_timetables"  # the folder containing the timetable CSVs of each grade
 
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_dirs__(self):
@@ -24,11 +24,7 @@ class DirectoryLocations:
 
 class FileNames:
     # format: ID, Name, ARC_Class, P1_class, P2_class, P3_class, P4_class
-    STUDENT_LIST = f"{DirectoryLocations.STUDENT_DATA}/student_list.csv"
-    STUDENT_CLASSES = f"{DirectoryLocations.STUDENT_DATA}/student_classes.csv"
-
-    # format: ID, Name, ARC_Class, P1_class, P2_class, P3_class, P4_class
-    STUDENTS = f"{DirectoryLocations.STUDENT_DATA}/students.csv"
+    PEOPLE = f"{DirectoryLocations.TIMETABLES}/people.csv"
 
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_files__(self):

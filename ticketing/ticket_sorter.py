@@ -12,7 +12,7 @@ if __name__ == "__main__":
     random.seed(56)
 
     STUDENTS = {}
-    with open(FileNames.STUDENTS) as file:
+    with open(FileNames.PEOPLE) as file:
         reader = csv.DictReader(file)
         for row in reader:
             STUDENTS[row['ID']] = row
@@ -994,7 +994,7 @@ class TicketSorter:
 
 def load_tickets() -> dict:
     tickets_data = {}
-    with open(f"{DirectoryLocations.STUDENT_DATA}/tickets.csv") as file:
+    with open(f"{DirectoryLocations.TIMETABLES}/tickets.csv") as file:
         reader = csv.reader(file)
         for index, line in enumerate(reader):
             recipient_id = line[0]
