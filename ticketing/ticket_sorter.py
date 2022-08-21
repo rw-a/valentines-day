@@ -981,22 +981,41 @@ class TicketSorter:
         print(f"Total: {len(self.tickets)}")
 
         print("\nNumber of items per classroom visit:")
-        total = 0
+        total_tickets = 0
         for size, classrooms in self.classrooms.grouped_by_length.items():
             print(f"\t{size}: {len(classrooms)}\t{'|' * len(classrooms)}")
-            total += size * len(classrooms)
-        average_classroom_size = round(total / len(self.classrooms), 3)
+            total_tickets += size * len(classrooms)
+        average_classroom_size = round(total_tickets / len(self.classrooms), 3)
         print(f"Average: {average_classroom_size}")
 
         print("\nTickets per serenading group:")
+        total_serenading_groups = 0
         for group in self.output_serenading_groups:
             print(f"\tClassrooms: {group.num_classrooms} \t| "
                   f"Serenades: {group.tickets.num_serenades}\t+ Non-serenades: {group.tickets.num_non_serenades} "
                   f"= Total: {group.tickets.num_serenades + group.tickets.num_non_serenades}")
+            total_serenading_groups += group.tickets.num_serenades + group.tickets.num_non_serenades
+        print(f"Total: {total_serenading_groups}")
 
         print("\nTickets per non-serenading group:")
+        total_non_serenading_groups = 0
         for group in self.output_non_serenading_groups:
             print(f"\tClassrooms: {group.num_classrooms} \t| Non-serenades: {group.tickets.num_non_serenades}")
+            total_non_serenading_groups += group.tickets.num_non_serenades
+        print(f"Total: {total_non_serenading_groups}")
+        print(f"\nTotal (both types): {total_serenading_groups + total_non_serenading_groups}")
+
+        print("\nUndelivered Tickets")
+        delivered_tickets = []
+        for group in self.output_serenading_groups:
+            for ticket in group.tickets:
+                delivered_tickets.append(ticket)
+        for group in self.output_non_serenading_groups:
+            for ticket in group.tickets:
+                delivered_tickets.append(ticket)
+        for ticket in self.all_tickets:
+            if ticket not in delivered_tickets:
+                print(ticket)
 
 
 def load_tickets() -> dict:
@@ -1043,7 +1062,6 @@ def main():
     ticket_sorter = TicketSorter(tickets, 10, 10,
                                  max_serenades_per_class=2, max_non_serenades_per_serenading_class=3,
                                  extra_special_serenades=True, enforce_distribution=True)
-    print("Done")
 
 
 if __name__ == "__main__":
