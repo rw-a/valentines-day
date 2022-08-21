@@ -23,7 +23,7 @@ This was made in 2022. Links may habe broken or changed. Information may be outd
 1. Ask a teacher to go on OneSchool and download the PDF timetables for each year level (and also teachers if necessary).
 2. Convert PDFs to Excel files (using Adobe Acrobat is recommended).
 3. Convert Excel files into CSV files.
-4. Go to [students](https://statehigh.pythonanywhere.com/students/) and upload the CSV files.
+4. Go to [timetables](https://statehigh.pythonanywhere.com/timetables/) and upload the CSV files.
 5. Refresh the website.
 
 ### Step 2: Create and Sell Ticket Codes

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Load Student Timetables</title>
+    <title>Load Timetables</title>
     {% load static %}
     <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
@@ -13,7 +13,7 @@
 <body>
     <div id="content">
         <form method="post" enctype="multipart/form-data"> {% csrf_token %}
-            <h1>Student Timetables</h1>
+            <h1>Load Timetables</h1>
             <p class="info">Warning: this page probably won't work on mobile devices.</p>
             <h3>Upload CSV Files</h3>
             <div id="drop_area">

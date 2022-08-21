@@ -21,7 +21,7 @@ def index(request):
 
 
 @staff_member_required
-def load_students(request):
+def load_timetables(request):
     if request.method == 'POST':
         form = CSVFileForm(request.POST, request.FILES)
         if form.is_valid():
@@ -38,15 +38,15 @@ def load_students(request):
                 with open(f"{DirectoryLocations.TIMETABLES}/{file}", 'wb') as csv_file:
                     for chunk in file.chunks():
                         csv_file.write(chunk)
-            return HttpResponseRedirect(reverse("ticketing:students_done"))
+            return HttpResponseRedirect(reverse("ticketing:timetables_done"))
     else:
         form = CSVFileForm()
-    return render(request, 'ticketing/students.html', {'form': form})
+    return render(request, 'ticketing/timetables.html', {'form': form})
 
 
 @staff_member_required
-def students_loaded(request):
-    return render(request, 'ticketing/students_done.html')
+def timetables_loaded(request):
+    return render(request, 'ticketing/timetables_done.html')
 
 
 @staff_member_required
