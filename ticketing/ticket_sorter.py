@@ -247,12 +247,12 @@ class Classroom:
     classroom_pattern = room_format
 
     # Lookup dict used to substitute names when cleaning
-    SUBSTITUTIONS = {
+    """SUBSTITUTIONS = {
         'LIBA': 'B101',
         'LIBB': 'B102',
         'LIBC': 'B103',
         'LIBD': 'B104'
-    }
+    }"""
 
     def __init__(self, original_name: str, period: int):
         """Variables"""
@@ -272,11 +272,11 @@ class Classroom:
         return self.extended_name
 
     def get_clean_name(self):
-        if self.original_name in self.SUBSTITUTIONS:
+        """if self.original_name in self.SUBSTITUTIONS:
             clean_name = self.SUBSTITUTIONS[self.original_name]
-        else:
-            dotless_name = self.original_name.replace('.', '')
-            clean_name = re.sub("([A-Z])G", r"\g<1>0", dotless_name)
+        else:"""
+        dotless_name = self.original_name.replace('.', '')
+        clean_name = re.sub("([A-Z])G", r"\g<1>0", dotless_name)
         return clean_name
 
     def verify_classroom_name(self):
@@ -364,17 +364,24 @@ class ClassroomList(list):
             for period in range(1, 5):
                 classroom_name = getattr(ticket, f"p{period}")
                 new_classroom = Classroom(classroom_name, period)
-                if new_classroom.is_valid:
-                    if new_classroom in self:
-                        existing_classroom = self.get_existing_classroom(new_classroom)
-                        existing_classroom.tickets.append(ticket)
-                        setattr(ticket, f"p{period}", existing_classroom)
-                    else:
-                        new_classroom.tickets.append(ticket)
-                        setattr(ticket, f"p{period}", new_classroom)
-                        self.append(new_classroom)
+
+                if new_classroom in self:
+                    existing_classroom = self.get_existing_classroom(new_classroom)
+                    existing_classroom.tickets.append(ticket)
+                    setattr(ticket, f"p{period}", existing_classroom)
                 else:
-                    raise NameError(f"Classroom name is invalid: {new_classroom.clean_name}")
+                    new_classroom.tickets.append(ticket)
+                    setattr(ticket, f"p{period}", new_classroom)
+                    self.append(new_classroom)
+
+                # if non-existent classroom, let it exist but don't add it to the list
+                if not new_classroom.is_valid:
+                    setattr(ticket, f"is_p{period}", False)
+
+        # remove non-existent classrooms
+        for classroom in self[:]:
+            if not classroom.is_valid:
+                self.remove(classroom)
         return self
 
     def get_existing_classroom(self, new_classroom: Classroom):

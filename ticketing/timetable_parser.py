@@ -4,13 +4,52 @@ import re
 """Settings"""
 name_half = r"([a-zA-Z\s\'\(\)-]+)"
 name_format = fr"{name_half},\s{name_half},"
-room_format = r"[A-Z][G\d].?\d\d\Z|LIB[A-D]\Z|OVAL[A-D]\Z|OVLJ|POOL"
+teacher_name_format = r"[A-Z 0]{5,6} - " + name_format[:-1]
+normal_room_format = r"[A-Z][G\d].?[\d]{1,2}\Z"
+# special_room_format = r"|LIB[A-D]Y?\Z|OVAL[A-D]\Z|OVLJ|POOL"
+special_room_format = r"|LIB[A-D]Y?\Z"
+room_format = normal_room_format + special_room_format
 arc_class_format = r"([7-9]|10|11|12)[A-Z]"
 period_columns = 1, 3, 5, 7
 
+special_rooms = []
+
+
+def get_periods(person: dict, rows: list, row_index: int):
+    row = rows[row_index]
+    for period, period_column in enumerate(period_columns):
+        period = period + 1
+        room = re.search(room_format, row[period_column])
+        if room:
+            person[f"P{period}"] = room.group(0)
+            if not re.search(normal_room_format, row[period_column]) and room.group(0) not in special_rooms:
+                special_rooms.append(room.group(0))
+        else:
+            # print(row[period_column])
+            person[f"P{period}"] = "NONE"
+            # if a person's class got split across two rows, try to find the class in the next row
+            next_row = rows[row_index + 1]
+            if next_row[0] == "":
+                # checks if the next row is the second half of this row and not a new person
+                room = re.search(room_format, next_row[period_column])
+                if room:
+                    person[f"P{period}"] = room.group(0)
+                    # print(person)
+                else:
+                    # print("NO ROOM")
+                    pass
+
+
+def add_person(people: list, person: dict):
+    if person["P1"] == "NONE" and person["P2"] == "NONE" and person["P3"] == "NONE" and person["P4"] == "NONE":
+        # print(person)
+        del person
+    else:
+        people.append(person)
+
 
 def get_student_classes(files):
-    students = []
+    people = []
 
     rows = []
     for file in files:
@@ -24,38 +63,29 @@ def get_student_classes(files):
 
         name = re.match(name_format, row[0])
         if name:
+            # if a student row
             student = {'First Name': name.group(2),
                        'Last Name': name.group(1),
                        'Name': f"{name.group(2)} {name.group(1)}",
                        'ARC': re.search(arc_class_format, row[0]).group(0)}
             student['ID'] = f"{student['Name']} [{student['ARC']}]"
 
-            for period, period_column in enumerate(period_columns):
-                period = period + 1
-                room = re.search(room_format, row[period_column])
-                if room:
-                    student[f"P{period}"] = room.group(0)
-                else:
-                    # print("NO CLASS", row)
-                    student[f"P{period}"] = "NONE"
-                    # if a person's class got split across two rows, try to find the class in the next row
-                    next_row = rows[row_index + 1]
-                    if next_row[0] == "":
-                        # checks if the next row is the second half of this row and not a new person
-                        room = re.search(room_format, next_row[period_column])
-                        if room:
-                            student[f"P{period}"] = room.group(0)
-                            # print(room.group(0))
-                        else:
-                            # print("NO ROOM")
-                            pass
-
-            students.append(student)
-            # print(student)
+            get_periods(student, rows, row_index)
+            add_person(people, student)
         else:
-            # print(row)
-            pass
-    return students
+            # perhaps it's a teacher instead
+            name = re.match(teacher_name_format, row[0])
+            if name:
+                teacher = {'First Name': name.group(2),
+                           'Last Name': name.group(1),
+                           'Name': f"{name.group(2)} {name.group(1)}",
+                           'ARC': "TEACHER"}
+                teacher['ID'] = f"{teacher['Name']} [{teacher['ARC']}]"
+
+                get_periods(teacher, rows, row_index)
+                add_person(people, teacher)
+
+    return people
 
 
 def load_csvs_in_folder(folder_dir: str):
@@ -67,13 +97,15 @@ def load_csvs_in_folder(folder_dir: str):
 
 def main():
     from constants import DirectoryLocations, FileNames
-    files = load_csvs_in_folder(DirectoryLocations.TIMETABLES)
+    files = load_csvs_in_folder(DirectoryLocations.INPUT_TIMETABLES)
     students = get_student_classes(files)
-    with open(FileNames.STUDENTS, 'w') as file:
+    with open(FileNames.PEOPLE, 'w') as file:
         writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'First Name', 'Last Name',
                                                   'ARC', 'P1', 'P2', 'P3', 'P4'])
         writer.writeheader()
         writer.writerows(students)
+
+    print(special_rooms)
 
 
 if __name__ == "__main__":
