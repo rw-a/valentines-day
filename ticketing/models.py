@@ -128,8 +128,10 @@ class Ticket(models.Model):
 
 
 class SortTicketsRequest(models.Model):
-    num_serenaders = models.IntegerField(default=10, verbose_name="Number of serenading delivery groups")
-    num_non_serenaders = models.IntegerField(default=10, verbose_name="Number of non-serenading delivery groups")
+    num_serenaders = models.IntegerField(default=10, validators=[MaxValueValidator(100), MinValueValidator(1)],
+                                         verbose_name="Number of serenading delivery groups")
+    num_non_serenaders = models.IntegerField(default=10, validators=[MaxValueValidator(100), MinValueValidator(1)],
+                                             verbose_name="Number of non-serenading delivery groups")
     max_serenades_per_class = models.IntegerField(default=2, verbose_name="Max number of serenades per class visit",
                                                   help_text="Lower values increase number of class visits required and "
                                                             "shifts load towards serenading groups. "
