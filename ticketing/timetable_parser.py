@@ -97,7 +97,7 @@ def load_csvs_in_folder(folder_dir: str):
 
 def main():
     from constants import DirectoryLocations, FileNames
-    files = load_csvs_in_folder(DirectoryLocations.INPUT_TIMETABLES)
+    files = load_csvs_in_folder(DirectoryLocations.TIMETABLES_INPUT)
     students = get_student_classes(files)
     with open(FileNames.PEOPLE, 'w') as file:
         writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'First Name', 'Last Name',

@@ -35,7 +35,7 @@ def load_timetables(request):
 
             for file in request.FILES.getlist('files'):
                 print(file)
-                with open(f"{DirectoryLocations.INPUT_TIMETABLES}/{file}", 'wb') as csv_file:
+                with open(f"{DirectoryLocations.TIMETABLES_INPUT}/{file}", 'wb') as csv_file:
                     for chunk in file.chunks():
                         csv_file.write(chunk)
             return HttpResponseRedirect(reverse("ticketing:timetables_done"))
