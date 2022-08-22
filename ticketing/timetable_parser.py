@@ -1,18 +1,20 @@
 import csv
+import random
 import re
 
 """Settings"""
 name_half = r"([a-zA-Z\s\'\(\)-]+)"
 name_format = fr"{name_half},\s{name_half},"
 teacher_name_format = r"[A-Z 0]{5,6} - " + name_format[:-1]
-normal_room_format = r"[A-Z][G\d].?[\d]{1,2}\Z"
-# special_room_format = r"|LIB[A-D]Y?\Z|OVAL[A-D]\Z|OVLJ|POOL"
-special_room_format = r"|LIB[A-D]Y?\Z"
-room_format = normal_room_format + special_room_format
-arc_class_format = r"([7-9]|10|11|12)[A-Z]"
-period_columns = 1, 3, 5, 7
 
-special_rooms = []
+normal_room_format = r"[A-Z][G\d].?[\d]{1,2}\Z"
+bad_room_format = r"OVAL[A-D]\Z|OVLJ\Z|POOL\Z"    # rooms which are annoying and shouldn't be chosen
+special_room_format = r"LIB[A-D]Y?\Z"             # rooms which don't follow the normal regex
+room_format = normal_room_format + r"|" + special_room_format + r"|" + bad_room_format
+
+arc_class_format = r"([7-9]|10|11|12)[A-Z]"
+
+period_columns = 1, 3, 5, 7
 
 
 def get_periods(person: dict, rows: list, row_index: int):
@@ -22,8 +24,6 @@ def get_periods(person: dict, rows: list, row_index: int):
         room = re.search(room_format, row[period_column])
         if room:
             person[f"P{period}"] = room.group(0)
-            if not re.search(normal_room_format, row[period_column]) and room.group(0) not in special_rooms:
-                special_rooms.append(room.group(0))
         else:
             # print(row[period_column])
             person[f"P{period}"] = "NONE"
@@ -104,8 +104,6 @@ def main():
                                                   'ARC', 'P1', 'P2', 'P3', 'P4'])
         writer.writeheader()
         writer.writerows(students)
-
-    print(special_rooms)
 
 
 if __name__ == "__main__":
