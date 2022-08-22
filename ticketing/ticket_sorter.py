@@ -1076,14 +1076,14 @@ class TicketSorter:
 def load_tickets() -> dict:
     tickets_data = {}
     with open(f"{DirectoryLocations.TIMETABLES}/tickets.csv") as file:
-        reader = csv.reader(file)
+        reader = csv.DictReader(file)
         for index, line in enumerate(reader):
-            recipient_id = line[0]
-            if line[1] == "1":
+            recipient_id = line["ID"]
+            if line["Chocolate"] == "1":
                 item_type = "Chocolate"
-            elif line[2] == "1":
+            elif line["Rose"] == "1":
                 item_type = "Rose"
-            elif line[3] == "1":
+            elif line["Serenade"] == "1":
                 if random.random() < 0.70:
                     item_type = "Serenade"
                 else:
