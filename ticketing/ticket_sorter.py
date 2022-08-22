@@ -1057,6 +1057,16 @@ class TicketSorter:
         print(f"Total: {total_non_serenading_groups}")
         print(f"\nTotal (both types): {total_serenading_groups + total_non_serenading_groups}")
 
+        if len(self.special_classrooms) > 0:
+            print("\nSpecial Classrooms:")
+            for classroom in self.special_classrooms:
+                print(f"\t{classroom} ({classroom.clean_name})")
+
+        if len(self.bad_classrooms) > 0:
+            print("\nBad Classrooms:")
+            for classroom in self.bad_classrooms:
+                print(f"\t{classroom}")
+
         delivered_tickets = []
         for group in self.output_serenading_groups:
             for ticket in group.tickets:
@@ -1070,7 +1080,7 @@ class TicketSorter:
                 if print_header:
                     print("\nUndelivered Tickets:")
                     print_header = False
-                print(ticket)
+                print(f"\t{ticket}")
 
 
 def load_tickets() -> dict:
