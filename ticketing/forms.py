@@ -40,7 +40,7 @@ class TicketForm(forms.Form):
 
     def clean_recipient_id(self):
         # verifies that the recipient actually exists
-        recipient = self.cleaned_data['recipient_id'].upper()
+        recipient = self.cleaned_data['recipient_id']
         if not is_recipient_exists(recipient):
             raise ValidationError('This recipient does not exist.')
         return recipient

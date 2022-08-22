@@ -3,27 +3,16 @@ from .class_lookup import STUDENTS
 
 
 def is_code_exists(code):
-    for ticket in TicketCode.objects.all():
-        # checks if this code has been registered to a code
-        if ticket.code.upper() == code.upper():
-            return True
-    return False
+    return TicketCode.objects.filter(code=code).count() > 0
 
 
 def is_code_unconsumed(code):
     # if the code doesn't exist, also returns false
-    for ticket in TicketCode.objects.all():
-        # checks if this code has been registered to a code
-        if ticket.code.upper() == code.upper():
-            if ticket.is_unconsumed:
-                return True
-            else:
-                return False
-    return False
+    if is_code_exists(code):
+        return TicketCode.objects.get(code=code).is_unconsumed
+    else:
+        return False
 
 
 def is_recipient_exists(recipient):
-    if recipient.upper() in STUDENTS:
-        return True
-    else:
-        return False
+    return recipient in STUDENTS
