@@ -146,12 +146,13 @@ class SortTicketsRequest(models.Model):
                                                                            "disable limit.")
     extra_special_serenades = models.BooleanField(default=True,
                                                   help_text="Special serenades will not be grouped with regular "
-                                                            "serenades (no promises). "
+                                                            "serenades. Can be guaranteed but "
+                                                            "some classes may have to be visited twice. "
                                                             "Increases number of class visits required.")
     enforce_distribution = models.BooleanField(default=True,
-                                               help_text="More strictly force tickets to be split over multiple "
-                                                         "periods. Ensures that people do not receive all their items "
-                                                         "at once (no promises). "
+                                               help_text="Splits up serenades between periods. "
+                                                         "Ensures that people do not receive multiple serenades at "
+                                                         "once (no promises). "
                                                          "Increases number of class visits required.")
 
     date = models.DateTimeField(default=timezone.now, help_text="Date created")
