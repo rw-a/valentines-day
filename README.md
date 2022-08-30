@@ -15,10 +15,6 @@ This was made in 2022. Links may habe broken or changed. Information may be outd
 7. Prefects cut out the tickets from the PDFs and give them to the corresponding group.
 8. On Valentine's Day, the delivery groups distribute the items and do the serenades!
 
-### Step 0: Pick a host
-1. Decide who wants to be the 'website controller' (person in charge of using and maintaining the website). Ideally, it would be someone tech savvy.
-2. Ask the prefects last year for the password to the /admin page and the pythonanywhere account. Be careful as anyone with these passwords can easily create, modify and delete tickets or completely nuke everything (Recommended: only the prefect coordinator and the website controller should know the passwords). 
-
 ### Step 1: Load the timetables of each year level
 1. Ask a teacher to go on OneSchool and download the PDF timetables for each year level (and also teachers if necessary).
 2. Convert PDFs to Excel files (using Adobe Acrobat is recommended).
@@ -56,7 +52,7 @@ This was made in 2022. Links may habe broken or changed. Information may be outd
 ### Step 5: VDay has arrived!
 1. You know what to do.
 
-## Tutorial for the Website Controller
+## Extra Technical Stuff
 
 ### Hosting
 This website is currently hosted for free on a server provided by [pythonanywhere](https://www.pythonanywhere.com). Since it's free, it probably isn't very good and may be extremely slow or unresponsive. You may need to pay money and [upgrade to a better tier](https://www.pythonanywhere.com/user/statehigh/account/). In this case, you should pick the custom tier. Here's what matters and doesn't matter:
