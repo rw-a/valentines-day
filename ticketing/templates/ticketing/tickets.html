@@ -50,7 +50,10 @@
 
             let tickets_pdf = row.insertCell(2);
             tickets_pdf.id = `${group}_pdf`;
-            if (group_data[group]['is_printed']) {
+            if (group_data[group]["num_tickets"] == 0) {
+                tickets_pdf.innerHTML = "No Tickets :(";
+                group_data[group]['is_printed'] = true;
+            } else if (group_data[group]['is_printed']) {
                 // if already generated
                 let link = document.createElement('a');
                 let text = document.createTextNode("Download");

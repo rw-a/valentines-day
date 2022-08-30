@@ -28,15 +28,9 @@
     src: url("../fonts/La\ Rosse.ttf");
 }
 
-
 @font-face {
     font-family: 'Love Letters';
     src: url("../fonts/Love\ Letters.ttf");
-}
-
-@font-face {
-    font-family: 'Orchads';
-    src: url("../fonts/Orchards.ttf");
 }
 
 @font-face {
