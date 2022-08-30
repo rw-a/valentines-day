@@ -42,12 +42,13 @@ This was made in 2022. Links may habe broken or changed. Information may be outd
 9. Press the redeem button!
 
 ### Step 4: Sort the Tickets
-1. Go to [admin](https://statehigh.pythonanywhere.com/admin/ticketing/sortticketsrequest/) and create a TicketSortRequest object (with the settings you want). 
-2. The website will automatically pick the optimal period for each ticket to be delivered in, and will distribute the tickets to each delivery group (i.e. the groups of serenaders and prefects who hand out the roses/chocolates).
-3. You should be redirected to page listing all the delivery groups.
-4. Here you generate the PDF for each group.
-5. Down the PDFs for each group and print them all out (IMPORTANT: make sure to print double-sided flipped along the **horizontal** edge).
-6. Cut them out and assign them to the corresponding delivery group (Recommended: when cutting out the tickets, cut along the long vertical line in the middle first, then the smaller horizontal ones so that the order is maintained).
+1. Optional: visit the [stats](https://statehigh.pythonanywhere.com/stats/) page to find out how many tickets have been created.
+2. Go to [admin](https://statehigh.pythonanywhere.com/admin/ticketing/sortticketsrequest/) and create a TicketSortRequest object (with the settings you want). 
+3. The website will automatically pick the optimal period for each ticket to be delivered in, and will distribute the tickets to each delivery group (i.e. the groups of serenaders and prefects who hand out the roses/chocolates).
+4. You should be redirected to page listing all the delivery groups.
+5. Here you generate the PDF for each group.
+6. Down the PDFs for each group and print them all out (IMPORTANT: make sure to print double-sided flipped along the **horizontal** edge).
+7. Cut them out and assign them to the corresponding delivery group (Recommended: when cutting out the tickets, cut along the long vertical line in the middle first, then the smaller horizontal ones so that the order is maintained).
 
 ### Step 5: VDay has arrived!
 1. You know what to do.
