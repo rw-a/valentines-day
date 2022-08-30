@@ -70,8 +70,9 @@ class TicketCode(models.Model):
 
 
 class Ticket(models.Model):
-    recipient_id = models.CharField(max_length=12,  # student ID length is 11
-                                    help_text="The Student ID of the recipient of this ticket")
+    recipient_id = models.CharField(max_length=100,
+                                    help_text="A unique identifier for each student. "
+                                              "Is represented by their full name and ARC class.")
     item_type = models.CharField(
         max_length=20,
         choices=[
@@ -98,15 +99,22 @@ class Ticket(models.Model):
                                 help_text="Links the ticket to the code which made it. "
                                           "Leave it blank if you are manually creating the ticket.")
 
-    period = models.PositiveIntegerField(null=True, blank=True, help_text="The period chosen by the ticket sorter.")
-    p1 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 1 Classroom")
-    p2 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 2 Classroom")
-    p3 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 3 Classroom")
-    p4 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 4 Classroom")
+    period = models.PositiveIntegerField(null=True, blank=True, help_text="The period chosen by the ticket sorter. "
+                                                                          "Will be automatically determined "
+                                                                          "so do not touch.")
+    p1 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 1 Classroom",
+                          help_text="Will be automatically determined so do not touch.")
+    p2 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 2 Classroom",
+                          help_text="Will be automatically determined so do not touch.")
+    p3 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 3 Classroom",
+                          help_text="Will be automatically determined so do not touch.")
+    p4 = models.CharField(null=True, blank=True, max_length=4, verbose_name="Period 4 Classroom",
+                          help_text="Will be automatically determined so do not touch.")
 
     sort_order = models.PositiveIntegerField(null=True, blank=True,
                                              help_text="Used to determine what order the tickets "
-                                                       "should be when printing.")
+                                                       "should be when printing. "
+                                                       "Will be automatically determined so do not touch.")
 
     def __str__(self):
         return f'{self.recipient_id} ({self.item_type})'
