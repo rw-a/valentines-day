@@ -4,11 +4,6 @@
 }
 
 @font-face {
-    font-family: 'Bethlove';
-    src: url("../fonts/Bethlove.ttf");
-}
-
-@font-face {
     font-family: 'Chasing Hearts';
     src: url("../fonts/Chasing\ Hearts.ttf");
 }
@@ -21,11 +16,6 @@
 @font-face {
     font-family: 'Love Letters';
     src: url("../fonts/Love\ Letters.ttf");
-}
-
-@font-face {
-    font-family: 'Lovely Valentine';
-    src: url("../fonts/Lovely\ Valentine.ttf");
 }
 
 
