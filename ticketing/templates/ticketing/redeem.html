@@ -42,7 +42,6 @@
             </div>
             <div class="input" id="is_handwritten-form">
                 <h3>Handwrite or Type?</h3>
-                <p class="info">Do you want to handwrite or type your message?</p>
                 {{ form.is_handwritten }}
             </div>
             <div hidden>{{ form.message }}</div>
@@ -59,7 +58,6 @@
                     <h3>Message</h3>
                     <p class="info">Edit the placeholder text to write your message.</p>
                     <canvas id="fabric" width="600" height="356" style="border: 1px solid black"></canvas>
-                    <div hidden>{{ form.recipient_nickname }}</div>
                 </div>
                 <p hidden class="info error" id="typed_error">*Don't forget to remove all the placeholder text first!</p>
                 <div class="buttons">

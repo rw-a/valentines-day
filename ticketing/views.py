@@ -130,11 +130,14 @@ def redeem(request):
         if form.is_valid():
             # process the data in form.cleaned_data as required
             ticket_code = TicketCode.objects.get(code=form.cleaned_data['code'])
-            is_handwritten = form.cleaned_data['is_handwritten']
+            is_handwritten = form.cleaned_data['is_handwritten'] == "True"
+            print(is_handwritten, type(is_handwritten))
             if is_handwritten:
                 template = form.cleaned_data['handwriting_template']
+                print("TEMPLATE HANDWRITING", template)
             else:
                 template = form.cleaned_data['typed_template']
+                print("TEMPLATE TYPED", template)
 
             # make the ticket
             ticket = Ticket(
