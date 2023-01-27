@@ -59,16 +59,36 @@ Now it's time to deliver the tickets! Here are some things to know:
   - After that is a colon, then another number. This number is the ticket number of the delivery group.
   - For example, if the bottom-left of the ticket says *N2: 10*, then it is the 10th ticket of the 2nd non-serenading delivery group.
 
+
 ## Customising the Tickets
-### Adding/changing pickup lines
+### Adding/Changing Pickup Lines
 The pickup lines are stored at *ticketing/static/pickup_lines.txt*. Each new line in the text file corresponds to a different pickup line. If you are adding new pickup lines, simply add each one to a new line. Ensure that they aren't too long or else they may cause weird formatting when printed. To remove pickup lines, simply delete the entire line in the text file. Ensure that there are no empty rows (check the last line in particular for a sneaky blank row), or else some tickets may be blank.
 
-Once you have made your changes, go to the [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/) and press the *$Bash* button below the *New console:* heading. Then type the following into the bash console:
+Once you have made your changes, go to the [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/) and press the *$Bash* button below the *New console* heading. Then type the following into the bash console:
 ```
 cd valentines-day/
 python manage.py collectstatic
 yes
 ```
+
+## Adding/Changing Ticket Templates
+To create your own ticket template, here are the steps I recommend:
+1. Download [this Word document](https://github.com/rw-a/valentines-day/blob/master/Classic%20Template.docx), which was used to create the classic template.
+2. Modify the template to create your own! Note: It's very important that you don't change the size of each cell in the table (actually, the size isn't critical but the width must be exactly 1.68x longer than the height).
+3. Export the Word document as a PDF.
+4. After this point, things get a little more technical, so feel free to ask me to do the rest.
+5. Convert the PDF into an SVG file using [Inkscape](https://inkscape.org/).
+6. Add the SVG file to the templates folder, which is located at *ticketing/static/templates/*
+7. Open *ticketing/forms.py* and update the templates field of the TicketForm class. Below is what it would like before adding the new template. Simply continue the pattern.
+```
+class TicketForm(forms.Form):
+    ...
+    templates = [
+        (1, "Classic Ticket"),
+    ]
+    ...
+```
+
 
 ## Extra Technical Stuff
 
@@ -86,6 +106,7 @@ You only need to pay for this while you are using the website (i.e. from the sta
 If you decide to stick with the free plan, you must remember to [activate the website](https://www.pythonanywhere.com/user/statehigh/webapps/#tab_id_statehigh_pythonanywhere_com) (it automatically disables itself after 3 months unless renewed). This is free to do but you can't forget.
 
 In case of a last resort, you may need to change to a completely different hosting service. It will be a pain to configure the whole website again, so good luck.
+
 
 ### Backups
 It is extremely important that you backup the database of this website. Navigate to the [website working directory](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day) and look for the file named *db.sqlite3*. This is the most important file in the whole website. If you lose this, you lose all the tickets; all the students who paid for a code will be very sad that they paid for nothing. If everything else breaks but this file is intact, the operation is still salvagable. **I recommend you backup this file everyday**, with a separate file for each day (don't just override and only keep yesterday's copy).
