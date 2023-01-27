@@ -71,7 +71,7 @@ python manage.py collectstatic
 yes
 ```
 
-## Adding/Changing Ticket Templates
+### Adding/Changing Ticket Templates
 To create your own ticket template, here are the steps I recommend:
 1. Download [this Word document](https://github.com/rw-a/valentines-day/blob/master/Classic%20Template.docx), which was used to create the classic template.
 2. Modify the template to create your own! Note: It's very important that you don't change the size of each cell in the table (actually, the size isn't critical but the width must be exactly 1.68x longer than the height).
@@ -81,7 +81,7 @@ To create your own ticket template, here are the steps I recommend:
 6. Add the SVG file to the templates folder, which is located at *ticketing/static/templates/*
 7. Update the code to load in this new template. These next steps will be in separate headings below:
 
-### Step 8: Add the template to the list of options
+#### Step 8: Add the template to the list of options
 Open *ticketing/forms.py* and add the new template to the templates field of the TicketForm class.
 
 What it looks like originally:
@@ -103,7 +103,7 @@ class TicketForm(forms.Form):
     ]
     ...
 ```
-### Step 9: Allow handwriting on the template
+#### Step 9: Allow handwriting on the template
 Open *ticketing/templates/ticketing/redeem.html* and update the JavaScript.
 
 What it looks like originally:
@@ -136,7 +136,7 @@ document.getElementById('id_handwriting_template').addEventListener('change', (e
 ...
 ```
 
-### Step 10: Add customisable text to the template
+#### Step 10: Add customisable text to the template
 Open *ticketing/templates/ticketing/redeem.html* and update the JavaScript. Add a new function below the function named *initialise_classic_template*
 
 What it looks like originally:
