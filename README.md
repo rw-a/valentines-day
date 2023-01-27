@@ -79,7 +79,12 @@ To create your own ticket template, here are the steps I recommend:
 4. After this point, things get a little more technical, so feel free to ask me to do the rest.
 5. Convert the PDF into an SVG file using [Inkscape](https://inkscape.org/).
 6. Add the SVG file to the templates folder, which is located at *ticketing/static/templates/*
-7. Open *ticketing/forms.py* and update the templates field of the TicketForm class. Below is what it would like before adding the new template. Simply continue the pattern.
+7. Update the code to load in this new template. These next steps will be in separate headings below:
+
+### Step 8: Add the template to the list of options
+Open *ticketing/forms.py* and add the new template to the templates field of the TicketForm class.
+
+What it looks like originally:
 ```
 class TicketForm(forms.Form):
     ...
@@ -88,9 +93,121 @@ class TicketForm(forms.Form):
     ]
     ...
 ```
+Example, after adding your new ticket template (this assumes that you want your new template to be called *Modern Ticket*):
+```
+class TicketForm(forms.Form):
+    ...
+    templates = [
+        (1, "Classic Ticket"),
+        (2, "Modern Ticket"),
+    ]
+    ...
+```
+### Step 9: Allow handwriting on the template
+Open *ticketing/templates/ticketing/redeem.html* and update the JavaScript.
 
+What it looks like originally:
+```
+...
+document.getElementById('id_handwriting_template').addEventListener('change', (event) => {
+    let template = event.target.value;
+        if (template == "0") {
+            document.getElementById('signature_pad').style.background = "#fdfdfd";
+        } else if (template == "1") {
+            document.getElementById('signature_pad').style.background = "url({% static 'templates/classic_template.svg' %}) 0% 0%/600px 356px";
+        }
+})
+...
+```
 
-## Extra Technical Stuff
+Example, after adding your new ticket template (this assumes that you named your file *modern_template.svg*):
+```
+...
+document.getElementById('id_handwriting_template').addEventListener('change', (event) => {
+    let template = event.target.value;
+        if (template == "0") {
+            document.getElementById('signature_pad').style.background = "#fdfdfd";
+        } else if (template == "1") {
+            document.getElementById('signature_pad').style.background = "url({% static 'templates/classic_template.svg' %}) 0% 0%/600px 356px";
+        } else if (template == "2") {
+            document.getElementById('signature_pad').style.background = "url({% static 'templates/modern_template.svg' %}) 0% 0%/600px 356px";
+        }
+})
+...
+```
+
+### Step 10: Add customisable text to the template
+Open *ticketing/templates/ticketing/redeem.html* and update the JavaScript. Add a new function below the function named *initialise_classic_template*
+
+What it looks like originally:
+```
+...
+function initialise_classic_template() {
+    load_background_image("{% static 'templates/classic_template.svg' %}", 'Calibri');
+    let text1 = new fabric.IText('Placeholder', {left: 18, top: 60, fontSize: 30});
+    let text2 = new fabric.IText('Placeholder', {left: 170, top: 164, fontSize: 30})
+    let text3 = new fabric.IText('Placeholder', {left: 102, top: 212, fontSize: 30})
+    let text4 = new fabric.IText('Placeholder', {left: 102, top: 260, fontSize: 30})
+    let text5 = new fabric.IText('Placeholder', {left: 157, top: 308, fontSize: 30})
+    fabric_canvas.add(text1, text2, text3, text4, text5);
+}
+...
+```
+
+Example, after adding your new ticket template (this assumes that you named your file *modern_template.svg*):
+```
+...
+function initialise_classic_template() {
+    load_background_image("{% static 'templates/classic_template.svg' %}", 'Calibri');
+    let text1 = new fabric.IText('Placeholder', {left: 18, top: 60, fontSize: 30});
+    let text2 = new fabric.IText('Placeholder', {left: 170, top: 164, fontSize: 30});
+    let text3 = new fabric.IText('Placeholder', {left: 102, top: 212, fontSize: 30});
+    let text4 = new fabric.IText('Placeholder', {left: 102, top: 260, fontSize: 30});
+    let text5 = new fabric.IText('Placeholder', {left: 157, top: 308, fontSize: 30});
+    fabric_canvas.add(text1, text2, text3, text4, text5);
+}
+
+function initialise_modern_template() {
+    load_background_image("{% static 'templates/modern_template.svg' %}", 'Calibri');
+    let text1 = new fabric.IText('Placeholder', {left: 20, top: 80, fontSize: 30});
+    let text2 = new fabric.IText('Placeholder', {left: 180, top: 154, fontSize: 30});
+    let text3 = new fabric.IText('Placeholder', {left: 122, top: 192, fontSize: 30});
+    let text4 = new fabric.IText('Placeholder', {left: 152, top: 230, fontSize: 30});
+    let text5 = new fabric.IText('Placeholder', {left: 177, top: 270, fontSize: 30});
+    let text6 = new fabric.IText('Placeholder', {left: 207, top: 310, fontSize: 30});
+    fabric_canvas.add(text1, text2, text3, text4, text5, text6);
+}
+...
+```
+
+Then add this new function to the list within the *initialise_template* function.
+
+What if looks like before:
+```
+...
+function initialise_template() {
+    template = document.getElementById('id_typed_template').value;
+    if (template == 1) {
+        initialise_classic_template();
+    }
+}
+...
+```
+
+Example, after adding your new ticket template (this assumes that you named the function above as *initialise_modern_template*):
+```
+...
+function initialise_template() {
+    template = document.getElementById('id_typed_template').value;
+    if (template == 1) {
+        initialise_classic_template();
+    } else if (template == 2) {
+        initialise_modern_template();
+    }
+}
+...
+
+## Technical Stuff
 
 ### Hosting
 This website is currently hosted for free on a server provided by [pythonanywhere](https://www.pythonanywhere.com). Since it's free, it probably isn't very good and may be extremely slow or unresponsive. You may need to pay money and [upgrade to a better tier](https://www.pythonanywhere.com/user/statehigh/account/). In this case, you should pick the custom tier. Here's what matters and doesn't matter:
