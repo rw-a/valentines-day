@@ -52,8 +52,8 @@ This was made in 2022. Links may have broken or changed. Information may be outd
 
 ### Step 5: Valentine's Day has arrived!
 Now it's time to deliver the tickets! Here are some things to know:
-- On the back of each ticket are 4 periods. The period with the symbol next to it is the chosen period. The tickets are ordered and grouped based on the chosen period, so it's optimal to deliver them according to the chosen period. The other 3 periods are added just in case something goes wrong (e.g. you don't have time to deliver all of them) and you need to deliver them later/earlier.
-- On the bottom-left of each ticket is a code. 
+- On the top-right of the back of each ticket are 4 periods. The period with the symbol next to it is the chosen period. The tickets are ordered and grouped based on the chosen period, so it's optimal to deliver them according to the chosen period. The other 3 periods are added just in case something goes wrong (e.g. you don't have time to deliver all of them) and you need to deliver them later/earlier.
+- On the bottom-left of the back of each ticket is a code. 
   - The first character is a letter. It is either S or N (corresponding to whether the tickets are for a serenading delivery group, or a non-serenading delivery group, respectively).
   - After the letter is a number. This is the group number of the delivery group.
   - After that is a colon, then another number. This number is the ticket number of the delivery group.
