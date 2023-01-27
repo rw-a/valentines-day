@@ -3,3 +3,4 @@ reportlab~=3.6.12
 CairoSVG~=2.6.0
 Pillow~=9.4.0
 lxml~=4.9.2
+python-dotenv~=0.21.1
