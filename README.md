@@ -59,6 +59,17 @@ Now it's time to deliver the tickets! Here are some things to know:
   - After that is a colon, then another number. This number is the ticket number of the delivery group.
   - For example, if the bottom-left of the ticket says *N2: 10*, then it is the 10th ticket of the 2nd non-serenading delivery group.
 
+## Customising the Tickets
+### Adding/changing pickup lines
+The pickup lines are stored at *ticketing/static/pickup_lines.txt*. Each new line in the text file corresponds to a different pickup line. If you are adding new pickup lines, simply add each one to a new line. Ensure that they aren't too long or else they may cause weird formatting when printed. To remove pickup lines, simply delete the entire line in the text file. Ensure that there are no empty rows (check the last line in particular for a sneaky blank row), or else some tickets may be blank.
+
+Once you have made your changes, go to the [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/) and press the *$Bash* button below the *New console:* heading. Then type the following into the bash console:
+```
+cd valentines-day/
+python manage.py collectstatic
+yes
+```
+
 ## Extra Technical Stuff
 
 ### Hosting
