@@ -180,9 +180,9 @@ function initialise_modern_template() {
 ...
 ```
 
-Then add this new function to the list within the *initialise_template* function.
+**Then add this new function to the list within the *initialise_template* function.**
 
-What if looks like before:
+What it looks like before:
 ```
 ...
 function initialise_template() {
@@ -206,6 +206,7 @@ function initialise_template() {
     }
 }
 ...
+```
 
 ## Technical Stuff
 
