@@ -11,8 +11,27 @@ python manage.py collectstatic
 yes
 ```
 
+## Adding/Changing Fonts
+1. Download the font you want as a .tff file.
+2. Add the file to *ticketing/static/fonts/*.
+3. Open *ticketing/static/css/redeem.css* and register the font file by adding the following piece of code somewhere. Note that font-family is the name of the font is, and src is the name of the file (spaces need to have a backslash before them, as shown).
+
+```
+@font-face {
+    font-family: "New Font";
+    src: url("../fonts/New\ Font.ttf");
+}
+```
+
+4. Open *ticketing/templates/ticketing/redeem.html* and navigate to the JavaScript section. Locate the variable that is a of fonts and add your new font to the list (the name that you chose for font-family, not the filename).
+
+```
+...
+let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valentine", "La Rosse", "Love Letters", "Roschetta", "New Font"];
+...
+```
+
 ## Adding/Changing Ticket Templates
-To create your own ticket template, here are the steps I recommend:
 1. Download [this Word document](https://github.com/rw-a/valentines-day/blob/master/Classic%20Template.docx), which was used to create the classic template.
 2. Modify the template to create your own! Note: It's very important that you don't change the size of each cell in the table (actually, the size isn't critical but the width must be exactly 1.68x longer than the height).
 3. Export the Word document as a PDF.
@@ -203,4 +222,4 @@ else:
     raise KeyError(f"Template number {ticket.template} does not exist.")
 ```
 
-**You're done!**
+**Whew! You're done!**
