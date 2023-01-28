@@ -1,4 +1,6 @@
 # Customising the Tickets
+If you make a mistake, it's usually quite easy to revert back to a previous state. If you need to do so, please contact me. If you successfully make any changes, also please contact me so that I can save them - that way, if someone else down the line wants to make changes, they can revert back to the changes you made (so all the progress you made isn't wasted).
+
 ## Adding/Changing Pickup Lines
 The pickup lines are stored at *ticketing/static/pickup_lines.txt*. Each new line in the text file corresponds to a different pickup line. If you are adding new pickup lines, simply add each one to a new line. Ensure that they aren't too long or else they may cause weird formatting when printed. To remove pickup lines, simply delete the entire line in the text file. Ensure that there are no empty rows (check the last line in particular for a sneaky blank row), or else some tickets may be blank.
 
@@ -20,7 +22,7 @@ To create your own ticket template, here are the steps I recommend:
 7. Update the code to load in this new template. These next steps will be in separate headings below:
 
 #### Step 8: Add the template to the list of options on the redeem website
-Open *ticketing/forms.py* and add the new template to the templates field of the TicketForm class.
+Open *ticketing/forms.py* and locate *TicketForm* class. Then locate the *templates* field of this class. Add your new template to the list. Note that the number represents the ID of the template and should be ascending. In subsequent steps, the ID will be used to identify the template, not the name.
 
 Before:
 ```
@@ -42,7 +44,7 @@ class TicketForm(forms.Form):
     ...
 ```
 #### Step 9: Register the template to the options for handwriting
-Open *ticketing/templates/ticketing/redeem.html* and update the JavaScript.
+Open *ticketing/templates/ticketing/redeem.html* and navigate to the JavaScript section. Add the template to the *if else* chain. Note that you use the ID of the template. You also need to ensure that the filename is correct.
 
 Before:
 ```
