@@ -25,10 +25,11 @@ This was made in 2022. Links may have broken or changed. Information may be outd
 ### Step 2: Create and Sell Ticket Codes
 1. Go the [admin](https://statehigh.pythonanywhere.com/admin/ticketing/ticketcodepdf/) and create a new TicketPDF object (pick the item type and the number of codes you want for that item).
 2. Ensure you pick an appropriate number of ticket codes to generate for each item (in 2022, there were ~800 chocolates, ~1500 roses, ~400 serenades, ~120 special serenades).
-3. You should be redirected to a page of a PDF.
-4. Print out all the PDFs and cut them out.
-5. Repeat this for all item types (Chocolate, Rose, Serenade, Special Serenades)
-6. Sell the individual ticket codes to the students.
+3. Note that only one ticket request can exist at a time. If you a second one, it will override the previous one (it won't be deleted but it might order the tickets incorrectly).
+4. You should be redirected to a page of a PDF. (If you want to go back to this page, visit [the page you were on before](https://statehigh.pythonanywhere.com/admin/ticketing/ticketcodepdf/) and click on the link under the *url* heading of the ticket request.
+5. Print out all the PDFs and cut them out.
+6. Repeat this for all item types (Chocolate, Rose, Serenade, Special Serenades)
+7. Sell the individual ticket codes to the students.
 
 ### Step 3: Redeem Tickets (this step is for students not prefects)
 1. Buy a ticket code from the prefects for the item type that you want (e.g. if you want a serenade, buy a serenade code).
