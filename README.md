@@ -229,10 +229,18 @@ In case of a last resort, you may need to change to a completely different hosti
 ### Backups
 It is extremely important that you backup the database of this website. Navigate to the [website working directory](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day) and look for the file named *db.sqlite3*. This is the most important file in the whole website. If you lose this, you lose all the tickets; all the students who paid for a code will be very sad that they paid for nothing. If everything else breaks but this file is intact, the operation is still salvagable. **I recommend you backup this file everyday**, with a separate file for each day (don't just override and only keep yesterday's copy).
 
-## Forgot Password?
+### Forgot Password
 If you lose the password to the pythonanywhere account, you will have to contact me so I can reset it (it's linked to my email). Try not to do this.
 
-If you lose the password to the website but have access to the pythonanywhere account, then it's not too hard to fix. Open a new Bash console and navigate to the working directory (*home/statehigh/valentines-day*). Then type the command *python manage.py createsuperuser*. This will prompt you to create a new admin account for the website.
+If you lose the password to the website but have access to the pythonanywhere account, then it's not too hard to fix. Follow these steps:
+
+1. Go to the [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/) and press the *$Bash* button below the *New console* heading. 
+2. Type the following into the bash console:
+```
+cd valentines-day/
+python manage.py createsuperuser
+```
+3. Follow the steps shown in the console.
 
 
 ### Libraries Used
