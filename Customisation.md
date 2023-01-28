@@ -14,7 +14,8 @@ yes
 ## Adding/Changing Fonts
 1. Download the font you want as a .tff file.
 2. Add the file to *ticketing/static/fonts/*.
-3. Open *ticketing/static/css/redeem.css* and register the font file by adding the following piece of code somewhere. Note that font-family is the name of the font is, and src is the name of the file (spaces need to have a backslash before them, as shown).
+3. Install the font into the server by following [this tutorial](https://help.pythonanywhere.com/pages/Fonts/).
+4. Open *ticketing/static/css/redeem.css* and register the font file by adding the following piece of code somewhere. Note that font-family is the name of the font is, and src is the name of the file (spaces need to have a backslash before them, as shown).
 
 ```
 @font-face {
@@ -23,7 +24,7 @@ yes
 }
 ```
 
-4. Open *ticketing/templates/ticketing/redeem.html* and navigate to the JavaScript section. Locate the variable that is a of fonts and add your new font to the list (the name that you chose for font-family, not the filename).
+5. Open *ticketing/templates/ticketing/redeem.html* and navigate to the JavaScript section. Locate the variable that is a of fonts and add your new font to the list (the name that you chose for font-family, not the filename).
 
 ```
 ...
