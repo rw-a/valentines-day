@@ -44,7 +44,7 @@ class TicketForm(forms.Form):
     ...
 ```
 #### Step 9: Register the template to the options for handwriting
-Open *ticketing/templates/ticketing/redeem.html* and navigate to the JavaScript section. Add the template to the *if else* chain. Note that you use the ID of the template. You also need to ensure that the filename is correct.
+Open *ticketing/templates/ticketing/redeem.html* and navigate to the JavaScript section. Add the template to the *if else* chain. Note that you use the ID of the template. You need to update the filename accordingly.
 
 Before:
 ```
@@ -77,7 +77,7 @@ document.getElementById('id_handwriting_template').addEventListener('change', (e
 ```
 
 #### Step 10: Add the positions of customisable text to the template
-Open *ticketing/templates/ticketing/redeem.html* and update the JavaScript. Add a new function below the function named *initialise_classic_template*. You will need to adjust the position of the text objects to fit your template by adjusting the numbers next to *left* and *top*. You may also need to decrease or increase the number of text objects. Follow the pattern shown for the classic template.
+Open *ticketing/templates/ticketing/redeem.html* and update the JavaScript. Add a new function below the function named *initialise_classic_template*. You will need to adjust the position of the text objects to fit your template by adjusting the numbers next to *left* and *top*. You may also need to decrease or increase the number of text objects. Follow the pattern shown for the classic template. You need to update the filename accordingly.
 
 Before:
 ```
@@ -148,3 +148,59 @@ function initialise_template() {
 }
 ...
 ```
+
+#### Step 12: Register the template to the ticket-to-pdf converter
+Open *ticketing/ticket_printer.py* and locate the *TicketsToPDF* class. Then locate the *_init_* method inside it (should be the first one). Locate the attribute for the classic template, and create another attribute corresponding to the new template. You need to update the filename accordingly.
+
+Before:
+```
+...
+class TicketsToPDF:
+    def __init__(self, tickets, pdf_output_path: str, pdf_name: str):
+        ...
+        self.CLASSIC_TEMPLATE = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
+            url=f"{DirectoryLocations.STATIC}/templates/classic_template.svg", write_to=None,
+            output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO)))
+        ...
+...
+```
+
+After (assuming you named your file *modern_template.svg*):
+```
+...
+class TicketsToPDF:
+    def __init__(self, tickets, pdf_output_path: str, pdf_name: str):
+        ...
+        self.CLASSIC_TEMPLATE = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
+            url=f"{DirectoryLocations.STATIC}/templates/classic_template.svg", write_to=None,
+            output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO)))
+        
+        self.MODERN_TEMPLATE = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
+            url=f"{DirectoryLocations.STATIC}/templates/modern_template.svg", write_to=None,
+            output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO)))
+        ...
+...
+```
+
+#### Step 13: Register the template to the ticket-to-pdf converter (part 2)
+Now scroll down to the *create_images* method inside the *TicketsToPDF* class. Add the attribute you just created above to the *if else* chain.
+
+Before:
+```
+if ticket.template == 1:
+    combined_image.alpha_composite(self.CLASSIC_TEMPLATE)
+else:
+    raise KeyError(f"Template number {ticket.template} does not exist.")
+```
+
+After (assuming that you named the attribute *self.MODERN_TEMPLATE* in the step above):
+```
+if ticket.template == 1:
+    combined_image.alpha_composite(self.CLASSIC_TEMPLATE)
+elif ticket.template == 2:
+    combined_image.alpha_composite(self.MODERN_TEMPLATE)
+else:
+    raise KeyError(f"Template number {ticket.template} does not exist.")
+```
+
+**You're done!**
