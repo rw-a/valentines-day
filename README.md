@@ -100,13 +100,3 @@ cd valentines-day/
 python manage.py createsuperuser
 ```
 3. Follow the steps shown in the console.
-
-
-### Libraries Used
-These are the libraries that this website uses. You shouldn't need to worry because the libraries are pre-installed on pythonanywhere and I already installed the fonts. If you decide to add fonts, you will have to install these to the pythonanywhere instance. [Here's](https://help.pythonanywhere.com/pages/Fonts/) a tutorial on how to install fonts. If you use a version newer than the one stated (e.g. Python 3.10), then there is a chance that this website will break if the newer version depreciated some features that this website uses (quite unlikely to happen anytime soon).
-- Python 3.8+
-- Django 4.0+
-- ReportLab 3.6+
-- CairoSVG 2.5+
-- lxml 4.9+
-- Intall custom fonts found in [the fonts folder](ticketing/static/fonts) into the OS font library.
