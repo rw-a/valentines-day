@@ -47,13 +47,27 @@ This was made in 2022. Links may have broken or changed. Information may be outd
 3. The website will automatically pick the optimal period for each ticket to be delivered in, and will distribute the tickets to each delivery group (i.e. the groups of serenaders and prefects who hand out the roses/chocolates).
 4. You should be redirected to page listing all the delivery groups.
 5. Here you generate the PDF for each group.
-6. Down the PDFs for each group and print them all out (IMPORTANT: make sure to print double-sided flipped along the **horizontal** edge).
+6. Download the PDFs for each group and print them all out (IMPORTANT: make sure to print double-sided flipped along the **horizontal** edge).
 7. Cut them out and assign them to the corresponding delivery group (Recommended: when cutting out the tickets, cut along the long vertical line in the middle first, then the smaller horizontal ones so that the order is maintained).
 
-### Step 5: VDay has arrived!
-1. You know what to do.
+### Step 5: Valentine's Day has arrived!
+Now it's time to deliver the tickets! Here are some things to know:
+- On the top-right of the back of each ticket are 4 periods. The period with the symbol next to it is the chosen period. The tickets are ordered and grouped based on the chosen period, so it's optimal to deliver them according to the chosen period. The other 3 periods are added just in case something goes wrong (e.g. you don't have time to deliver all of them) and you need to deliver them later/earlier.
+- On the bottom-left of the back of each ticket is a code. 
+  - The first character is a letter. It is either S or N (corresponding to whether the tickets are for a serenading delivery group, or a non-serenading delivery group, respectively).
+  - After the letter is a number. This is the group number of the delivery group.
+  - After that is a colon, then another number. This number is the ticket number of the delivery group.
+  - For example, if the bottom-left of the ticket says *N2: 10*, then it is the 10th ticket of the 2nd non-serenading delivery group.
 
-## Extra Technical Stuff
+## Customising the Tickets
+You can:
+1. Add/change pickup lines
+2. Add/change fonts
+3. Add/change ticket templates (the background image with the premade text and spaces for writing)
+
+If you want to do so, see [this tutorial](Customisation.md).
+
+## Maintaining the Website
 
 ### Hosting
 This website is currently hosted for free on a server provided by [pythonanywhere](https://www.pythonanywhere.com). Since it's free, it probably isn't very good and may be extremely slow or unresponsive. You may need to pay money and [upgrade to a better tier](https://www.pythonanywhere.com/user/statehigh/account/). In this case, you should pick the custom tier. Here's what matters and doesn't matter:
@@ -70,20 +84,19 @@ If you decide to stick with the free plan, you must remember to [activate the we
 
 In case of a last resort, you may need to change to a completely different hosting service. It will be a pain to configure the whole website again, so good luck.
 
-### Backups
-It is extremely important that you backup the database of this website. Navigate to the [website working directory](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day) and look for the file named *db.sqlite3*. This is the most important file in the whole website. If you lose this, you lose all the tickets and all the students who paid for a code will be very sad that they paid for nothing. If everything else breaks but this file is intact, the operation is still salvagable. **I recommend you backup this file everyday**, with a separate file for each day (don't just override and only keep yesterday's copy).
 
-## Forgot Password?
+### Backups
+It is extremely important that you backup the database of this website. Navigate to the [website working directory](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day) and look for the file named *db.sqlite3*. This is the most important file in the whole website. If you lose this, you lose all the tickets; all the students who paid for a code will be very sad that they paid for nothing. If everything else breaks but this file is intact, the operation is still salvagable. **I recommend you backup this file everyday**, with a separate file for each day (don't just override and only keep yesterday's copy).
+
+### Forgot Password
 If you lose the password to the pythonanywhere account, you will have to contact me so I can reset it (it's linked to my email). Try not to do this.
 
-If you lose the password to the website but have access to the pythonanywhere account, then it's not too hard to fix. Open a new Bash console and navigate to the working directory (*home/statehigh/valentines-day*). Then type the command *python manage.py createsuperuser*. This will prompt you to create a new admin account for the website.
+If you lose the password to the website but have access to the pythonanywhere account, then it's not too hard to fix. Follow these steps:
 
-
-### Libraries Used
-These are the libraries that this website uses. You shouldn't need to worry because the libraries are pre-installed on pythonanywhere and I already installed the fonts. If you decide to add fonts, you will have to install these to the pythonanywhere instance. [Here's](https://help.pythonanywhere.com/pages/Fonts/) a tutorial on how to install fonts. If you use a version newer than the one stated (e.g. Python 3.10), then there is a chance that this website will break if the newer version depreciated some features that this website uses (quite unlikely to happen anytime soon).
-- Python 3.8+
-- Django 4.0+
-- ReportLab 3.6+
-- CairoSVG 2.5+
-- lxml 4.9+
-- Intall custom fonts found in [the fonts folder](ticketing/static/fonts) into the OS font library.
+1. Go to the [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/) and press the *$Bash* button below the *New console* heading. 
+2. Type the following into the bash console:
+```
+cd valentines-day/
+python manage.py createsuperuser
+```
+3. Follow the steps shown in the console.
