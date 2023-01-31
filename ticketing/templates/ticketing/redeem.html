@@ -152,11 +152,7 @@
     }
 
     function show_period() {
-        if (is_special) {
-            document.getElementById('period-form').hidden = false;
-        } else {
-            document.getElementById('period-form').hidden = true;
-        }
+        document.getElementById('period-form').hidden = !is_special;
     }
 
     function is_valid_period() {
@@ -261,8 +257,8 @@
       maxWidth: 1.5
     });
 
-    var signaturePadData = {};
-    var signaturePadDataBackup = {};    // to allow you to undo clearing
+    let signaturePadData = {};
+    let signaturePadDataBackup = {};    // to allow you to undo clearing
     signaturePad.addEventListener("endStroke", () => {
         signaturePadData = signaturePad.toData();
     });
@@ -301,9 +297,9 @@
     // choosing handwritten template
     document.getElementById('id_handwriting_template').addEventListener('change', (event) => {
         let template = event.target.value;
-            if (template == "0") {
+            if (template === "0") {
                 document.getElementById('signature_pad').style.background = "#fdfdfd";
-            } else if (template == "1") {
+            } else if (template === "1") {
                 document.getElementById('signature_pad').style.background = "url({% static 'templates/classic_template.svg' %}) 0% 0%/600px 356px";
             }
     })
@@ -346,8 +342,8 @@
 
     
     /* Undo & Clear */
-    var fabric_canvas_data;
-    var undo_history = [];
+    let fabric_canvas_data;
+    let undo_history = [];
 
     function save() {       // this should not be called by itself. only called by load font and event listeners
         // initial call won't have a state
@@ -385,7 +381,7 @@
 
     /* Load Fonts */
     function load_font(font) {
-        if (font == undefined) {
+        if (font === undefined) {
             var font = document.getElementById("font_selector").value;
         }
         
@@ -396,7 +392,7 @@
                 fabric_canvas.requestRenderAll();
                 save();
             }).catch(function(e) {
-                console.log(e)
+                console.log(e);
                 alert('Failed to load font: ' + font);
         });
     }
