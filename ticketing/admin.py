@@ -17,6 +17,7 @@ class TicketCodePDFAdmin(admin.ModelAdmin):
     fields = ('num_of_items', 'item_type', 'date')
     list_display = ('pk', 'num_of_items', 'item_type', 'url')
     actions = ['delete_queryset_and_children']
+    date_hierarchy = "date"
 
     @admin.display(description='URL')
     def url(self, obj):
@@ -66,6 +67,7 @@ class TicketCodePDFAdmin(admin.ModelAdmin):
 class TicketCodeAdmin(admin.ModelAdmin):
     list_display = ('code', 'item_type', 'is_unconsumed',)
     actions = ('delete_ticket_codes_and_tickets', 'generate_tickets')
+    date_hierarchy = "date"
 
     @admin.action(description="Delete selected TicketCodes and the Tickets which they made.")
     def delete_ticket_codes_and_tickets(self, request, queryset):
@@ -160,6 +162,7 @@ class TicketAdmin(admin.ModelAdmin):
 class SortTicketAdmin(admin.ModelAdmin):
     list_display = ('pk', 'num_serenaders', 'num_non_serenaders', 'url', 'date')
     actions = ('delete_queryset_and_children',)
+    date_hierarchy = "date"
 
     @admin.display(description='URL')
     def url(self, obj):
@@ -215,6 +218,7 @@ class SortTicketAdmin(admin.ModelAdmin):
 class DeliveryGroupAdmin(admin.ModelAdmin):
     list_display = ('code', 'is_printed', 'num_serenades', 'num_non_serenades', 'num_tickets', 'sort_request')
     actions = ('unprint',)
+    date_hierarchy = "date"
 
     @admin.display(description='Number of Serenade Tickets')
     def num_serenades(self, obj):

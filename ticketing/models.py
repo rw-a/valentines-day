@@ -54,6 +54,8 @@ class TicketCode(models.Model):
                                       "Leave it blank if you are manually creating the code "
                                       "(which you probably shouldn't be doing anyways).")
 
+    date = models.DateTimeField(default=timezone.now, help_text="Date created")
+
     def __str__(self):
         if self.is_unconsumed:
             return f'!{self.item_type} ({self.code})'
@@ -178,6 +180,8 @@ class DeliveryGroup(models.Model):
     is_printed = models.BooleanField(default=False)
     sort_request = models.ForeignKey(SortTicketsRequest, on_delete=models.CASCADE)
     tickets = models.ManyToManyField(Ticket)
+
+    date = models.DateTimeField(default=timezone.now, help_text="Date created")
 
     class Meta:
         verbose_name = "Delivery Group"
