@@ -7,7 +7,6 @@
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/tickets.css' %}">
-    <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
     <link rel="icon" type="image/png" href="{% static 'icons/print.svg' %}"/>
 </head>
 <body>
@@ -74,10 +73,17 @@
                         generate_button.disabled = true;
                         generate_button.innerHTML = "Generating..."
                         generating.push(group);
-                        $.getJSON('{% url 'ticketing:print' %}', {'pk': "{{ pk }}", "group": group}, (data) => {
+                        fetch("{% url 'ticketing:print' %}?" + new URLSearchParams({
+                            'pk': "{{ pk }}", "group": group
+                        }))
+                        .then((response) => response.json())
+                        .then((data) => {
                             group_data[group]['is_printed'] = true;
                             generating.splice(generating.indexOf(group), 1);
                             refresh();
+                        })
+                        .catch((error) => {
+                            console.error('Error:', error);
                         });
                     };
                 }
@@ -119,7 +125,11 @@
         let group_index = 0;
         function get_next_group() {
             let group = groups[group_index];
-            $.getJSON('{% url 'ticketing:print' %}', {'pk': "{{ pk }}", "group": group}, (data) => {
+            fetch("{% url 'ticketing:print' %}?" + new URLSearchParams({
+                'pk': "{{ pk }}", "group": group
+            }))
+            .then((response) => response.json())
+            .then((data) => {
                 group_data[group]['is_printed'] = true;
                 generating.splice(generating.indexOf(group), 1);
                 refresh();
@@ -129,7 +139,11 @@
                 } else {
                     refresh_generate_all();
                 }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
             });
+
         }
         get_next_group();
     };
