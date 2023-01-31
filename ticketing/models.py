@@ -73,6 +73,7 @@ class TicketCode(models.Model):
 
 class Ticket(models.Model):
     recipient_id = models.CharField(max_length=100,
+                                    verbose_name="Recipient ID",
                                     help_text="A unique identifier for each student. "
                                               "Is represented by their full name and ARC class.")
     item_type = models.CharField(
