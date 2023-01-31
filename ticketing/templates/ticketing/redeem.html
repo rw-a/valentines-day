@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redeem Ticket</title>
     {% load static %}
-    <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/signature_pad.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/fabric.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/fontfaceobserver.min.js' %}"></script>
@@ -155,7 +154,7 @@
 
     function is_valid_period() {
         if (is_special) {
-            let period = $('#id_period').val();
+            let period = document.getElementById('id_period').value;
             if (period >= 1 && period <= 4) {
                 document.getElementById('period-error').hidden = true;
                 return true;
@@ -170,7 +169,7 @@
     
     function is_valid_recipient() {
         // check if the user actually inputted someone
-        let recipient = $('#id_recipient_id').val();
+        let recipient = document.getElementById('id_recipient_id').value;
         if (recipient.length > 3) {
             document.getElementById('recipient-error').hidden = true;
             return true;
@@ -231,12 +230,12 @@
 
     /* CHOOSING CONTENT MODE AND TEMPLATE*/
     document.getElementById('id_is_handwritten').addEventListener('change', () => {
-        if (event.target.value == "True") {
-            $('#form_typed').hide();
-            $('#form_handwriting').show();
+        if (event.target.value === "True") {
+            document.getElementById('form_typed').hidden = true;
+            document.getElementById('form_handwriting').hidden = false;
         } else {
-            $('#form_typed').show();
-            $('#form_handwriting').hide();
+            document.getElementById('form_typed').hidden = false;
+            document.getElementById('form_handwriting').hidden = true;
         }
     })
 
@@ -346,11 +345,11 @@
     let fabric_canvas_data;
     let undo_history = [];
 
-    function save() {       // this should not be called by itself. only called by load font and event listeners
-        // initial call won't have a state
+    function save_fabric() {       // this should not be called by itself. only called by load font and event listeners
+                                   // initial call won't have a state
         if (fabric_canvas_data) {
             undo_history.push(fabric_canvas_data);
-            $('#fabric_undo').prop('disabled', false);
+            document.getElementById('#fabric_undo').disabled = false;
         }
         fabric_canvas_data = JSON.stringify(fabric_canvas);
     }
@@ -377,7 +376,7 @@
     const fabric_canvas = new fabric.Canvas('fabric');
 
     fabric_canvas.on('object:modified', function() {
-        save();
+        save_fabric();
     });
 
     /* Load Fonts */
@@ -391,7 +390,7 @@
             .then(function() {
                 fabric_canvas.getObjects().forEach(function(object) {object.set("fontFamily", font);})
                 fabric_canvas.requestRenderAll();
-                save();
+                save_fabric();
             }).catch(function(e) {
                 console.log(e);
                 alert('Failed to load font: ' + font);
