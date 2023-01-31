@@ -27,7 +27,7 @@ async function is_valid_code(event, submit = false) {
 
     let inputted_code = document.getElementById('id_code').value;
     if (inputted_code.length === 10) {
-        let response = await fetch("{% url 'ticketing:validate_code' %}?" + new URLSearchParams({inputted_code}))
+        let response = await fetch(validate_code_url + "?" + new URLSearchParams({inputted_code}))
         let data = await response.json();
         if (data.is_exists) {
             if (data.is_unconsumed) {
