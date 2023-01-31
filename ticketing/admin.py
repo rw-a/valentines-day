@@ -119,7 +119,7 @@ class TicketCodeAdmin(admin.ModelAdmin):
 
 
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ('recipient', 'item_type', 'is_handwritten', 'period', 'classroom', 'sort_order')
+    list_display = ('recipient', 'item_type', 'is_handwritten', 'period', 'classroom')
     actions = ('delete_tickets_and_ticket_codes',)
 
     @admin.display(description="Recipient")
