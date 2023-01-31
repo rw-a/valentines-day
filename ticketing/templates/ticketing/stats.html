@@ -7,7 +7,6 @@
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/stats.css' %}">
-    <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
     <link rel="icon" type="image/png" href="{% static 'icons/math.svg' %}"/>
 </head>
 <body>
@@ -16,8 +15,8 @@
     <table>
       <tr>
         <th>Item</th>
-        <th>Number of Created</th>
-        <th>Number of Redeemed</th>
+        <th>Amount Created</th>
+        <th>Amount Redeemed</th>
       </tr>
       <tr>
         <td>Chocolate</td>
@@ -46,7 +45,7 @@
       </tr>
     </table>
     <br>
-    <table>
+    <table style="text-align: center">
       <tr>
         <th>Grade of Recipients</th>
         <th>Number of Tickets</th>
@@ -80,7 +79,7 @@
 </div>
 </body>
 <script>
-    $('#sort').on('click', () => {
+    document.getElementById('refresh').addEventListener('click', () => {
         this.hide();
         setTimeout(() => {
             this.show();
@@ -88,28 +87,33 @@
     });
 
     function refresh() {
-        $.getJSON('{% url 'ticketing:stats' %}', "count", (data) => {
-            $('#chocolates_created')[0].innerText = data.chocolates_created;
-            $('#chocolates_redeemed')[0].innerText = data.chocolates_redeemed;
-            $('#roses_created')[0].innerText = data.roses_created;
-            $('#roses_redeemed')[0].innerText = data.roses_redeemed;
-            $('#serenades_created')[0].innerText = data.serenades_created;
-            $('#serenades_redeemed')[0].innerText = data.serenades_redeemed;
-            $('#special_serenades_created')[0].innerText = data.special_serenades_created;
-            $('#special_serenades_redeemed')[0].innerText = data.special_serenades_redeemed;
-            $('#total_created')[0].innerHTML = `<b>${data.chocolates_created + data.roses_created + data.serenades_created + data.special_serenades_created}</b>`;
-            $('#total_redeemed')[0].innerHTML = `<b>${data.chocolates_redeemed + data.roses_redeemed + data.serenades_redeemed + data.special_serenades_redeemed}</b>`;
+        fetch("{% url 'ticketing:stats' %}?count")
+        .then((response) => response.json())
+        .then((data) => {
+            document.getElementById('chocolates_created').innerText = data.chocolates_created;
+            document.getElementById('chocolates_redeemed').innerText = data.chocolates_redeemed;
+            document.getElementById('roses_created').innerText = data.roses_created;
+            document.getElementById('roses_redeemed').innerText = data.roses_redeemed;
+            document.getElementById('serenades_created').innerText = data.serenades_created;
+            document.getElementById('serenades_redeemed').innerText = data.serenades_redeemed;
+            document.getElementById('special_serenades_created').innerText = data.special_serenades_created;
+            document.getElementById('special_serenades_redeemed').innerText = data.special_serenades_redeemed;
+            document.getElementById('total_created').innerHTML = `<b>${data.chocolates_created + data.roses_created + data.serenades_created + data.special_serenades_created}</b>`;
+            document.getElementById('total_redeemed').innerHTML = `<b>${data.chocolates_redeemed + data.roses_redeemed + data.serenades_redeemed + data.special_serenades_redeemed}</b>`;
 
-            $('#grade_7')[0].innerText = data.grade_7;
-            $('#grade_8')[0].innerText = data.grade_8;
-            $('#grade_9')[0].innerText = data.grade_9;
-            $('#grade_10')[0].innerText = data.grade_10;
-            $('#grade_11')[0].innerText = data.grade_11;
-            $('#grade_12')[0].innerText = data.grade_12;
+            document.getElementById('grade_7').innerText = data.grade_7;
+            document.getElementById('grade_8').innerText = data.grade_8;
+            document.getElementById('grade_9').innerText = data.grade_9;
+            document.getElementById('grade_10').innerText = data.grade_10;
+            document.getElementById('grade_11').innerText = data.grade_11;
+            document.getElementById('grade_12').innerText = data.grade_12;
+        })
+        .catch((error) => {
+            console.error('Error:', error);
         });
     }
 
-    $('#refresh').on('click', () => {
+    document.getElementById('refresh').addEventListener('click', () => {
         document.getElementById('refresh').disabled = true;
         setTimeout(() => {
             document.getElementById('refresh').disabled = false;
