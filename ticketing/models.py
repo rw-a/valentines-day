@@ -116,6 +116,8 @@ class Ticket(models.Model):
                                                        "should be when printing. "
                                                        "Will be automatically determined so do not touch.")
 
+    date = models.DateTimeField(default=timezone.now, help_text="Date created")
+
     def __str__(self):
         return f'{self.recipient_id} ({self.item_type})'
 
@@ -132,7 +134,7 @@ class Ticket(models.Model):
     class Meta:
         verbose_name = "Ticket"
         verbose_name_plural = "Tickets"
-        ordering = ['sort_order', 'pk']
+        ordering = ['sort_order', '-date']
 
 
 class SortTicketsRequest(models.Model):
