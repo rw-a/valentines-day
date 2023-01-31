@@ -6,17 +6,15 @@
     <title>Redeem Ticket</title>
     {% load static %}
     <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/chosen.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/signature_pad.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/fabric.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/fontfaceobserver.min.js' %}"></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/chosen.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/choices.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/signature_pad.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/redeem.css' %}">
     <link rel="icon" type="image/png" href="{% static 'icons/heart.png' %}"/>
-    <style>
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js@9.0.1/public/assets/scripts/choices.min.js"></script>
 </head>
 <body>
     <div id="content">
@@ -242,11 +240,14 @@
         }
     })
 
-    // add dropdown search for recipient
-    $('#id_recipient_id').chosen({
-        placeholder_text_single: "Select a person..."
+    const choices = new Choices('#id_recipient_id', {
+        placeholderValue: "Select a person...",
+        searchPlaceholderValue: "Search for a person...",
+        itemSelectText: '',
+        renderChoiceLimit: 100,
+        shouldSort: false,
+        searchResultLimit: 10,
     });
-    
 
     /* SIGNATURE PAD */
     const wrapper = document.getElementById("form_handwriting");
@@ -330,8 +331,8 @@
     }
 
     function initialise_template() {
-        template = document.getElementById('id_typed_template').value;
-        if (template == 1) {
+        let template = document.getElementById('id_typed_template').value;
+        if (template === 1) {
             initialise_classic_template();
         }
     }
