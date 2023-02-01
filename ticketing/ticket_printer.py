@@ -21,7 +21,7 @@ else:
 
 
 class TicketsToPDF:
-    def __init__(self, tickets, pdf_output_path: str, pdf_name: str):
+    def __init__(self, tickets, pdf_output_path: str, pdf_name: str, padding: int = 0):
         self.tickets = tickets
         self.pdf_output_path = pdf_output_path
         self.pdf_name = pdf_name
@@ -35,8 +35,8 @@ class TicketsToPDF:
         self.NUM_ROWS = 5
         self.NUM_CODES_PER_PAGE = self.NUM_COLUMNS * self.NUM_ROWS
 
-        self.MARGIN = 1 * cm      # an additional 0.5cm will be added to the table
-        self.PADDING = 0          # the padding for each cell in the table
+        self.MARGIN = 1 * cm            # an additional 0.5cm will be added to the table
+        self.PADDING = padding          # the padding for each cell in the table
         self.PAGE_WIDTH, self.PAGE_HEIGHT = A4
 
         self.TABLE_WIDTH = self.PAGE_WIDTH - 2 * self.MARGIN - cm
@@ -131,7 +131,9 @@ class TicketsToPDF:
         centre_align = ParagraphStyle(name="Center", parent=default_style, alignment=1)
         centre_align_small = ParagraphStyle(name="Center Small", parent=default_style, alignment=1, fontSize=8, leading=9)
         # right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2)
-        large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1, fontSize=16, leading=18)
+        large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1,
+                                     fontSize=max(12, round(16 - self.PADDING / 3)),
+                                     leading=max(13, round(18 - self.PADDING / 3)))
 
         ticket_backs = []
         for index, ticket in enumerate(tickets):
@@ -141,8 +143,8 @@ class TicketsToPDF:
             periods = Paragraph("<br/>".join(period_classes), default_style)
             periods = self.create_div([[periods]],
                                       ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                                      ('LEFTPADDING', (0, 0), (-1, -1), 3),
-                                      colWidths=self.CELL_WIDTH / 5)
+                                      ('LEFTPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
+                                      colWidths=self.CELL_WIDTH / 4)
 
             """Bottom Right: Item Type (including image)"""
             if ticket.item_type == "Chocolate":
@@ -169,8 +171,8 @@ class TicketsToPDF:
             ticket_number = Paragraph(f"{self.pdf_name}: {page_index * self.NUM_CODES_PER_PAGE + index + 1}", left_align_small)
 
             bottom_row = self.create_div([[ticket_number, item_type_table]],
-                                         ('LEFTPADDING', (0, 0), (-1, -1), 3),
-                                         ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+                                         ('LEFTPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
+                                         ('RIGHTPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
                                          ('BOTTOMPADDING', (-1, 0), (-1, -1), 3),
                                          ('ALIGN', (0, 0), (0, -1), 'LEFT'),
                                          ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
@@ -181,8 +183,8 @@ class TicketsToPDF:
             recipient_name_and_pickup = Paragraph(f"* Hey {STUDENTS[ticket.recipient_id]['Name']} *<br/>"
                                                   f"{random.choice(self.PICKUP_LINES)}", large_style)
             recipient_name_and_pickup = self.create_div([[recipient_name_and_pickup]],
-                                                        ('LEFTPADDING', (0, 0), (-1, -1), 5),
-                                                        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                                                        ('LEFTPADDING', (0, 0), (-1, -1), 5 + self.PADDING),
+                                                        ('RIGHTPADDING', (0, 0), (-1, -1), 5 + self.PADDING),
                                                         colWidths=self.CELL_WIDTH)
 
             vertically_separated_table = self.create_div([[periods], [recipient_name_and_pickup], [bottom_row]],
@@ -190,8 +192,8 @@ class TicketsToPDF:
                                                          ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                                                          ('ALIGN', (0, -1), (-1, -1), 'RIGHT'),
                                                          ('VALIGN', (0, -1), (-1, -1), 'BOTTOM'),
-                                                         ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-                                                         ('TOPPADDING', (0, 0), (-1, -1), 3),
+                                                         ('BOTTOMPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
+                                                         ('TOPPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
                                                          ('LEFTPADDING', (0, 0), (-1, -1), 3),
                                                          ('RIGHTPADDING', (0, 0), (-1, -1), 3),
                                                          rowHeights=[self.CELL_HEIGHT * 0.3,
