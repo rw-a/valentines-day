@@ -69,4 +69,4 @@ let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valenti
   }
 }
 ```
-Note: if you set a default font which isn't in the existing list, you will need to also register it. [See above]([#addingchanging-fonts))
+Note: if you set a default font which isn't in the existing list, you will need to also register it. [See above]([[#addingchanging-fonts](https://github.com/rw-a/valentines-day/blob/master/Customisation.md#addingchanging-fonts))
