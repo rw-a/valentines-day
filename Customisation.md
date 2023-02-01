@@ -10,6 +10,7 @@ cd valentines-day/
 python manage.py collectstatic
 yes
 ```
+Finally, you need to reload the website. Go to [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and press the reload button.
 
 ## Adding/Changing Fonts
 1. Download the font you want as a .tff file.
