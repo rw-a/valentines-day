@@ -91,9 +91,6 @@ class Ticket(models.Model):
                                             help_text="The period that the special serenade is requested to be in.")
 
     is_handwritten = models.BooleanField(default=False)
-    message = models.TextField(null=True, blank=True,
-                               help_text="This is the DataURL of the message image. "
-                                         "Leave it blank if you are manually creating the ticket.")
 
     # links ticket to the code which made it. can also be null if it was manually created by prefect
     code = models.OneToOneField(TicketCode, on_delete=models.SET_NULL, null=True, blank=True,

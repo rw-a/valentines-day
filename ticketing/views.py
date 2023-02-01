@@ -141,7 +141,6 @@ def redeem(request):
                 item_type=ticket_code.item_type,
                 is_handwritten=is_handwritten,
                 template=template,
-                message=form.cleaned_data['message'],
                 code=ticket_code
                 )
             if ticket.item_type == "Special Serenade":
