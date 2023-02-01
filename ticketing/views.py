@@ -5,7 +5,7 @@ from django.urls import reverse
 from .models import Ticket, TicketCode, SortTicketsRequest
 from .forms import TicketForm, CSVFileForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
-from .constants import DirectoryLocations, FileNames, STUDENTS
+from .constants import DirectoryLocations, FileNames, STUDENTS, TEMPLATES
 from .ticket_printer import TicketsToPDF
 from .timetable_parser import get_student_classes
 import os
@@ -163,7 +163,8 @@ def redeem(request):
     else:
         form = TicketForm()
 
-    return render(request, 'ticketing/redeem.html', {'form': form})
+    templates = TEMPLATES
+    return render(request, 'ticketing/redeem.html', {'form': form, 'templates': templates})
 
 
 def validate_code(request):

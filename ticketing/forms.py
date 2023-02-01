@@ -3,7 +3,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from .models import TicketCode
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
-from .constants import MaxLengths, DirectoryLocations, STUDENTS
+from .constants import MaxLengths, STUDENTS, TEMPLATES
 
 
 # the form that users use to redeem their code
@@ -20,9 +20,7 @@ class TicketForm(forms.Form):
     recipient_id = forms.ChoiceField(choices=students)      # note: will be stored as an ID
 
     """Load Templates"""
-    with open(f"{DirectoryLocations.STATIC}/templates/templates.json") as file:
-        templates_json = json.load(file)
-    templates = [(template_name, template_name) for template_name in templates_json.keys()]
+    templates = [(template_name, template_name) for template_name in TEMPLATES.keys()]
     handwriting_templates = templates[:]
     handwriting_templates.insert(0, ("Blank", "Blank"))
     handwriting_template = forms.ChoiceField(choices=handwriting_templates, required=False)

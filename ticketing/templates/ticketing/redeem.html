@@ -86,8 +86,9 @@
     </div>
 </body>
 <script>
-    let validate_code_url = "{% url 'ticketing:validate_code' %}";
-    let classic_template_path = "{% static 'templates/classic_template.svg' %}";
+    let templates = {{templates|safe}};
+    const validate_code_url = "{% url 'ticketing:validate_code' %}";
+    const static_path = "{% static '' %}";
 </script>
     <script type="text/javascript" src="{% static 'js/redeem.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/signature_pad.js' %}"></script>

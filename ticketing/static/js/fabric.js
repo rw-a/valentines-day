@@ -11,20 +11,17 @@ function load_background_image(template_src, default_font) {
     });
 }
 
-function initialise_classic_template() {
-    load_background_image(classic_template_path, 'Calibri');
-    let text1 = new fabric.IText('Placeholder', {left: 18, top: 60, fontSize: 30});
-    let text2 = new fabric.IText('Placeholder', {left: 170, top: 164, fontSize: 30});
-    let text3 = new fabric.IText('Placeholder', {left: 102, top: 212, fontSize: 30});
-    let text4 = new fabric.IText('Placeholder', {left: 102, top: 260, fontSize: 30});
-    let text5 = new fabric.IText('Placeholder', {left: 157, top: 308, fontSize: 30});
-    fabric_canvas.add(text1, text2, text3, text4, text5);
-}
-
 function initialise_template() {
     let template = document.getElementById('id_typed_template').value;
-    if (template === "1") {
-        initialise_classic_template();
+    if (Object.keys(templates).includes(template)) {
+        load_background_image(`${static_path}templates/${templates[template].filename}`, templates[template].defaultfont);
+        let texts = [];
+        for (let text_info of templates[template].textposition) {
+            texts.push(new fabric.IText('Placeholder', text_info));
+        }
+        fabric_canvas.add(...texts);
+    } else {
+        console.error(`Template ${template} not found.`);
     }
 }
 

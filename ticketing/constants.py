@@ -1,6 +1,7 @@
 """Settings Files"""
 import os
 import csv
+import json
 
 
 class DirectoryLocations:
@@ -52,6 +53,7 @@ DirectoryLocations().verify_dirs__()
 """Commonly loaded static files"""
 
 """
+Students
 This should be a dict with ID as key, and another dict as value which contains info like name and ARC class
 {'872658275W': {'ID': '872658275W', 'Name': 'Gamer', 'ARC': '7A',
 'P1': 'E3.04', 'P2': 'E2.07', 'P3': 'F102', 'P4': 'A2.08'}}
@@ -68,3 +70,12 @@ except FileNotFoundError:
 """Pickup Lines"""
 with open(f'{DirectoryLocations.STATIC}/pickup_lines.txt') as file:
     PICKUP_LINES = [line.replace("\n", "") for line in file]
+
+"""Templates"""
+with open(f"{DirectoryLocations.STATIC}/templates/templates.json") as file:
+    TEMPLATES = json.load(file)
+    TEMPLATES["Blank"] = {      # add blank template
+        "filename": "",
+        "defaultfont": "",
+        "textposition": []
+    }

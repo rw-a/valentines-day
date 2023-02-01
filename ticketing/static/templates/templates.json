@@ -1,0 +1,13 @@
+{
+  "Classic Template": {
+    "filename": "classic_template.svg",
+    "defaultfont": "Calibri",
+    "textposition": [
+        {"left": 18, "top": 60, "fontSize": 30},
+        {"left": 170, "top": 164, "fontSize": 30},
+        {"left": 102, "top": 212, "fontSize": 30},
+        {"left": 102, "top": 260, "fontSize": 30},
+        {"left": 157, "top": 308, "fontSize": 30}
+    ]
+  }
+}

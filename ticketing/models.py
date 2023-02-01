@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
-from .constants import MaxLengths, STUDENTS
+from .constants import MaxLengths, STUDENTS, TEMPLATES
 
 
 class TicketCodePDF(models.Model):
@@ -85,7 +85,7 @@ class Ticket(models.Model):
         ],
         default='Serenade'
     )
-    template = models.IntegerField()
+    template = models.CharField(max_length=100)
 
     ss_period = models.PositiveIntegerField(null=True, blank=True, verbose_name="Special Serenade Period",
                                             help_text="The period that the special serenade is requested to be in.")
@@ -132,6 +132,8 @@ class Ticket(models.Model):
                     raise ValidationError("Period must be between 1 and 4 (inclusive).")
         if self.recipient_id not in STUDENTS:
             raise ValidationError("Invalid Recipient (student not found).")
+        if self.template not in TEMPLATES.keys():
+            raise ValidationError(f"Template '{self.template}' not found.")
 
     class Meta:
         verbose_name = "Ticket"

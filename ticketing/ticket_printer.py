@@ -14,9 +14,9 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 if __name__ == "__main__":
     STUDENTS = {"89273498237A": {"Name": "Jeff Bezos"}}
-    from constants import DirectoryLocations, PICKUP_LINES
+    from constants import DirectoryLocations, PICKUP_LINES, TEMPLATES
 else:
-    from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES
+    from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES, TEMPLATES
 
 
 class TicketsToPDF:
@@ -53,9 +53,13 @@ class TicketsToPDF:
         """Templates"""
         pdfmetrics.registerFont(TTFont('VDay', f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
 
-        self.CLASSIC_TEMPLATE = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
-            url=f"{DirectoryLocations.STATIC}/templates/classic_template.svg", write_to=None,
-            output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO)))
+        self.TEMPLATES = {
+            template_name:
+            PIL.Image.open(io.BytesIO(cairosvg.svg2png(
+                url=f"{DirectoryLocations.STATIC}/templates/{template_info['filename']}", write_to=None,
+                output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO)))
+            for template_name, template_info in TEMPLATES.items() if template_name != "Blank"
+        }
 
         self.generate_pdf()
 
@@ -92,17 +96,17 @@ class TicketsToPDF:
                 xml_file.set('viewBox', f'0 0 {self.CANVAS_WIDTH} {self.CANVAS_HEIGHT}')
 
             # add the template if required
-            if ticket.template > 0:
+            if ticket.template != "Blank":
                 handwritten_image = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
                     bytestring=etree.tostring(xml_file), write_to=None,
                     output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO)))
                 combined_image = PIL.Image.new(
                     'RGBA', (handwritten_image.width, handwritten_image.height), (255, 255, 255, 0))
 
-                if ticket.template == 1:
-                    combined_image.alpha_composite(self.CLASSIC_TEMPLATE)
+                if ticket.template in self.TEMPLATES.keys():
+                    combined_image.alpha_composite(self.TEMPLATES[ticket.template])
                 else:
-                    raise KeyError(f"Template number {ticket.template} does not exist.")
+                    print(f"ERROR: Template {ticket.template} does not exist for person {ticket.recipient_id}")
 
                 combined_image.alpha_composite(handwritten_image)
 
@@ -260,7 +264,7 @@ def main():
     from glob import glob
 
     class Ticket:
-        def __init__(self, pk, template: int):
+        def __init__(self, pk, template: str):
             self.pk = pk
             self.template = template
 
@@ -278,7 +282,7 @@ def main():
     for index, file in enumerate(glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")):
         if index >= 100:
             break
-        tickets.append(Ticket(file.split("/")[-1].split(".svg")[0], 1))
+        tickets.append(Ticket(file.split("/")[-1].split(".svg")[0], "Classic Template"))
 
     TicketsToPDF(tickets, 'export.pdf', 'S1')
 

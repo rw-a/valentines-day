@@ -46,9 +46,9 @@ document.getElementById("signature_pad_undo").addEventListener("click", () => {
 // choosing handwritten template
 document.getElementById('id_handwriting_template').addEventListener('change', (event) => {
     let template = event.target.value;
-        if (template === "0") {
-            document.getElementById('signature_pad').style.background = "#fdfdfd";
-        } else if (template === "1") {
-            document.getElementById('signature_pad').style.background = `url("${classic_template_path}") 0% 0%/600px 356px`;
-        }
+    if (Object.keys(templates).includes(template)) {
+         document.getElementById('signature_pad').style.background = `url("${static_path}templates/${templates[template].filename}") 0% 0%/600px 356px`;
+    } else {
+        document.getElementById('signature_pad').style.background = "#fdfdfd";
+    }
 })
