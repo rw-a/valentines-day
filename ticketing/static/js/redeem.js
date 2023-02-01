@@ -260,7 +260,7 @@ function save_fabric() {       // this should not be called by itself. only call
                                // initial call won't have a state
     if (fabric_canvas_data) {
         undo_history.push(fabric_canvas_data);
-        document.getElementById('#fabric_undo').disabled = false;
+        document.getElementById('fabric_undo').disabled = false;
     }
     fabric_canvas_data = JSON.stringify(fabric_canvas);
 }
