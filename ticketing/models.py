@@ -2,8 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
-from .class_lookup import STUDENTS
-from .constants import MaxLengths
+from .constants import MaxLengths, STUDENTS
 
 
 class TicketCodePDF(models.Model):

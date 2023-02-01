@@ -1,5 +1,5 @@
 from .models import TicketCode
-from .class_lookup import STUDENTS
+from .constants import STUDENTS
 
 
 def is_code_exists(code):

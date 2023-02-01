@@ -18,7 +18,7 @@ if __name__ == "__main__":
         for row in reader:
             STUDENTS[row['ID']] = row
 else:
-    from .class_lookup import STUDENTS
+    from .constants import STUDENTS
     from .timetable_parser import room_format, bad_room_format
 
 

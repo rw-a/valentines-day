@@ -3,8 +3,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Q
 from django.utils.html import format_html
-from .constants import DirectoryLocations
-from .class_lookup import STUDENTS
+from .constants import DirectoryLocations, STUDENTS
 from .models import Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup
 from .code_generator import CodesToPDF, generate_codes
 from .ticket_sorter import sort_tickets

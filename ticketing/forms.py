@@ -1,9 +1,9 @@
+import json
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import TicketCode
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
-from .class_lookup import STUDENTS
-from .constants import MaxLengths
+from .constants import MaxLengths, DirectoryLocations, STUDENTS
 
 
 # the form that users use to redeem their code
@@ -11,6 +11,7 @@ class TicketForm(forms.Form):
     code = forms.CharField(label='Code', max_length=MaxLengths.TICKET_CODE, min_length=MaxLengths.TICKET_CODE)
     period = forms.ChoiceField(required=False, choices=[("-", "-"), (1, 1), (2, 2), (3, 3), (4, 4)])
 
+    """Load Students"""
     students = [(student_id, f"{student_dict['Name']} [{student_dict['ARC']}]" if student_dict['ARC'] == "TEACHER" else
                 f"{student_dict['First Name']} {student_dict['Last Name'][0]} [{student_dict['ARC']}]")
                 # only include first letter of last name for students
@@ -18,11 +19,12 @@ class TicketForm(forms.Form):
     students.insert(0, (" ", ""))
     recipient_id = forms.ChoiceField(choices=students)      # note: will be stored as an ID
 
-    templates = [
-        (1, "Classic Ticket"),
-    ]
+    """Load Templates"""
+    with open(f"{DirectoryLocations.STATIC}/templates/templates.json") as file:
+        templates_json = json.load(file)
+    templates = [(template_name, template_name) for template_name in templates_json.keys()]
     handwriting_templates = templates[:]
-    handwriting_templates.insert(0, (0, 'Blank'))
+    handwriting_templates.insert(0, ("Blank", "Blank"))
     handwriting_template = forms.ChoiceField(choices=handwriting_templates, required=False)
     typed_template = forms.ChoiceField(choices=templates, required=False)
 
