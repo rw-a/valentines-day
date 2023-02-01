@@ -132,7 +132,7 @@ class Ticket(models.Model):
                 if not 1 <= self.ss_period <= 4:
                     raise ValidationError("Period must be between 1 and 4 (inclusive).")
         if self.recipient_id not in STUDENTS:
-            raise ValidationError("Invalid Recipient (Student ID not found).")
+            raise ValidationError("Invalid Recipient (student not found).")
 
     class Meta:
         verbose_name = "Ticket"
