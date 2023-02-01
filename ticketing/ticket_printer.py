@@ -14,9 +14,9 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 if __name__ == "__main__":
     STUDENTS = {"89273498237A": {"Name": "Jeff Bezos"}}
-    from constants import DirectoryLocations
+    from constants import DirectoryLocations, PICKUP_LINES
 else:
-    from .constants import DirectoryLocations, STUDENTS
+    from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES
 
 
 class TicketsToPDF:
@@ -49,10 +49,6 @@ class TicketsToPDF:
         self.CANVAS_WIDTH = 602
         self.CANVAS_HEIGHT = 358
         self.RATIO = 2      # increases DPI by this ratio
-
-        """Pickup Lines"""
-        with open(f'{DirectoryLocations.STATIC}/pickup_lines.txt') as file:
-            self.PICKUP_LINES = [line.replace("\n", "") for line in file]
 
         """Templates"""
         pdfmetrics.registerFont(TTFont('VDay', f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
@@ -180,7 +176,7 @@ class TicketsToPDF:
 
             """Middle: Recipient Name"""
             recipient_name_and_pickup = Paragraph(f"* Hey {STUDENTS[ticket.recipient_id]['Name']} *<br/>"
-                                                  f"{random.choice(self.PICKUP_LINES)}", large_style)
+                                                  f"{random.choice(PICKUP_LINES)}", large_style)
             recipient_name_and_pickup = self.create_div([[recipient_name_and_pickup]],
                                                         ('LEFTPADDING', (0, 0), (-1, -1), 5 + self.PADDING),
                                                         ('RIGHTPADDING', (0, 0), (-1, -1), 5 + self.PADDING),

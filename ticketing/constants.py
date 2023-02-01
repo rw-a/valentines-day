@@ -64,3 +64,7 @@ try:
             STUDENTS[row['ID']] = row
 except FileNotFoundError:
     print(f"ERROR: {FileNames.PEOPLE} not found.")
+
+"""Pickup Lines"""
+with open(f'{DirectoryLocations.STATIC}/pickup_lines.txt') as file:
+    PICKUP_LINES = [line.replace("\n", "") for line in file]
