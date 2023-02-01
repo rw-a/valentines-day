@@ -215,9 +215,17 @@ class SortTicketAdmin(admin.ModelAdmin):
 
 
 class DeliveryGroupAdmin(admin.ModelAdmin):
-    list_display = ('code', 'is_printed', 'num_serenades', 'num_non_serenades', 'num_tickets', 'sort_request')
+    list_display = ('code', 'is_printed', 'num_serenades', 'num_non_serenades', 'num_tickets', 'url', 'sort_request',)
     actions = ('unprint',)
     date_hierarchy = "date"
+
+    @admin.display(description='URL')
+    def url(self, obj):
+        if obj.is_printed:
+            url = reverse("ticketing:delivery_group", args=[obj.sort_request.pk, obj.code])
+            return format_html("<a href='{url}'>{url}</a>", url=url)
+        else:
+            return "Not generated yet"
 
     @admin.display(description='Number of Serenade Tickets')
     def num_serenades(self, obj):
