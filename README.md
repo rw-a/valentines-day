@@ -20,7 +20,7 @@ This was made in 2022. Links may have broken or changed. Information may be outd
 2. Convert PDFs to Excel files (using Adobe Acrobat is recommended).
 3. Convert Excel files into CSV files.
 4. Go to [timetables](https://statehigh.pythonanywhere.com/timetables/) and upload the CSV files.
-5. Refresh the website.
+5. Reload the website by going to [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and pressing the green reload button.
 
 ### Step 2: Create and Sell Ticket Codes
 1. Go the [admin](https://statehigh.pythonanywhere.com/admin/ticketing/ticketcodepdf/) and create a new TicketPDF object (pick the item type and the number of codes you want for that item).
