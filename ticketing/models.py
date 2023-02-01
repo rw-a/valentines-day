@@ -132,8 +132,8 @@ class Ticket(models.Model):
                     raise ValidationError("Period must be between 1 and 4 (inclusive).")
         if self.recipient_id not in STUDENTS:
             raise ValidationError("Invalid Recipient (student not found).")
-        if self.template not in TEMPLATES.keys():
-            raise ValidationError(f"Template '{self.template}' not found.")
+        if self.template != "Blank" and self.template not in TEMPLATES.keys():
+            raise ValidationError(f"Template '{self.template}' not found (case sensitive).")
 
     class Meta:
         verbose_name = "Ticket"

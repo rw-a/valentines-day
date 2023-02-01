@@ -58,7 +58,7 @@ class TicketsToPDF:
             PIL.Image.open(io.BytesIO(cairosvg.svg2png(
                 url=f"{DirectoryLocations.STATIC}/templates/{template_info['filename']}", write_to=None,
                 output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO)))
-            for template_name, template_info in TEMPLATES.items() if template_name != "Blank"
+            for template_name, template_info in TEMPLATES.items()
         }
 
         self.generate_pdf()
