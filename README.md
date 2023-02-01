@@ -27,7 +27,7 @@ This was made in 2022. Links may have broken or changed. Information may be outd
 2. Ensure you pick an appropriate number of ticket codes to generate for each item (in 2022, there were ~800 chocolates, ~1500 roses, ~400 serenades, ~120 special serenades).
 3. Note that only one ticket request can exist at a time. If you a second one, it will override the previous one (it won't be deleted but it might order the tickets incorrectly).
 4. You should be redirected to a page of a PDF. (If you want to go back to this page, visit [the page you were on before](https://statehigh.pythonanywhere.com/admin/ticketing/ticketcodepdf/) and click on the link under the *url* heading of the ticket request.
-5. Print out all the PDFs and cut them out.
+5. Print out all the PDFs and cut them out (it's recommended that you print out only a few pages first to test whether your printer correctly aligns the front and back when printing double sided).
 6. Repeat this for all item types (Chocolate, Rose, Serenade, Special Serenades)
 7. Sell the individual ticket codes to the students.
 
