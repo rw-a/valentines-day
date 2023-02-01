@@ -87,7 +87,24 @@ In case of a last resort, you may need to change to a completely different hosti
 
 
 ### Backups
-It is extremely important that you back up the database of this website. Navigate to the [website working directory](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day) and look for the file named *db.sqlite3*. This is the most important file in the whole website. If you lose this, you lose all the tickets; all the students who paid for a code will be very sad that they paid for nothing. If everything else breaks but this file is intact, the operation is still salvageable. **I recommend you backup this file everyday**, with a separate file for each day (don't just override and only keep yesterday's copy).
+To make a backup, you need to backup two things:
+
+#### The Database
+Navigate to the [website working directory in pythonanywhere](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day) and download the file named *db.sqlite3*. This stores the list of ticket codes and purchases made.
+
+#### The Ticket Messages
+Navigate to the [*redeemed_tickets* folder in pythonanywhere](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day/redeemed_tickets). There should be a list of .svg files (or it could be empty if nobody has redeemed a ticket yet). These .svg files are the handwritten/typed messages that people made when they redeemed a ticket. The name of the ticket is the corresponding ID in the database, so do not rename the .svg files.
+
+Since it only seems possible to download files individually, you should zip them all into one file first.
+1. Press the *Open Bash console here* button near the top-right of the page, next to the quota information.
+2. Type the following into the console:
+
+```
+zip mybackupfile.zip *
+```
+
+3. Go back to the page you were on before and download zip file you just created.
+4. Delete the zip file.
 
 ### Forgot Password
 If you lose the password to the pythonanywhere account, you will have to contact me so I can reset it (it's linked to my email). Try not to do this.
