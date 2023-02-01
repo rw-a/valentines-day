@@ -52,7 +52,7 @@
             event.preventDefault();
             const added_files = event.dataTransfer.files;
             for (let file of added_files) {
-                if (file.type == "text/csv") {
+                if (file.type === "text/csv") {
                     if (!file_names.includes(file.name)) {
                         files.items.add(file);
                         file_names.push(file.name);

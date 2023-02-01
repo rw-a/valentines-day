@@ -49,7 +49,7 @@
 
             let tickets_pdf = row.insertCell(2);
             tickets_pdf.id = `${group}_pdf`;
-            if (group_data[group]["num_tickets"] == 0) {
+            if (group_data[group]["num_tickets"] === 0) {
                 tickets_pdf.innerHTML = "No Tickets :(";
                 group_data[group]['is_printed'] = true;
             } else if (group_data[group]['is_printed']) {
@@ -104,11 +104,7 @@
     }
 
     function refresh_generate_all() {
-        if (completed_all()) {
-            generate_all_button.hidden = true;
-        } else {
-            generate_all_button.hidden = false;
-        }
+        generate_all_button.hidden = completed_all();
     }
 
     generate_all_button.onclick = () => {
