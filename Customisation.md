@@ -12,7 +12,7 @@ cd valentines-day/
 python manage.py collectstatic
 yes
 ```
-Finally, you need to reload the website. Go to [the webapp on pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and press the reload button.
+Finally, you need to reload the website. Go to the [webapp on pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and press the reload button.
 
 ## Adding/Changing Fonts
 1. Download the font you want as a .tff file.
@@ -34,6 +34,8 @@ Finally, you need to reload the website. Go to [the webapp on pythonanywhere](ht
 let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valentine", "La Rosse", "Love Letters", "Roschetta", "New Font"];
 ...
 ```
+
+6. Reload the website by going to the [webapp on pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and pressing the green reload button.
 
 ## Adding/Changing Ticket Templates
 1. Download [this Word document](https://github.com/rw-a/valentines-day/blob/master/Classic%20Template.docx), which was used to create the classic template.
@@ -69,4 +71,6 @@ let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valenti
   }
 }
 ```
-Note: if you set a default font which isn't in the existing list, you will also need to register it. [See above](https://github.com/rw-a/valentines-day/blob/master/Customisation.md#addingchanging-fonts)
+
+7. If you set a default font which isn't in the existing list, you will also need to register it. [See above](https://github.com/rw-a/valentines-day/blob/master/Customisation.md#addingchanging-fonts)
+8. Reload the website by going to the [webapp on pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and pressing the green reload button.
