@@ -4,21 +4,21 @@ If you make a mistake, it's usually quite easy to revert back to a previous stat
 If you want to make changes but this is too difficult to follow, feel free to ask me and I can help.
 
 ## Adding/Changing Pickup Lines
-The pickup lines are stored at *ticketing/static/pickup_lines.txt*. Each new line in the text file corresponds to a different pickup line. If you are adding new pickup lines, simply add each one to a new line. Ensure that they aren't too long or else they may cause weird formatting when printed. To remove pickup lines, simply delete the entire line in the text file. Ensure that there are no empty rows (check the last line in particular for a sneaky blank row), or else some tickets may be blank.
+The pickup lines are stored at [*ticketing/static/pickup_lines.txt*](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day/static/pickup_lines.txt?edit). Each new line in the text file corresponds to a different pickup line. If you are adding new pickup lines, simply add each one to a new line. Ensure that they aren't too long or else they may cause weird formatting when printed. To remove pickup lines, simply delete the entire line in the text file. Ensure that there are no empty rows (check the last line in particular for a sneaky blank row), or else some tickets may be blank.
 
-Once you have made your changes, go to the [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/) and press the *$Bash* button below the *New console* heading. Then type the following into the bash console:
+Once you have made your changes, go to the [pythonanywhere dashboard](https://www.pythonanywhere.com/user/statehigh/) and press the *$Bash* button below the *New console* heading. Then type the following into the bash console:
 ```
 cd valentines-day/
 python manage.py collectstatic
 yes
 ```
-Finally, you need to reload the website. Go to [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and press the reload button.
+Finally, you need to reload the website. Go to [the webapp on pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and press the reload button.
 
 ## Adding/Changing Fonts
 1. Download the font you want as a .tff file.
-2. Add the file to *ticketing/static/fonts/*.
+2. Add the file to [*ticketing/static/fonts/*](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day/ticketing/static/fonts).
 3. Install the font into the server by following [this tutorial](https://help.pythonanywhere.com/pages/Fonts/).
-4. Open *ticketing/static/css/redeem.css* and register the font file by adding the following piece of code somewhere. Note that font-family is the name of the font is, and src is the name of the file (spaces need to have a backslash before them, as shown).
+4. Open [*ticketing/static/css/redeem.css*](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day/ticketing/static/css/redeem.css?edit) and register the font file by adding the following piece of code somewhere. Note that font-family is the name of the font is, and src is the name of the file (spaces need to have a backslash before them, as shown).
 
 ```
 @font-face {
@@ -27,7 +27,7 @@ Finally, you need to reload the website. Go to [pythonanywhere](https://www.pyth
 }
 ```
 
-5. Open *ticketing/templates/ticketing/redeem.html* and navigate to the JavaScript section. Locate the variable that is a of fonts and add your new font to the list (the name that you chose for font-family, not the filename).
+5. Open [*ticketing/static/js/fabric.js*](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day/static/js/fabric.js?edit). Locate the variable that is an array of fonts, and add your new font to the list (the name that you chose for font-family, not the filename).
 
 ```
 ...
@@ -40,8 +40,8 @@ let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valenti
 2. Modify the template to create your own! Note: It's very important that you don't change the size of each cell in the table (actually, the size isn't critical but the width must be exactly 1.68x longer than the height).
 3. Export the Word document as a PDF.
 4. Convert the PDF into an SVG file using [Inkscape](https://inkscape.org/).
-5. Add the SVG file to the templates folder, which is located at *ticketing/static/templates/*
-6. Open *ticketing/static/templates/templates.json* and register your new template in the file. Make sure you follow the exact conventions. Here's an example:
+5. Add the SVG file to the templates folder, which is located at [*ticketing/static/templates/*](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day/ticketing/static/templates).
+6. Open [*ticketing/static/templates/templates.json*](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day/ticketing/static/templates/templates.json?edit) and register your new template in the file. Make sure you follow the exact conventions. Here's an example:
 
 ```
 {
