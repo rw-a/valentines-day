@@ -17,7 +17,7 @@ This was made in 2022. Links may have broken or changed. Information may be outd
 
 ### Step 1: Load the timetables of each year level
 1. Ask a teacher to go on OneSchool and download the PDF timetables for each year level (and also teachers if necessary).
-2. Convert PDFs to Excel files (using Adobe Acrobat is recommended).
+2. Convert PDFs to Excel files. I recommend using Adobe Acrobat. If you don't have it, there's a free online version [here](https://www.adobe.com/au/acrobat/online/pdf-to-excel.html).
 3. Convert Excel files into CSV files.
 4. Go to [timetables](https://statehigh.pythonanywhere.com/timetables/) and upload the CSV files.
 5. Reload the website by going to [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and pressing the green reload button.
