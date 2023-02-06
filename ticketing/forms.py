@@ -13,7 +13,7 @@ class TicketForm(forms.Form):
 
     """Load Students"""
     students = [(student_id, f"{student_dict['Name']} [{student_dict['ARC']}]" if student_dict['ARC'] == "TEACHER" else
-                f"{student_dict['First Name']} {student_dict['Last Name'][0]} [{student_dict['ARC']}]")
+                f"{student_dict['First Name']} {student_dict['Last Name']} [{student_dict['ARC']}]")
                 # only include first letter of last name for students
                 for student_id, student_dict in STUDENTS.items()]
     students.insert(0, (" ", ""))
