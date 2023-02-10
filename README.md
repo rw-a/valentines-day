@@ -59,6 +59,15 @@ Now it's time to deliver the tickets! Here are some things to know:
   - After the letter is a number. This is the group number of the delivery group.
   - After that is a colon, then another number. This number is the ticket number of the delivery group.
   - For example, if the bottom-left of the ticket says *N2: 10*, then it is the 10th ticket of the 2nd non-serenading delivery group.
+  
+### Step 6: Cleaning up Valentine's Day
+After Valentine's Day is over, you should clean up the website for next year. 
+1. Go to the [admin](https://statehigh.pythonanywhere.com/admin) page and delete everything (i.e. every Ticket, TicketCodePDF, TicketCode, DeliveryGroup and SortTicketsRequest). You can do this by selecting all of them (then pressing another select all button which selects all across every page) and choosing the "Delete selected..." option the in dropdown, then pressing *Go*.
+2. Go to [*redeemed_tickets* folder in pythonanywhere](https://www.pythonanywhere.com/user/statehigh/files/home/statehigh/valentines-day/redeemed_tickets) and press the *Open Bash console here* button near the top-right of the page, next to the quota information. Then type the following into the console:
+```
+rm *.svg
+```
+Caution: this will delete all the tickets and there is no way to undo this. Only do this after Valentine's Day is over.
 
 ## Customising the Tickets
 You can:
@@ -70,21 +79,8 @@ If you want to do so, see [this tutorial](Customisation.md).
 
 ## Maintaining the Website
 
-### Hosting
-This website is currently hosted for free on a server provided by [pythonanywhere](https://www.pythonanywhere.com). Since it's free, it probably isn't very good and may be extremely slow or unresponsive. You may need to pay money and [upgrade to a better tier](https://www.pythonanywhere.com/user/statehigh/account/). In this case, you should pick the custom tier. Here's what matters and doesn't matter:
-
-- CPU Time: doesn't matter because almost nothing will use this up. Pick the lowest possible (2000s).
-- Number of Web Apps: doesn't matter because there's only one website (this one). Pick the lowest possible (1).
-- Number of Web Workers: important. Increasing the number should make the website more responsive. Pick a reasonable number (2-4).
-- Number of Always-on Tasks: doesn't matter because this website doesn't use any. Pick the lowest possible (1).
-- Disk Space: important. It is vital that there is enough space to store all the tickets. Pick as low as you are willing to risk (2GB should be ok but 5GB if you want to be safe. 1GB might even be enough but I wouldn't risk it).
-
-You only need to pay for this while you are using the website (i.e. from the start of school to Valentine's Day, which is about 1 month), so it shouldn't be very expensive at all (just take it out of the budget lol).
-
-If you decide to stick with the free plan, you must remember to [activate the website](https://www.pythonanywhere.com/user/statehigh/webapps/#tab_id_statehigh_pythonanywhere_com) (it automatically disables itself after 3 months unless renewed). This is free to do but you can't forget.
-
-In case of a last resort, you may need to change to a completely different hosting service. It will be a pain to configure the whole website again, so good luck.
-
+### Console Limite Reached?
+If you tried to create a new console but it told you that your console limit has been reached, you need to delete your old consoles. Go to the [consoles](https://www.pythonanywhere.com/user/statehigh/consoles/) page and press the delete button next to the existing consoles (should look something like *Bash console 27277339*), which is under the *Your consoles* heading. Now you can make new consoles, so try again in whatever you were doing before.
 
 ### Backups
 To make a backup, you need to backup two things:
