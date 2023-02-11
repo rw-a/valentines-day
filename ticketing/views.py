@@ -3,9 +3,9 @@ from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
 from .models import Ticket, TicketCode, SortTicketsRequest
-from .forms import TicketForm, CSVFileForm
+from .forms import CSVFileForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
-from .constants import DirectoryLocations, FileNames, STUDENTS, TEMPLATES
+from .constants import DirectoryLocations, FileNames, STUDENTS, TEMPLATES, STUDENTS_LIST
 from .ticket_printer import TicketsToPDF
 from .timetable_parser import get_student_classes
 import os
@@ -121,49 +121,38 @@ def redeemed(request):
 
 
 def redeem(request):
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = TicketForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            ticket_code = TicketCode.objects.get(code=form.cleaned_data['code'])
-            is_handwritten = form.cleaned_data['is_handwritten'] == "True"
-            if is_handwritten:
-                template = form.cleaned_data['handwriting_template']
-            else:
-                template = form.cleaned_data['typed_template']
-
-            # make the ticket
-            ticket = Ticket(
-                recipient_id=form.cleaned_data['recipient_id'],
-                item_type=ticket_code.item_type,
-                is_handwritten=is_handwritten,
-                template=template,
-                code=ticket_code
-                )
-            if ticket.item_type == "Special Serenade":
-                ticket.ss_period = form.cleaned_data['period']
-            ticket.save()
-
-            # create the ticket file
-            with open(f'{DirectoryLocations.REDEEMED_TICKETS}/{ticket.pk}.svg', 'wb') as file:
-                file.write(bytes(form.cleaned_data['message'], 'utf-8'))
-
-            # mark the ticket code as consumed
-            ticket_code.is_unconsumed = False
-            ticket_code.save()
-
-            # redirect to the purchased screen
-            return HttpResponseRedirect(reverse('ticketing:redeemed'))
-
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = TicketForm()
-
     templates = TEMPLATES
-    return render(request, 'ticketing/redeem.html', {'form': form, 'templates': templates})
+    students = STUDENTS_LIST
+    return render(request, 'ticketing/redeem.html', {'templates': templates, 'students': students})
+
+
+def api_redeem(request):
+    if request.method == 'POST':
+        data = json.loads(request.read())
+        ticket_code = TicketCode.objects.get(code=data['code'])
+
+        # make the ticket
+        ticket = Ticket(
+            recipient_id=data['recipient_id'],
+            item_type=ticket_code.item_type,
+            is_handwritten=(data['is_handwritten'] == "True"),
+            template=data['template'],
+            code=ticket_code,
+        )
+        if ticket.item_type == "Special Serenade":
+            ticket.ss_period = data['period']
+        ticket.save()
+
+        # create the ticket file
+        with open(f'{DirectoryLocations.REDEEMED_TICKETS}/{ticket.pk}.svg', 'wb') as file:
+            file.write(bytes(data['message'], 'utf-8'))
+
+        # mark the ticket code as consumed
+        ticket_code.is_unconsumed = False
+        ticket_code.save()
+
+        # redirect to the purchased screen
+        return JsonResponse({"success": "true"})
 
 
 def validate_code(request):

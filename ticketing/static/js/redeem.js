@@ -1,27 +1,52 @@
 /* INPUT VALIDATION */
 let is_special = false;
-async function check_validity(event, code_validated = false) {
+async function submit_form(event) {
     // these are stored in variables first to prevent short-circuiting
-    if (code_validated) {  // don't validate code if this was called from the is_valid_code function to prevent recursion
-        var validate_code = true;
-    } else {
-        validate_code = await is_valid_code(null, true);
-    }
-    let validate_period = is_valid_period();
-    let validate_recipient = is_valid_recipient();
+    let valid_code = await is_valid_code(null, true);
+    let valid_period = is_valid_period();
+    let valid_recipient = is_valid_recipient();
+    let valid_content;
     if (document.getElementById('id_is_handwritten').value === "True") {
-        var validate_content = await is_valid_handwriting();
+        valid_content = is_valid_handwriting();
     } else {
-        validate_content = is_valid_typed();
+        valid_content = is_valid_typed();
     }
 
-    if (validate_code && validate_period && validate_recipient && validate_content) {
-        document.querySelector('form').submit();
+    if (valid_code && valid_period && valid_recipient && valid_content) {
+        let template;
+        let message;
+        if (document.getElementById('id_is_handwritten').value === "True") {
+            template = document.getElementById('id_handwriting_template').value;
+            message = await dataURLToBlob(signaturePad.toDataURL("image/svg+xml")).text();
+        } else {
+            template = document.getElementById('id_typed_template').value;
+            message = fabric_canvas.toSVG();
+        }
+
+        const response = await fetch(redeem_api_path, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken": csrf_token
+        },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                recipient_id: document.getElementById('id_recipient_id').value,
+                is_handwritten: document.getElementById('id_is_handwritten').value,
+                template: template,
+                code: document.getElementById('id_code').value,
+                message: message
+            }),
+        })
+        const data = await response.json();
+        if (data["success"] === "true") {
+            window.location.href = redeemed_url;
+        }
     }
 }
 
 // btw this is also verified in the backend
-async function is_valid_code(event, submit = false) {
+async function is_valid_code(event) {
     document.getElementById('code-error').hidden = false;
     is_special = false;
 
@@ -34,32 +59,28 @@ async function is_valid_code(event, submit = false) {
                 document.getElementById('code-error').innerText = data.item_type;
                 document.getElementById('code-error').style.color = '#71d16d';
                 if (data.item_type === "Special Serenade") is_special = true;
-                show_period();
-                if (submit) {
-                    check_validity(null, code_validated = true);
-                } else {
-                    return true;
-                }
+                updatePeriodSelector();
+                return true;
             } else {
                 document.getElementById('code-error').innerText = "Code has already been used.";
                 document.getElementById('code-error').style.color = 'red';
-                show_period();
+                updatePeriodSelector();
                 return false;
             }
         } else {
             document.getElementById('code-error').innerText = "Code doesn't exist.";
             document.getElementById('code-error').style.color = 'red';
-            show_period();
+            updatePeriodSelector();
             return false;
         }
     } else {
         document.getElementById('code-error').innerText = "Code must be exactly 10 characters long.";
         document.getElementById('code-error').style.color = 'red';
-        show_period();
+        updatePeriodSelector();
     }
 }
 
-function show_period() {
+function updatePeriodSelector() {
     document.getElementById('period-form').hidden = !is_special;
 }
 
@@ -90,13 +111,12 @@ function is_valid_recipient() {
     }
 }
 
-async function is_valid_handwriting() {
+function is_valid_handwriting() {
     if (signaturePad.isEmpty()) {
         document.getElementById('handwriting-error').hidden = false;
         return false;
     } else {
         document.getElementById('handwriting-error').hidden = true;
-        document.getElementById('id_message').value = await dataURLToBlob(signaturePad.toDataURL("image/svg+xml")).text();
         return true;
     }
 }
@@ -109,7 +129,6 @@ function is_valid_typed() {
     } else {
         document.getElementById('typed_error').hidden = true;
         fabric_canvas.backgroundImage = null;
-        document.getElementById('id_message').value = fabric_canvas.toSVG();
         return true;
     }
 }
@@ -137,7 +156,7 @@ document.getElementById('id_code').addEventListener('input', (event) => {
 });
 
 document.getElementById('id_code').addEventListener('input', is_valid_code);
-document.getElementById('redeem').addEventListener('click', check_validity);
+document.getElementById('redeem').addEventListener('click', submit_form);
 
 /* CHOOSING CONTENT MODE AND TEMPLATE*/
 document.getElementById('id_is_handwritten').addEventListener('change', () => {
@@ -150,6 +169,16 @@ document.getElementById('id_is_handwritten').addEventListener('change', () => {
     }
 })
 
+const students_selector = document.getElementById('id_recipient_id');
+const option = document.createElement("option");
+option.value = "";
+students_selector.add(option);
+for (let student of students) {
+    const option = document.createElement("option");
+    option.value = student;
+    students_selector.add(option);
+}
+
 const choices = new Choices('#id_recipient_id', {
     placeholderValue: "Select a person...",
     searchPlaceholderValue: "Search for a person...",
@@ -158,3 +187,17 @@ const choices = new Choices('#id_recipient_id', {
     shouldSort: false,
     searchResultLimit: 10,
 });
+
+const typed_template_selector = document.getElementById('id_typed_template');
+const handwritten_template_selector = document.getElementById('id_handwriting_template');
+for (let template of Object.keys(templates)) {
+    const option_handwritten = document.createElement("option");
+    option_handwritten.value = template;
+    option_handwritten.innerText = template;
+    handwritten_template_selector.add(option_handwritten);
+
+    const option_typed = document.createElement("option");
+    option_typed.value = template;
+    option_typed.innerText = template;
+    typed_template_selector.add(option_typed);
+}

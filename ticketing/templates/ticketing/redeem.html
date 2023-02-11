@@ -17,80 +17,92 @@
 </head>
 <body>
     <div id="content">
-        <form method="post"> {% csrf_token %}
-            <h1>Redeem Your Ticket</h1>
-            <div class="input" id="code-form">
-                <h3>Code</h3>
-                <p class="info">A string of 10 random letters. You buy this in person from the prefects.</p>
-                {{ form.code }}
-                <p hidden class="info error" id="code-error"></p>
+        <h1>Redeem Your Ticket</h1>
+        <div class="input" id="code-form">
+            <h3>Code</h3>
+            <p class="info">A string of 10 random letters. You buy this in person from the prefects.</p>
+            <input type="text" title="Ticket Code" name="code" maxlength="10" minlength="10" required id="id_code">
+            <p hidden class="info error" id="code-error"></p>
+        </div>
+        <div hidden class="input" id="period-form">
+            <h3>Period</h3>
+            <p class="info">Please select which period you would like the Special Serenade to happen in.</p>
+            <select name="period" id="id_period">
+              <option value="-">-</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+            <p hidden class="info error" id="period-error">*Required</p>
+        </div>
+        <div class="input" id="recipient-form">
+            <h3>Recipient</h3>
+            <select title="Select Recipient" name="recipient_id" id="id_recipient_id"></select>
+            <p hidden class="info error" id="recipient-error">*Required</p>
+        </div>
+        <div class="input" id="is_handwritten-form">
+            <h3>Handwrite or Type?</h3>
+            <select title="Choose whether handwritten or typed" name="is_handwritten" id="id_is_handwritten">
+              <option value="True">Handwrite</option>
+              <option value="False">Type</option>
+            </select>
+        </div>
+        <div hidden class="input" id="form_typed">
+            <div class="input" id="typed_template_form">
+                <h3>Template</h3>
+                <select title="Typed Template" name="typed_template" id="id_typed_template"></select>
             </div>
-            <div hidden class="input" id="period-form">
-                <h3>Period</h3>
-                <p class="info">Please select which period you would like the Special Serenade to happen in.</p>
-                {{ form.period }}
-                <p hidden class="info error" id="period-error">*Required</p>
+            <div class="input">
+                <h3>Font</h3>
+                <select title="Font" id="font_selector"></select>
             </div>
-            <div class="input" id="recipient-form">
-                <h3>Recipient</h3>
-                {{ form.recipient_id }}
-                <p hidden class="info error" id="recipient-error">*Required</p>
+            <div class="input">
+                <h3>Message</h3>
+                <p class="info">Edit the placeholder text to write your message.</p>
+                <canvas id="fabric" width="600" height="356" style="border: 1px solid black"></canvas>
             </div>
-            <div class="input" id="is_handwritten-form">
-                <h3>Handwrite or Type?</h3>
-                {{ form.is_handwritten }}
+            <p hidden class="info error" id="typed_error">*Don't forget to remove all the placeholder text first!</p>
+            <div class="buttons">
+                <span class="img undo" id="fabric_undo"></span>
+                <span class="img clear" id="fabric_clear"></span>
             </div>
-            <div hidden>{{ form.message }}</div>
-            <div hidden class="input" id="form_typed">
-                <div class="input" id="typed_template_form">
-                    <h3>Template</h3>
-                    {{ form.typed_template }}
-                </div>
-                <div class="input">
-                    <h3>Font</h3>
-                    <select id="font_selector"></select>
-                </div>
-                <div class="input">
-                    <h3>Message</h3>
-                    <p class="info">Edit the placeholder text to write your message.</p>
-                    <canvas id="fabric" width="600" height="356" style="border: 1px solid black"></canvas>
-                </div>
-                <p hidden class="info error" id="typed_error">*Don't forget to remove all the placeholder text first!</p>
+        </div>
+        <div class="input" id="form_handwriting">
+            <div class="input">
+                <h3>Template</h3>
+                <select title="Handwriting Template" name="handwriting_template" id="id_handwriting_template">
+                  <option value="Blank" selected>Blank</option>
+                </select>
+            </div>
+            <div class="input no_select">
+                <h3>Message</h3>
+                <p class="info">Handwrite a message!</p>
+                <canvas id="signature_pad"></canvas>
+                <p hidden class="info error" id="handwriting-error">*Required</p>
                 <div class="buttons">
-                    <span class="img undo" id="fabric_undo"></span>
-                    <span class="img clear" id="fabric_clear"></span>
+                    <span class="img undo" id="signature_pad_undo"></span>
+                    <span class="img clear" id="signature_pad_clear"></span>
                 </div>
             </div>
-            <div class="input" id="form_handwriting">
-                <div class="input">
-                    <h3>Template</h3>
-                    {{ form.handwriting_template }}
-                </div>
-                <div class="input no_select">
-                    <h3>Message</h3>
-                    <p class="info">Handwrite a message!</p>
-                    <canvas id="signature_pad"></canvas>
-                    <p hidden class="info error" id="handwriting-error">*Required</p>
-                    <div class="buttons">
-                        <span class="img undo" id="signature_pad_undo"></span>
-                        <span class="img clear" id="signature_pad_clear"></span>
-                    </div>
-                </div>
-            </div>
-            <div id="redeem-wrapper" class="centre" style="padding-top:20px">
-                <span class="img" title="Redeem" id="redeem"></span>
-                <p>Redeem Ticket</p>
-            </div>
-        </form>
-        {{ form.errors }}
+        </div>
+        <div id="redeem-wrapper" class="centre" style="padding-top:20px">
+            <span class="img" title="Redeem" id="redeem"></span>
+            <p>Redeem Ticket</p>
+        </div>
     </div>
 </body>
 <script>
-    let templates = {{templates|safe}};
+    const students = {{students|safe}};
+    const templates = {{templates|safe}};
+    const redeemed_url = "{% url 'ticketing:redeemed' %}";
     const validate_code_url = "{% url 'ticketing:validate_code' %}";
+    const redeem_api_path = "{% url 'ticketing:api_redeem' %}";
     const static_path = "{% static '' %}";
+    const csrf_token = "{{csrf_token}}";
 </script>
     <script type="text/javascript" src="{% static 'js/redeem.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/signature_pad.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/fabric.js' %}"></script>
 </html>
+

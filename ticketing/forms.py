@@ -27,7 +27,7 @@ class TicketForm(forms.Form):
     typed_template = forms.ChoiceField(choices=templates, required=False)
 
     is_handwritten = forms.ChoiceField(required=True, choices=[(True, "Handwrite"), (False, 'Type')])
-    message = forms.CharField(min_length=10, required=True)    # the dataURL of the svg image
+    message = forms.FileField(required=True)
 
     def clean_code(self):
         # verifies that the code is valid and hasn't already been used

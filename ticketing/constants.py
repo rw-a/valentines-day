@@ -55,7 +55,7 @@ DirectoryLocations().verify_dirs__()
 """
 Students
 This should be a dict with ID as key, and another dict as value which contains info like name and ARC class
-{'872658275W': {'ID': '872658275W', 'Name': 'Gamer', 'ARC': '7A',
+{'Gamer [7A]': {'ID': 'Gamer [7A]', 'Name': 'Gamer', 'ARC': '7A',
 'P1': 'E3.04', 'P2': 'E2.07', 'P3': 'F102', 'P4': 'A2.08'}}
 """
 STUDENTS = {}
@@ -66,6 +66,8 @@ try:
             STUDENTS[row['ID']] = row
 except FileNotFoundError:
     print(f"ERROR: {FileNames.PEOPLE} not found.")
+
+STUDENTS_LIST = list(STUDENTS.keys())
 
 """Pickup Lines"""
 with open(f'{DirectoryLocations.STATIC}/pickup_lines.txt') as file:
