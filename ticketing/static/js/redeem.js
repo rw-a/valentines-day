@@ -1,6 +1,8 @@
 /* INPUT VALIDATION */
 let is_special = false;
 async function submit_form(event) {
+    document.getElementById('errors').hidden = true;
+
     // these are stored in variables first to prevent short-circuiting
     let valid_code = await is_valid_code(null, true);
     let valid_period = is_valid_period();
@@ -41,6 +43,9 @@ async function submit_form(event) {
         const data = await response.json();
         if (data["success"] === "true") {
             window.location.href = redeemed_url;
+        } else {
+            document.getElementById('errors').innerText = `Error: ${data['error']}`;
+            document.getElementById('errors').hidden = false;
         }
     }
 }
