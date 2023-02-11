@@ -129,7 +129,18 @@ def redeem(request):
 def api_redeem(request):
     if request.method == 'POST':
         data = json.loads(request.read())
-        ticket_code = TicketCode.objects.get(code=data['code'])
+
+        # validate code
+        if is_code_exists(data['code']):
+            ticket_code = TicketCode.objects.get(code=data['code'])
+        else:
+            return JsonResponse({"success": "true", "error": "This is not a valid code."})
+        if not is_code_unconsumed(data['code']):
+            return JsonResponse({"success": "true", "error": "This code has already been used."})
+
+        # validate recipient
+        if not is_recipient_exists(data['recipient_id']):
+            return JsonResponse({"success": "true", "error": "This recipient does not exist."})
 
         # make the ticket
         ticket = Ticket(
