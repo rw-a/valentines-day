@@ -96,7 +96,7 @@ Since it only seems possible to download files individually, you should zip them
 2. Type the following into the console:
 
 ```
-zip mybackupfile.zip *
+zip mybackupfile.zip *.svg
 ```
 
 3. Go back to the page you were on before and download zip file you just created.
