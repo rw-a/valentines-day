@@ -51,6 +51,8 @@ This was made in 2022. Links may have broken or changed. Information may be outd
 6. Download the PDFs for each group and print them all out (IMPORTANT: make sure to print double-sided flipped along the **horizontal** edge).
 7. Cut them out and assign them to the corresponding delivery group (Recommended: when cutting out the tickets, cut along the long vertical line in the middle first, then the smaller horizontal ones so that the order is maintained).
 
+Warning: Since each PDF is very large (5-20MB), generating them all at once may exceed your storage quota. You can generate a few, print them, then delete them, then repeat for another few. To delete a PDF, go to the [delivery group admin page](https://statehigh.pythonanywhere.com/admin/ticketing/deliverygroup/). Select the group(s) whose PDF you would like to delete, and select the dropdown *Action* which has the *Go* button next to it. Select *Undo printing of...* and press the *Go* button. To check your storage quota, visit the [pythonanywhere dashboard](https://www.pythonanywhere.com/user/statehigh/).
+
 ### Step 5: Valentine's Day has arrived!
 Now it's time to deliver the tickets! Here are some things to know:
 - On the top-right of the back of each ticket are 4 periods. The period with the symbol next to it is the chosen period. The tickets are ordered and grouped based on the chosen period, so it's optimal to deliver them according to the chosen period. The other 3 periods are added just in case something goes wrong (e.g. you don't have time to deliver all of them) and you need to deliver them later/earlier.
@@ -96,7 +98,7 @@ Since it only seems possible to download files individually, you should zip them
 2. Type the following into the console:
 
 ```
-zip mybackupfile.zip *
+zip mybackupfile.zip *.svg
 ```
 
 3. Go back to the page you were on before and download zip file you just created.
