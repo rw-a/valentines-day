@@ -114,7 +114,9 @@ class TicketsToPDF:
                 img_bytes = io.BytesIO()
                 combined_image.save(img_bytes, format='PNG')
             else:
-                img_bytes = io.BytesIO(cairosvg.svg2png(bytestring=etree.tostring(xml_file), write_to=None))
+                img_bytes = io.BytesIO(cairosvg.svg2png(
+                    bytestring=etree.tostring(xml_file), write_to=None,
+                    output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO))
 
             image = Image(img_bytes)
             self.scale_image(image, self.CELL_WIDTH - 2 * self.PADDING, self.CELL_HEIGHT - 2 * self.PADDING)
