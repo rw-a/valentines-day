@@ -1,7 +1,5 @@
 /* Loading Template */
 function load_background_image(template_src, default_font) {
-    fabric_canvas.clear();
-
     fabric.Image.fromURL(template_src, function(img) {
         fabric_canvas.setBackgroundImage(img, fabric_canvas.renderAll.bind(fabric_canvas), {
             scaleX: fabric_canvas.width / img.width,
@@ -12,8 +10,19 @@ function load_background_image(template_src, default_font) {
 }
 
 function initialise_template() {
+    fabric_canvas.clear();
     let template = document.getElementById('id_typed_template').value;
-    if (Object.keys(templates).includes(template)) {
+    if (template === "Blank") {
+        load_font("Calibri");
+        const texts = [
+            new fabric.IText('Placeholder', {"left": 18, "top": 20, "fontSize": 30}),
+            new fabric.IText('Placeholder', {"left": 18, "top": 80, "fontSize": 30}),
+            new fabric.IText('Placeholder', {"left": 18, "top": 140, "fontSize": 30}),
+            new fabric.IText('Placeholder', {"left": 18, "top": 200, "fontSize": 30}),
+            new fabric.IText('Placeholder', {"left": 18, "top": 260, "fontSize": 30})
+        ];
+        fabric_canvas.add(...texts);
+    } else if (Object.keys(templates).includes(template)) {
         load_background_image(`${static_path}templates/${templates[template].filename}`, templates[template].defaultfont);
         let texts = [];
         for (let text_info of templates[template].textposition) {
