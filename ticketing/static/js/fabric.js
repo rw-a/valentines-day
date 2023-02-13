@@ -5,15 +5,14 @@ function load_background_image(template_src, default_font) {
             scaleX: fabric_canvas.width / img.width,
             scaleY: fabric_canvas.height / img.height
         });
-        load_font(default_font);
     });
 }
 
 function initialise_template() {
     fabric_canvas.clear();
+    load_font();
     let template = document.getElementById('id_typed_template').value;
     if (template === "Blank") {
-        load_font("Calibri");
         const texts = [
             new fabric.IText('Placeholder', {"left": 18, "top": 20, "fontSize": 30}),
             new fabric.IText('Placeholder', {"left": 18, "top": 80, "fontSize": 30}),
