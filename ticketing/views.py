@@ -2,6 +2,7 @@ from django.http import HttpResponseRedirect, JsonResponse, FileResponse
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 from vdaywebsite.settings import CONTACT_EMAIL
 from .models import Ticket, TicketCode, SortTicketsRequest
 from .forms import CSVFileForm
@@ -147,6 +148,7 @@ def redeem(request):
                                                      'contact_email': CONTACT_EMAIL})
 
 
+@csrf_exempt
 def api_redeem(request):
     if request.method == 'POST':
         data = json.loads(request.read())
