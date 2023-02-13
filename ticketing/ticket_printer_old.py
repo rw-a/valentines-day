@@ -11,9 +11,6 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus.tables import Table, TableStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from svglib.svglib import svg2rlg
-from pypdf import PdfReader, PdfWriter
-
 
 if __name__ == "__main__":
     STUDENTS = {"Jeff Bezos [7A]": {"Name": "Jeff Bezos"}}
@@ -27,8 +24,6 @@ class TicketsToPDF:
         self.tickets = tickets
         self.pdf_output_path = pdf_output_path
         self.pdf_name = pdf_name
-        self.background_pdf = None
-        self.foreground_pdf = None
 
         """Constants and Settings"""
         # flip the order of the cells in the back page
@@ -55,56 +50,21 @@ class TicketsToPDF:
         self.CANVAS_HEIGHT = 358
         self.RATIO = 2      # increases DPI by this ratio
 
-        """Load Font"""
+        """Templates"""
         pdfmetrics.registerFont(TTFont('VDay', f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
 
-        """Load Templates"""
-        self.TEMPLATES = {}
+        self.TEMPLATES = {
+            template_name:
+            PIL.Image.open(io.BytesIO(cairosvg.svg2png(
+                url=f"{DirectoryLocations.STATIC}/templates/{template_info['filename']}", write_to=None,
+                output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO)))
+            for template_name, template_info in TEMPLATES.items()
+        }
 
-        for template_name, template_info in TEMPLATES.items():
-            template = svg2rlg(f"{DirectoryLocations.STATIC}/templates/{template_info['filename']}")
-            scale_factor = min(1 - (self.PADDING * 2 / self.CELL_WIDTH), 1 - (self.PADDING * 2 / self.CELL_HEIGHT))
-            template.setProperties({"hAlign": "CENTER", "vAlign": "MIDDLE", "renderScale": scale_factor})
-            self.TEMPLATES[template_name] = template
+        self.generate_pdf()
 
-        """Load Item Images"""
-        self.ITEM_IMAGES = {}
-
-        chocolate_image = svg2rlg(f'{DirectoryLocations.STATIC}/item_types/chocolate.svg')
-        chocolate_image.setProperties({"renderScale": 0.033})
-        self.ITEM_IMAGES["Chocolate"] = chocolate_image
-
-        chocolate_image = svg2rlg(f'{DirectoryLocations.STATIC}/item_types/rose.svg')
-        chocolate_image.setProperties({"renderScale": 0.043})
-        self.ITEM_IMAGES["Rose"] = chocolate_image
-
-        chocolate_image = svg2rlg(f'{DirectoryLocations.STATIC}/item_types/serenade.svg')
-        chocolate_image.setProperties({"renderScale": 0.025})
-        self.ITEM_IMAGES["Serenade"] = chocolate_image
-
-        chocolate_image = svg2rlg(f'{DirectoryLocations.STATIC}/item_types/special_serenade.svg')
-        chocolate_image.setProperties({"renderScale": 0.08})
-        self.ITEM_IMAGES["Special Serenade"] = chocolate_image
-
-        """Build PDF"""
-        self.generate_background_pdf()
-        self.generate_foreground_pdf()
-        self.combine_pdfs()
-
-    def combine_pdfs(self):
-        pdf = PdfWriter()
-        for index, page in enumerate(self.background_pdf.pages):
-            if index % 2 == 0:
-                page.merge_page(self.foreground_pdf.pages[index // 2])
-            # page.compress_content_streams()
-            pdf.add_page(page)
-
-        with open(self.pdf_output_path, 'wb') as file:
-            pdf.write(file)
-
-    def generate_foreground_pdf(self):
-        foreground_pdf_stream = io.BytesIO()
-        doc = SimpleDocTemplate(foreground_pdf_stream, pageSize=A4,
+    def generate_pdf(self):
+        doc = SimpleDocTemplate(self.pdf_output_path, pageSize=A4,
                                 rightMargin=self.MARGIN, leftMargin=self.MARGIN,
                                 topMargin=self.MARGIN, bottomMargin=self.MARGIN)
 
@@ -114,23 +74,6 @@ class TicketsToPDF:
             """Front of tickets"""
             # split the list again into rows
             data = self.split_list(self.create_images(tickets), self.NUM_COLUMNS)
-            pages.append(self.create_table(data))
-        doc.build(pages)
-
-        self.foreground_pdf = PdfReader(foreground_pdf_stream)
-
-    def generate_background_pdf(self):
-        background_pdf_stream = io.BytesIO()
-        doc = SimpleDocTemplate(background_pdf_stream, pageSize=A4,
-                                rightMargin=self.MARGIN, leftMargin=self.MARGIN,
-                                topMargin=self.MARGIN, bottomMargin=self.MARGIN)
-
-        # split the list into pages
-        pages = []
-        for page_index, tickets in enumerate(self.split_list(self.tickets, self.NUM_CODES_PER_PAGE)):
-            """Front of tickets"""
-            # split the list again into rows
-            data = self.split_list(self.create_templates(tickets), self.NUM_COLUMNS)
             pages.append(self.create_table(data))
 
             pages.append(PageBreak())
@@ -143,8 +86,6 @@ class TicketsToPDF:
             pages.append(self.create_table(data))
         doc.build(pages)
 
-        self.background_pdf = PdfReader(background_pdf_stream)
-
     def create_images(self, tickets: list) -> list:
         images = []
         for ticket in tickets:
@@ -154,24 +95,32 @@ class TicketsToPDF:
                 # change the view box to the dimensions of the canvas
                 xml_file.set('viewBox', f'0 0 {self.CANVAS_WIDTH} {self.CANVAS_HEIGHT}')
 
-            img_bytes = io.BytesIO(cairosvg.svg2png(
-                bytestring=etree.tostring(xml_file), write_to=None,
-                output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO))
+            # add the template if required
+            if ticket.template != "Blank":
+                handwritten_image = PIL.Image.open(io.BytesIO(cairosvg.svg2png(
+                    bytestring=etree.tostring(xml_file), write_to=None,
+                    output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO)))
+                combined_image = PIL.Image.new(
+                    'RGBA', (handwritten_image.width, handwritten_image.height), (255, 255, 255, 0))
+
+                if ticket.template in self.TEMPLATES.keys():
+                    combined_image.alpha_composite(self.TEMPLATES[ticket.template])
+                else:
+                    print(f"ERROR: Template {ticket.template} does not exist for person {ticket.recipient_id}")
+
+                combined_image.alpha_composite(handwritten_image)
+
+                # save as bytes
+                img_bytes = io.BytesIO()
+                combined_image.save(img_bytes, format='PNG')
+            else:
+                img_bytes = io.BytesIO(cairosvg.svg2png(
+                    bytestring=etree.tostring(xml_file), write_to=None,
+                    output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO))
 
             image = Image(img_bytes)
             self.scale_image(image, self.CELL_WIDTH - 2 * self.PADDING, self.CELL_HEIGHT - 2 * self.PADDING)
 
-            images.append(image)
-
-        return images
-
-    def create_templates(self, tickets: list) -> list:
-        images = []
-        for ticket in tickets:
-            if ticket.template == "Blank":
-                image = ""
-            else:
-                image = self.TEMPLATES[ticket.template]
             images.append(image)
         return images
 
@@ -181,8 +130,7 @@ class TicketsToPDF:
                                        fontName="VDay")
         left_align_small = ParagraphStyle(name="Left Small", parent=default_style, fontSize=7, leading=8)
         centre_align = ParagraphStyle(name="Center", parent=default_style, alignment=1)
-        centre_align_small = ParagraphStyle(name="Center Small", parent=default_style, alignment=1, fontSize=8,
-                                            leading=9)
+        centre_align_small = ParagraphStyle(name="Center Small", parent=default_style, alignment=1, fontSize=8, leading=9)
         # right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2)
         large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1,
                                      fontSize=max(12, round(16 - self.PADDING / 3)),
@@ -200,11 +148,20 @@ class TicketsToPDF:
                                       colWidths=self.CELL_WIDTH / 4)
 
             """Bottom Right: Item Type (including image)"""
-            if ticket.item_type in self.ITEM_IMAGES:
-                item_type_image = self.ITEM_IMAGES[ticket.item_type]
+            if ticket.item_type == "Chocolate":
+                item_type_image = self.scale_image(Image(f'{DirectoryLocations.STATIC}/item_types/chocolate.png'),
+                                                   self.ITEM_TYPE_IMAGE_SIZE, self.ITEM_TYPE_IMAGE_SIZE)
+            elif ticket.item_type == "Rose":
+                item_type_image = self.scale_image(Image(f'{DirectoryLocations.STATIC}/item_types/rose.png'),
+                                                   self.ITEM_TYPE_IMAGE_SIZE, self.ITEM_TYPE_IMAGE_SIZE)
+            elif ticket.item_type == "Serenade":
+                item_type_image = self.scale_image(Image(f'{DirectoryLocations.STATIC}/item_types/serenade.png'),
+                                                   self.ITEM_TYPE_IMAGE_SIZE, self.ITEM_TYPE_IMAGE_SIZE)
+            elif ticket.item_type == "Special Serenade":
+                item_type_image = self.scale_image(Image(f'{DirectoryLocations.STATIC}/item_types/special_serenade.png'),
+                                                   self.ITEM_TYPE_IMAGE_SIZE, self.ITEM_TYPE_IMAGE_SIZE)
             else:
                 raise KeyError("Unknown item type")
-
             if ticket.item_type == "Special Serenade":
                 item_type = Paragraph(ticket.item_type, centre_align_small)
             else:
@@ -309,9 +266,9 @@ def main():
     from glob import glob
 
     class Ticket:
-        def __init__(self, pk):
+        def __init__(self, pk, template: str):
             self.pk = pk
-            self.template = random.choice(["Blank", "Classic Template"])
+            self.template = template
 
             self.item_type = random.choice(["Chocolate", "Rose", "Serenade", "Special Serenade"])
             self.recipient_id = "Jeff Bezos [7A]"
@@ -326,9 +283,9 @@ def main():
     for index, file in enumerate(glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")):
         if index >= 20:
             break
-        tickets.append(Ticket(file.split("/")[-1].split(".svg")[0]))
+        tickets.append(Ticket(file.split("/")[-1].split(".svg")[0], "Classic Template"))
 
-    TicketsToPDF(tickets, 'export.pdf', 'S1', padding=0)
+    TicketsToPDF(tickets, 'export.pdf', 'S1')
 
 
 if __name__ == "__main__":
