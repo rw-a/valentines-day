@@ -4,7 +4,7 @@ async function submit_form(event) {
     document.getElementById('errors').hidden = true;
 
     // these are stored in variables first to prevent short-circuiting
-    let valid_code = await is_valid_code(null, true);
+    let valid_code = await is_valid_code(null);
     let valid_period = is_valid_period();
     let valid_recipient = is_valid_recipient();
     let valid_content;
@@ -37,7 +37,8 @@ async function submit_form(event) {
                 is_handwritten: document.getElementById('id_is_handwritten').value,
                 template: template,
                 code: document.getElementById('id_code').value,
-                message: message
+                message: message,
+                period: document.getElementById('id_period').value,
             }),
         })
         const data = await response.json();
