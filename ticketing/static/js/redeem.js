@@ -40,7 +40,13 @@ async function submit_form(event) {
                 message: message,
                 period: document.getElementById('id_period').value,
             }),
-        })
+        });
+        if (!response.ok) {
+            document.getElementById('errors').innerText = `Error ${response.status}: ${response.statusText}.\n 
+                Please try again in private/incognito browsing mode. If that doesn't work, you can contact ${contact_email}`;
+            document.getElementById('errors').hidden = false;
+            return;
+        }
         const data = await response.json();
         if (data["success"] === "true") {
             window.location.href = redeemed_url;

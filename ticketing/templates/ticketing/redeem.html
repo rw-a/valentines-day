@@ -96,13 +96,14 @@
     </div>
 </body>
 <script>
+    const csrf_token = "{{csrf_token}}";
     const students = {{students|safe}};
     const templates = {{templates|safe}};
     const redeemed_url = "{% url 'ticketing:redeemed' %}";
     const validate_code_url = "{% url 'ticketing:validate_code' %}";
     const redeem_api_path = "{% url 'ticketing:api_redeem' %}";
     const static_path = "{% static '' %}";
-    const csrf_token = "{{csrf_token}}";
+    const contact_email = "{{contact_email}}";
 </script>
     <script type="text/javascript" src="{% static 'js/redeem.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/signature_pad.js' %}"></script>

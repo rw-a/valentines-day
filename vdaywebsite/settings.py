@@ -33,6 +33,8 @@ ALLOWED_HOSTS = ['*']
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 
+CONTACT_EMAIL = os.getenv("CONTACT_EMAIL")
+
 
 # Application definition
 
