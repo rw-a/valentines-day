@@ -13,7 +13,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 if __name__ == "__main__":
-    STUDENTS = {"89273498237A": {"Name": "Jeff Bezos"}}
+    STUDENTS = {"Jeff Bezos [7A]": {"Name": "Jeff Bezos"}}
     from constants import DirectoryLocations, PICKUP_LINES, TEMPLATES
 else:
     from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES, TEMPLATES
@@ -271,7 +271,7 @@ def main():
             self.template = template
 
             self.item_type = random.choice(["Chocolate", "Rose", "Serenade", "Special Serenade"])
-            self.recipient_id = "89273498237A"
+            self.recipient_id = "Jeff Bezos [7A]"
 
             self.period = 2
             self.p1 = "F101"
@@ -279,10 +279,9 @@ def main():
             self.p3 = "F303"
             self.p4 = "F404"
 
-    # tickets = [Ticket(file.split("/")[-1].split(".svg")[0], 1) for file in glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")]
     tickets = []
     for index, file in enumerate(glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")):
-        if index >= 100:
+        if index >= 20:
             break
         tickets.append(Ticket(file.split("/")[-1].split(".svg")[0], "Classic Template"))
 
