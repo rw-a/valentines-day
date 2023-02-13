@@ -194,7 +194,7 @@ class TicketsToPDF:
             periods = Paragraph("<br/>".join(period_classes), default_style)
             periods = self.create_div([[periods]],
                                       ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                                      ('LEFTPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
+                                      ('LEFTPADDING', (0, 0), (-1, -1), 6 + self.PADDING),
                                       colWidths=self.CELL_WIDTH / 4)
 
             """Bottom Right: Item Type (including image)"""
@@ -213,7 +213,7 @@ class TicketsToPDF:
             ticket_number = Paragraph(f"{self.pdf_name}: {page_index * self.NUM_CODES_PER_PAGE + index + 1}", left_align_small)
 
             bottom_row = self.create_div([[ticket_number, item_type_table]],
-                                         ('LEFTPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
+                                         ('LEFTPADDING', (0, 0), (-1, -1), 6 + self.PADDING),
                                          ('RIGHTPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
                                          ('BOTTOMPADDING', (-1, 0), (-1, -1), 3),
                                          ('ALIGN', (0, 0), (0, -1), 'LEFT'),
