@@ -48,12 +48,10 @@ class TicketsToPDF:
         self.CELL_WIDTH = self.TABLE_WIDTH / self.NUM_COLUMNS
         self.CELL_HEIGHT = self.TABLE_HEIGHT / self.NUM_ROWS
 
-        self.ITEM_TYPE_IMAGE_SIZE = 20      # in pts
-
         # dimensions of canvas from signature pad in pixels
         self.CANVAS_WIDTH = 602
         self.CANVAS_HEIGHT = 358
-        self.RATIO = 2      # increases DPI by this ratio
+        self.RATIO = 4      # increases DPI by this ratio
 
         """Load Font"""
         pdfmetrics.registerFont(TTFont('VDay', f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
@@ -96,7 +94,7 @@ class TicketsToPDF:
         for index, page in enumerate(self.background_pdf.pages):
             if index % 2 == 0:
                 page.merge_page(self.foreground_pdf.pages[index // 2])
-            # page.compress_content_streams()
+            page.compress_content_streams()
             pdf.add_page(page)
 
         with open(self.pdf_output_path, 'wb') as file:
