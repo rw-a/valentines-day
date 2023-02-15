@@ -112,7 +112,7 @@ for (let font of Object.keys(fonts)) {
     fontStyles.appendChild(document.createTextNode(`\
         @font-face {\
             font-family: '${font}';\
-            src: url('${static_path}/fonts/${fontFilename}') ${format};\
+            src: url('${static_path}fonts/${fontFilename}') ${format};\
         }\
     `));
 }
