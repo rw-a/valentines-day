@@ -94,14 +94,29 @@ function load_font(font) {
     });
 }
 
-let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valentine", "La Rosse", "Love Letters", "Orchids", "Roschetta"];
-let font_selector = document.getElementById("font_selector");
-fonts.forEach(function(font) {
-    let option = document.createElement('option');
+const font_selector = document.getElementById("font_selector");
+const fontStyles = document.createElement('style');
+for (let font of Object.keys(fonts)) {
+    const option = document.createElement('option');
     option.innerHTML = font;
     option.value = font;
     font_selector.appendChild(option);
-});
+
+    const fontFilename = fonts[font];
+    let format;
+    if (fontFilename.endsWith("woff2")) {
+        format = "format('woff2')"
+    } else if (fontFilename.endsWith("woff")) {
+        format = "format('woff')"
+    }
+    fontStyles.appendChild(document.createTextNode(`\
+        @font-face {\
+            font-family: '${font}';\
+            src: url('${static_path}/fonts/${fontFilename}') ${format};\
+        }\
+    `));
+}
+document.head.appendChild(fontStyles);
 
 font_selector.onchange = function() {
     load_font();

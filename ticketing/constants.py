@@ -76,3 +76,7 @@ with open(f'{DirectoryLocations.STATIC}/pickup_lines.txt') as file:
 """Templates"""
 with open(f"{DirectoryLocations.STATIC}/templates/templates.json") as file:
     TEMPLATES = json.load(file)
+
+"""Fonts"""
+with open(f"{DirectoryLocations.STATIC}/fonts/fonts.json") as file:
+    FONTS = json.load(file)

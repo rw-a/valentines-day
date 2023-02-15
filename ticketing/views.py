@@ -7,7 +7,7 @@ from vdaywebsite.settings import CONTACT_EMAIL
 from .models import Ticket, TicketCode, SortTicketsRequest
 from .forms import CSVFileForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
-from .constants import DirectoryLocations, FileNames, STUDENTS, TEMPLATES, STUDENTS_LIST
+from .constants import DirectoryLocations, FileNames, STUDENTS, TEMPLATES, STUDENTS_LIST, FONTS
 from .ticket_printer import TicketsToPDF
 from .timetable_parser import get_student_classes
 import os
@@ -134,7 +134,7 @@ def page_redeem(request):
     templates = TEMPLATES
     students = STUDENTS_LIST
     return render(request, 'ticketing/redeem.html', {'templates': templates, 'students': students,
-                                                     'contact_email': CONTACT_EMAIL})
+                                                     'contact_email': CONTACT_EMAIL, 'fonts': FONTS})
 
 
 @csrf_exempt
