@@ -87,7 +87,7 @@
     });
 
     function refresh() {
-        fetch("{% url 'ticketing:stats' %}?count")
+        fetch("{% url 'ticketing:api_count' %}")
         .then((response) => response.json())
         .then((data) => {
             document.getElementById('chocolates_created').innerText = data.chocolates_created;
@@ -123,4 +123,5 @@
 
     window.onload = () => {refresh();}
 </script>
+<script src="https://cdn.plot.ly/plotly-2.18.0.min.js"></script>
 </html>

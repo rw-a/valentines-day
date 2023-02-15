@@ -46,40 +46,41 @@ def load_timetables(request):
 
 
 @staff_member_required
-def timetables_loaded(request):
+def page_timetables_loaded(request):
     return render(request, 'ticketing/timetables_done.html')
 
 
 @staff_member_required
 def stats(request):
-    if "count" in request.GET:
-        # if refreshing the item count
-        data = {}
+    return render(request, 'ticketing/stats.html')
 
-        # get number of tickets per item type
-        for choice in Ticket.item_type.field.choices:
-            item_type = choice[0]
-            item_type_name = item_type.lower().replace(' ', '_')
-            # get total ticket codes created
-            created = TicketCode.objects.filter(item_type=item_type).count()
-            data[f'{item_type_name}s_created'] = created
-            # gets total redeemed ticket codes (actually the number of tickets, in case some were manually added)
-            redeemed = Ticket.objects.filter(item_type=item_type).count()
-            data[f'{item_type_name}s_redeemed'] = redeemed
 
-        # get number of tickers per grade
-        for grade in range(7, 13):
-            data[f"grade_{grade}"] = 0
-        for ticket in Ticket.objects.all():
-            recipient_arc = STUDENTS[ticket.recipient_id]['ARC']
-            recipient_grade = re.match(r"\d+", recipient_arc)
-            if recipient_grade is not None and f"grade_{recipient_grade[0]}" in data:
-                data[f"grade_{recipient_grade[0]}"] += 1
-            else:
-                print(f"Stats: Error getting grade of {STUDENTS[ticket.recipient_id]}")
-        return JsonResponse(data)
-    else:
-        return render(request, 'ticketing/stats.html')
+@staff_member_required
+def api_count(request):
+    data = {}
+
+    # get number of tickets per item type
+    for choice in Ticket.item_type.field.choices:
+        item_type = choice[0]
+        item_type_name = item_type.lower().replace(' ', '_')
+        # get total ticket codes created
+        created = TicketCode.objects.filter(item_type=item_type).count()
+        data[f'{item_type_name}s_created'] = created
+        # gets total redeemed ticket codes (actually the number of tickets, in case some were manually added)
+        redeemed = Ticket.objects.filter(item_type=item_type).count()
+        data[f'{item_type_name}s_redeemed'] = redeemed
+
+    # get number of tickers per grade
+    for grade in range(7, 13):
+        data[f"grade_{grade}"] = 0
+    for ticket in Ticket.objects.all():
+        recipient_arc = STUDENTS[ticket.recipient_id]['ARC']
+        recipient_grade = re.match(r"\d+", recipient_arc)
+        if recipient_grade is not None and f"grade_{recipient_grade[0]}" in data:
+            data[f"grade_{recipient_grade[0]}"] += 1
+        else:
+            print(f"Stats: Error getting grade of {STUDENTS[ticket.recipient_id]}")
+    return JsonResponse(data)
 
 
 @staff_member_required
@@ -103,19 +104,6 @@ def tickets(request, pk):
 @staff_member_required
 def delivery_group(request, pk, group_id):
     return FileResponse(open(f'{DirectoryLocations.SORTED_TICKETS}/{pk}/{group_id}.pdf', 'rb'))
-
-
-@staff_member_required
-def print_tickets(request):
-    pk = request.GET['pk']
-    group_code = request.GET['group']
-    group = SortTicketsRequest.objects.get(pk=pk).deliverygroup_set.get(code=group_code)
-    if not os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{pk}"):
-        os.mkdir(f"{DirectoryLocations().SORTED_TICKETS}/{pk}")
-    TicketsToPDF(group.tickets.all(), f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}.pdf", group_code)
-    group.is_printed = True
-    group.save()
-    return JsonResponse({"success": "true"})
 
 
 def redeemed(request):
@@ -170,7 +158,7 @@ def api_redeem(request):
         return JsonResponse({"success": "true"})
 
 
-def validate_code(request):
+def api_validate_code(request):
     code = request.GET['inputted_code'].upper()
 
     data = {
@@ -183,7 +171,14 @@ def validate_code(request):
     return JsonResponse(data)
 
 
-def validate_recipient(request):
-    recipient = request.GET['recipient']
-    data = {'is_exists': is_recipient_exists(recipient)}
-    return JsonResponse(data)
+@staff_member_required
+def api_print_tickets(request):
+    pk = request.GET['pk']
+    group_code = request.GET['group']
+    group = SortTicketsRequest.objects.get(pk=pk).deliverygroup_set.get(code=group_code)
+    if not os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{pk}"):
+        os.mkdir(f"{DirectoryLocations().SORTED_TICKETS}/{pk}")
+    TicketsToPDF(group.tickets.all(), f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}.pdf", group_code)
+    group.is_printed = True
+    group.save()
+    return JsonResponse({"success": "true"})

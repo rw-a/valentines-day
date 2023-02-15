@@ -12,14 +12,14 @@ urlpatterns = [
 
     path('stats/', views.stats, name='stats'),
     path('timetables/', views.load_timetables, name='timetables'),
-    path('timetables/success', views.timetables_loaded, name='timetables_done'),
+    path('timetables/success', views.page_timetables_loaded, name='timetables_done'),
 
     path('codes/<int:pk>', views.codepdf, name='codepdf'),
     path('tickets/<int:pk>', views.tickets, name='tickets'),
     path('tickets/<int:pk>/<str:group_id>', views.delivery_group, name='delivery_group'),
 
     path('api/redeem/', views.api_redeem, name='api_redeem'),
-    path('validate_code/', views.validate_code, name='validate_code'),
-    path('validate_recipient/', views.validate_recipient, name='validate_recipient'),
-    path('print/', views.print_tickets, name='print'),
+    path('api/validate_code/', views.api_validate_code, name='api_validate_code'),
+    path('api/print/', views.api_print_tickets, name='api_print'),
+    path('api/count', views.api_count, name='api_count'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
