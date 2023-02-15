@@ -17,12 +17,12 @@ import json
 from io import StringIO
 
 
-def index(request):
+def page_index(request):
     return HttpResponseRedirect(reverse('ticketing:redeem'))
 
 
 @staff_member_required
-def load_timetables(request):
+def form_timetables(request):
     if request.method == 'POST':
         form = CSVFileForm(request.POST, request.FILES)
         if form.is_valid():
@@ -51,7 +51,7 @@ def page_timetables_loaded(request):
 
 
 @staff_member_required
-def stats(request):
+def page_stats(request):
     return render(request, 'ticketing/stats.html')
 
 
@@ -84,7 +84,7 @@ def api_count(request):
 
 
 @staff_member_required
-def codepdf(request, pk):
+def file_codepdf(request, pk):
     return FileResponse(open(f'{DirectoryLocations.GENERATED_TICKET_CODES}/{pk}.pdf', 'rb'))
 
 
@@ -102,15 +102,15 @@ def tickets(request, pk):
 
 
 @staff_member_required
-def delivery_group(request, pk, group_id):
+def file_delivery_group(request, pk, group_id):
     return FileResponse(open(f'{DirectoryLocations.SORTED_TICKETS}/{pk}/{group_id}.pdf', 'rb'))
 
 
-def redeemed(request):
+def page_redeem_done(request):
     return render(request, 'ticketing/redeemed.html')
 
 
-def redeem(request):
+def page_redeem(request):
     templates = TEMPLATES
     students = STUDENTS_LIST
     return render(request, 'ticketing/redeem.html', {'templates': templates, 'students': students,

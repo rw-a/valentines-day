@@ -5,18 +5,18 @@ from . import views
 
 app_name = 'ticketing'
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.page_index, name='index'),
 
-    path('redeem/', views.redeem, name='redeem'),
-    path('redeemed/', views.redeemed, name='redeemed'),
+    path('redeem/', views.page_redeem, name='redeem'),
+    path('redeemed/', views.page_redeem_done, name='redeemed'),
 
-    path('stats/', views.stats, name='stats'),
-    path('timetables/', views.load_timetables, name='timetables'),
+    path('stats/', views.page_stats, name='stats'),
+    path('timetables/', views.form_timetables, name='timetables'),
     path('timetables/success', views.page_timetables_loaded, name='timetables_done'),
 
-    path('codes/<int:pk>', views.codepdf, name='codepdf'),
+    path('codes/<int:pk>', views.file_codepdf, name='codepdf'),
     path('tickets/<int:pk>', views.tickets, name='tickets'),
-    path('tickets/<int:pk>/<str:group_id>', views.delivery_group, name='delivery_group'),
+    path('tickets/<int:pk>/<str:group_id>', views.file_delivery_group, name='delivery_group'),
 
     path('api/redeem/', views.api_redeem, name='api_redeem'),
     path('api/validate_code/', views.api_validate_code, name='api_validate_code'),
