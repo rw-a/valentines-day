@@ -14,6 +14,7 @@ import os
 import re
 import csv
 import json
+import datetime
 from io import StringIO
 
 
@@ -81,6 +82,25 @@ def api_count(request):
         else:
             print(f"Stats: Error getting grade of {STUDENTS[ticket.recipient_id]}")
     return JsonResponse(data)
+
+
+@staff_member_required
+def api_graph(request):
+    """Returns a histogram with time in the x-axis (in hourly intervals) and number of tickets redeemed in y-axis"""
+    # not enough tickets to make a useful graph
+    if Ticket.objects.count() <= 2:
+        return JsonResponse({"success": "false"})
+
+    oldest_redeem = Ticket.objects.earliest('date').date + datetime.timedelta(hours=10)     # add 10 hours for timezone
+    newest_redeem = Ticket.objects.latest('date').date + datetime.timedelta(hours=10)
+
+    times = []  # x-axis
+    num_tickets = []    # y-axis
+    while oldest_redeem < newest_redeem:
+        times.append(oldest_redeem.replace(microsecond=0, second=0, minute=0).strftime("%Y-%m-%d %H:%M:%S"))
+        num_tickets.append(Ticket.objects.filter(date__date=oldest_redeem.date(), date__hour=oldest_redeem.hour).count())
+        oldest_redeem += datetime.timedelta(hours=1)
+    return JsonResponse({"success": "true", "xData": times, "yData": num_tickets})
 
 
 @staff_member_required

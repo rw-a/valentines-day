@@ -76,16 +76,17 @@
       </tr>
     </table>
     <button id="refresh">Refresh</button>
+    <br/><br/>
+    <h2 id="graphPlaceholder">Loading graph...</h2>
+    <div hidden id="graphs">
+        <h2>Ticket Redemptions Over Time</h2>
+        <div id="graph"></div>
+        <h2>Cumulative Redemptions</h2>
+        <div id="graphCumulative"></div>
+    </div>
 </div>
 </body>
 <script>
-    document.getElementById('refresh').addEventListener('click', () => {
-        this.hide();
-        setTimeout(() => {
-            this.show();
-        }, 5000);
-    });
-
     function refresh() {
         fetch("{% url 'ticketing:api_count' %}")
         .then((response) => response.json())
@@ -121,7 +122,46 @@
         refresh();
     });
 
-    window.onload = () => {refresh();}
+    function makeGraph(div, xData, yData) {
+        const maxWidth = Math.min(document.querySelector('h1').offsetWidth, 600);
+        div.style = `width: ${maxWidth}px; height: ${maxWidth * 0.66}px;`;
+        Plotly.newPlot(div, [{
+            x: xData,
+            y: yData,
+            type: 'scatter',
+        }], {
+            margin: {t: 20, b: 18, l: 32, r: 10},
+        }, {
+            modeBarButtonsToRemove: ['autoScale2d'],
+            displaylogo: false,
+        });
+    }
+
+    function getGraph() {
+        fetch("{% url 'ticketing:api_graph' %}")
+            .then((response) => response.json())
+            .then((data) => {
+                console.log(data);
+                if (data.success === "true") {
+                    makeGraph(document.getElementById('graph'), data.xData, data.yData);
+
+                    let cumulative = 0;
+                    let yDataCumulative = [];
+                    for (let i = 0; i < data.yData.length; i++) {
+                        cumulative += data.yData[i];
+                        yDataCumulative.push(cumulative);
+                    }
+                    makeGraph(document.getElementById('graphCumulative'), data.xData, yDataCumulative);
+                    document.getElementById('graphs').hidden = false;
+                }
+                document.getElementById('graphPlaceholder').hidden = true;
+            })
+            .catch((error) => {
+               console.error('Error:', error);
+            });
+    }
+
+    window.onload = () => {refresh(); getGraph();}
 </script>
 <script src="https://cdn.plot.ly/plotly-2.18.0.min.js"></script>
 </html>

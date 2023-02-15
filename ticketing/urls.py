@@ -22,4 +22,5 @@ urlpatterns = [
     path('api/validate_code/', views.api_validate_code, name='api_validate_code'),
     path('api/print/', views.api_print_tickets, name='api_print'),
     path('api/count', views.api_count, name='api_count'),
+    path('api/graph', views.api_graph, name='api_graph'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

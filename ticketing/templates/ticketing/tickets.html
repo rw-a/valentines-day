@@ -73,7 +73,7 @@
                         generate_button.disabled = true;
                         generate_button.innerHTML = "Generating..."
                         generating.push(group);
-                        fetch("{% url 'ticketing:print' %}?" + new URLSearchParams({
+                        fetch("{% url 'ticketing:api_print' %}?" + new URLSearchParams({
                             'pk': "{{ pk }}", "group": group
                         }))
                         .then((response) => response.json())
@@ -121,7 +121,7 @@
         let group_index = 0;
         function get_next_group() {
             let group = groups[group_index];
-            fetch("{% url 'ticketing:print' %}?" + new URLSearchParams({
+            fetch("{% url 'ticketing:api_print' %}?" + new URLSearchParams({
                 'pk': "{{ pk }}", "group": group
             }))
             .then((response) => response.json())
