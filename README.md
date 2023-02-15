@@ -16,7 +16,7 @@ This was made in 2022. Links may have broken or changed. Information may be outd
 8. On Valentine's Day, the delivery groups distribute the items and do the serenades!
 
 ### Step 1: Load the timetables of each year level
-1. Ask a teacher to go on OneSchool and download the PDF timetables for each year level (and also teachers if necessary).
+1. Ask a teacher to go on OneSchool and download the PDF timetables for each year level (and also teachers if necessary). The timetable should look like one row per person and should be for a specific day.
 2. Convert PDFs to Excel files. I recommend using Adobe Acrobat. If you don't have it, there's a free online version [here](https://www.adobe.com/au/acrobat/online/pdf-to-excel.html).
 3. Convert Excel files into CSV files.
 4. Go to [timetables](https://statehigh.pythonanywhere.com/timetables/) and upload the CSV files.
