@@ -79,11 +79,11 @@ fabric_canvas.on('object:modified', function() {
 /* Load Fonts */
 function load_font(font) {
     if (font === undefined) {
-        var font = document.getElementById("font_selector").value;
+        font = document.getElementById("font_selector").value;
     }
 
-    let myfont = new FontFaceObserver(font);
-    myfont.load()
+    let myFont = new FontFaceObserver(font);
+    myFont.load()
         .then(function() {
             fabric_canvas.getObjects().forEach(function(object) {object.set("fontFamily", font);})
             fabric_canvas.requestRenderAll();
@@ -94,7 +94,7 @@ function load_font(font) {
     });
 }
 
-let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valentine", "La Rosse", "Love Letters", "Roschetta"];
+let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valentine", "La Rosse", "Love Letters", "Orchids", "Roschetta"];
 let font_selector = document.getElementById("font_selector");
 fonts.forEach(function(font) {
     let option = document.createElement('option');

@@ -34,6 +34,11 @@
 }
 
 @font-face {
+    font-family: 'Orchids';
+    src: url("../fonts/Orchids.ttf");
+}
+
+@font-face {
     font-family: 'Roschetta';
     src: url("../fonts/Roschetta.ttf");
 }
