@@ -27,7 +27,7 @@ This was made in 2022. Links may have broken or changed. Information may be outd
 2. Ensure you pick an appropriate number of ticket codes to generate for each item (in 2022, there were ~800 chocolates, ~1500 roses, ~400 serenades, ~120 special serenades).
 3. Note that only one ticket request can exist at a time. If you a second one, it will override the previous one (it won't be deleted but it might order the tickets incorrectly).
 4. You should be redirected to a page of a PDF. (If you want to go back to this page, visit [the page you were on before](https://statehigh.pythonanywhere.com/admin/ticketing/ticketcodepdf/) and click on the link under the *url* heading of the ticket request.
-5. Print out all the PDFs and cut them out (it's recommended that you print out only a few pages first to test whether your printer correctly aligns the front and back when printing double sided).
+5. Print out all the PDFs and cut them out.
 6. Repeat this for all item types (Chocolate, Rose, Serenade, Special Serenades)
 7. Sell the individual ticket codes to the students.
 
@@ -47,11 +47,13 @@ This was made in 2022. Links may have broken or changed. Information may be outd
 2. Go to [admin](https://statehigh.pythonanywhere.com/admin/ticketing/sortticketsrequest/) and create a TicketSortRequest object (with the settings you want). 
 3. The website will automatically pick the optimal period for each ticket to be delivered in, and will distribute the tickets to each delivery group (i.e. the groups of serenaders and prefects who hand out the roses/chocolates).
 4. You should be redirected to page listing all the delivery groups.
+  - Recommended: this page shows you how many tickets have been assigned to each group. Usually, the serenading groups will have significantly more tickets than the non-serenading groups. You can delete the SortTicketRequest and make a new one with different settings to better suit how you want the tickets to be distributed. You may have to do this several times.
 5. Here you generate the PDF for each group.
-6. Download the PDFs for each group and print them all out (IMPORTANT: make sure to print double-sided flipped along the **horizontal** edge).
+  - Warning: The PDFs can get very large (up to ~30MB each), so generating them all at once may exceed your storage quota. You can generate a few, print them, then delete them, then repeat for another few. To delete a PDF, go to the [delivery group admin page](https://statehigh.pythonanywhere.com/admin/ticketing/deliverygroup/). Select the group(s) whose PDF you would like to delete, and select the dropdown *Action* which has the *Go* button next to it. Select *Undo printing of...* and press the *Go* button. To check your storage quota, visit the [pythonanywhere dashboard](https://www.pythonanywhere.com/user/statehigh/).
+6. Download the PDFs for each group and print them all out
+  - **Important**: make sure to print double-sided flipped along the **horizontal** edge.
+  - Recommended: print out only a few pages first to test whether your printer correctly aligns the front and back when printing double sided.
 7. Cut them out and assign them to the corresponding delivery group (Recommended: when cutting out the tickets, cut along the long vertical line in the middle first, then the smaller horizontal ones so that the order is maintained).
-
-Warning: Since each PDF is very large (10-30MB), generating them all at once may exceed your storage quota. You can generate a few, print them, then delete them, then repeat for another few. To delete a PDF, go to the [delivery group admin page](https://statehigh.pythonanywhere.com/admin/ticketing/deliverygroup/). Select the group(s) whose PDF you would like to delete, and select the dropdown *Action* which has the *Go* button next to it. Select *Undo printing of...* and press the *Go* button. To check your storage quota, visit the [pythonanywhere dashboard](https://www.pythonanywhere.com/user/statehigh/).
 
 ### Step 5: Valentine's Day has arrived!
 Now it's time to deliver the tickets! Here are some things to know:
