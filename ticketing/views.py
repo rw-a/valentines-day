@@ -21,25 +21,6 @@ def index(request):
     return HttpResponseRedirect(reverse('ticketing:redeem'))
 
 
-def notice(request):
-    return render(request, 'ticketing/notice.html', {'contact_email': CONTACT_EMAIL})
-
-
-def api_notice(request):
-    code = request.GET["code"].upper()
-    if TicketCode.objects.filter(code=code).count() > 0:
-        ticket_code = TicketCode.objects.get(code=code)
-        try:
-            ticket = ticket_code.ticket
-            if ticket.pk in [410, 688, 864, 918, 920, 1419, 1422, 1471, 1475, 1481, 1487, 1493, 1497, 1504, 1507, 1525,
-                             1541, 1543, 1558, 1561, 827]:
-                return JsonResponse({"affected": "true"})
-        except:
-            pass
-
-    return JsonResponse({"nope": "nope"})
-
-
 @staff_member_required
 def load_timetables(request):
     if request.method == 'POST':

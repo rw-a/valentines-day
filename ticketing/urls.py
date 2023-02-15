@@ -9,7 +9,6 @@ urlpatterns = [
 
     path('redeem/', views.redeem, name='redeem'),
     path('redeemed/', views.redeemed, name='redeemed'),
-    path('notice/', views.notice, name='notice'),
 
     path('stats/', views.stats, name='stats'),
     path('timetables/', views.load_timetables, name='timetables'),
@@ -19,7 +18,6 @@ urlpatterns = [
     path('tickets/<int:pk>', views.tickets, name='tickets'),
     path('tickets/<int:pk>/<str:group_id>', views.delivery_group, name='delivery_group'),
 
-    path('api/notice/', views.api_notice, name='api_notice'),
     path('api/redeem/', views.api_redeem, name='api_redeem'),
     path('validate_code/', views.validate_code, name='validate_code'),
     path('validate_recipient/', views.validate_recipient, name='validate_recipient'),
