@@ -49,7 +49,6 @@ let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valenti
 {
   "Classic Template": {
     "filename": "classic_template.svg",
-    "defaultfont": "Calibri",
     "textposition": [
         {"left": 18, "top": 60, "fontSize": 30},
         {"left": 170, "top": 164, "fontSize": 30},
@@ -60,7 +59,6 @@ let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valenti
   },
     "Modern Template": {
     "filename": "modern_template.svg",
-    "defaultfont": "Roboto",
     "textposition": [
         {"left": 28, "top": 30, "fontSize": 25},
         {"left": 183, "top": 112, "fontSize": 25},
@@ -72,5 +70,4 @@ let fonts = ["Calibri", "Chasing Hearts", "Delique", "Heartales", "Hello Valenti
 }
 ```
 
-7. If you set a default font which isn't in the existing list, you will also need to register it. [See above](https://github.com/rw-a/valentines-day/blob/master/Customisation.md#addingchanging-fonts)
-8. Reload the website by going to the [webapp on pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and pressing the green reload button.
+7. Reload the website by going to the [webapp on pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and pressing the green reload button.
