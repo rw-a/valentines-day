@@ -1,4 +1,3 @@
-const wrapper = document.getElementById("form_handwriting");
 const canvas = document.getElementById("signature_pad");
 const signaturePad = new SignaturePad(canvas, {
   minDistance: 1,
@@ -44,7 +43,7 @@ document.getElementById("signature_pad_undo").addEventListener("click", () => {
 });
 
 // choosing handwritten template
-document.getElementById('id_handwriting_template').addEventListener('change', (event) => {
+document.getElementById('handwriting_template').addEventListener('change', (event) => {
     let template = event.target.value;
     if (Object.keys(templates).includes(template)) {
          document.getElementById('signature_pad').style.background = `url("${static_path}templates/${templates[template].filename}") 0% 0%/600px 356px`;

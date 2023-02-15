@@ -11,7 +11,7 @@ function load_background_image(template_src, default_font) {
 function initialise_template() {
     fabric_canvas.clear();
     load_font();
-    let template = document.getElementById('id_typed_template').value;
+    let template = document.getElementById('typed_template').value;
     if (template === "Blank") {
         const texts = [
             new fabric.IText('Placeholder', {"left": 18, "top": 20, "fontSize": 30}),
@@ -33,7 +33,7 @@ function initialise_template() {
     }
 }
 
-document.getElementById('id_typed_template').addEventListener('change', (event) => {
+document.getElementById('typed_template').addEventListener('change', (event) => {
     initialise_template();
 })
 

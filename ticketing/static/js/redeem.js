@@ -8,7 +8,7 @@ async function submit_form(event) {
     let valid_period = is_valid_period();
     let valid_recipient = is_valid_recipient();
     let valid_content;
-    if (document.getElementById('id_is_handwritten').value === "True") {
+    if (document.getElementById('is_handwritten').value === "True") {
         valid_content = is_valid_handwriting();
     } else {
         valid_content = is_valid_typed();
@@ -17,11 +17,11 @@ async function submit_form(event) {
     if (valid_code && valid_period && valid_recipient && valid_content) {
         let template;
         let message;
-        if (document.getElementById('id_is_handwritten').value === "True") {
-            template = document.getElementById('id_handwriting_template').value;
+        if (document.getElementById('is_handwritten').value === "True") {
+            template = document.getElementById('handwriting_template').value;
             message = await dataURLToBlob(signaturePad.toDataURL("image/svg+xml")).text();
         } else {
-            template = document.getElementById('id_typed_template').value;
+            template = document.getElementById('typed_template').value;
             message = fabric_canvas.toSVG();
         }
 
@@ -33,12 +33,12 @@ async function submit_form(event) {
         },
             credentials: 'same-origin',
             body: JSON.stringify({
-                recipient_id: document.getElementById('id_recipient_id').value,
-                is_handwritten: document.getElementById('id_is_handwritten').value,
+                recipient_id: document.getElementById('recipient').value,
+                is_handwritten: document.getElementById('is_handwritten').value,
                 template: template,
-                code: document.getElementById('id_code').value,
+                code: document.getElementById('code').value,
                 message: message,
-                period: document.getElementById('id_period').value,
+                period: document.getElementById('period').value,
             }),
         });
         if (!response.ok) {
@@ -59,51 +59,51 @@ async function submit_form(event) {
 
 // btw this is also verified in the backend
 async function is_valid_code(event) {
-    document.getElementById('code-error').hidden = false;
+    document.getElementById('codeError').hidden = false;
     is_special = false;
 
-    let inputted_code = document.getElementById('id_code').value;
+    let inputted_code = document.getElementById('code').value;
     if (inputted_code.length === 10) {
         let response = await fetch(validate_code_url + "?" + new URLSearchParams({inputted_code}))
         let data = await response.json();
         if (data.is_exists) {
             if (data.is_unconsumed) {
-                document.getElementById('code-error').innerText = data.item_type;
-                document.getElementById('code-error').style.color = '#71d16d';
+                document.getElementById('codeError').innerText = data.item_type;
+                document.getElementById('codeError').style.color = '#71d16d';
                 if (data.item_type === "Special Serenade") is_special = true;
                 updatePeriodSelector();
                 return true;
             } else {
-                document.getElementById('code-error').innerText = "Code has already been used.";
-                document.getElementById('code-error').style.color = 'red';
+                document.getElementById('codeError').innerText = "Code has already been used.";
+                document.getElementById('codeError').style.color = 'red';
                 updatePeriodSelector();
                 return false;
             }
         } else {
-            document.getElementById('code-error').innerText = "Code doesn't exist.";
-            document.getElementById('code-error').style.color = 'red';
+            document.getElementById('codeError').innerText = "Code doesn't exist.";
+            document.getElementById('codeError').style.color = 'red';
             updatePeriodSelector();
             return false;
         }
     } else {
-        document.getElementById('code-error').innerText = "Code must be exactly 10 characters long.";
-        document.getElementById('code-error').style.color = 'red';
+        document.getElementById('codeError').innerText = "Code must be exactly 10 characters long.";
+        document.getElementById('codeError').style.color = 'red';
         updatePeriodSelector();
     }
 }
 
 function updatePeriodSelector() {
-    document.getElementById('period-form').hidden = !is_special;
+    document.getElementById('periodForm').hidden = !is_special;
 }
 
 function is_valid_period() {
     if (is_special) {
-        let period = document.getElementById('id_period').value;
+        let period = document.getElementById('period').value;
         if (period >= 1 && period <= 4) {
-            document.getElementById('period-error').hidden = true;
+            document.getElementById('periodError').hidden = true;
             return true;
         } else {
-            document.getElementById('period-error').hidden = false;
+            document.getElementById('periodError').hidden = false;
             return false;
         }
     } else {
@@ -113,22 +113,22 @@ function is_valid_period() {
 
 function is_valid_recipient() {
     // check if the user actually inputted someone
-    let recipient = document.getElementById('id_recipient_id').value;
+    let recipient = document.getElementById('recipient').value;
     if (recipient.length > 3) {
-        document.getElementById('recipient-error').hidden = true;
+        document.getElementById('recipientError').hidden = true;
         return true;
     } else {
-        document.getElementById('recipient-error').hidden = false;
+        document.getElementById('recipientError').hidden = false;
         return false;
     }
 }
 
 function is_valid_handwriting() {
     if (signaturePad.isEmpty()) {
-        document.getElementById('handwriting-error').hidden = false;
+        document.getElementById('handwritingError').hidden = false;
         return false;
     } else {
-        document.getElementById('handwriting-error').hidden = true;
+        document.getElementById('handwritingError').hidden = true;
         return true;
     }
 }
@@ -136,10 +136,10 @@ function is_valid_handwriting() {
 function is_valid_typed() {
     fabric_canvas.discardActiveObject();
     if (fabric_canvas_data.includes(`"text":"Placeholder"`)) {
-        document.getElementById('typed_error').hidden = false;
+        document.getElementById('typedError').hidden = false;
         return false;
     } else {
-        document.getElementById('typed_error').hidden = true;
+        document.getElementById('typedError').hidden = true;
         fabric_canvas.backgroundImage = null;
         return true;
     }
@@ -160,28 +160,28 @@ function dataURLToBlob(dataURL) {
 }
 
 // only allow letters in code input and automatically make uppercase
-document.getElementById('id_code').addEventListener('input', (event) => {
+document.getElementById('code').addEventListener('input', (event) => {
     let inputted_code = event.target.value;
     inputted_code = inputted_code.toUpperCase();
     inputted_code = inputted_code.replace(/[^a-z]/gi, '');
     event.target.value = inputted_code;
 });
 
-document.getElementById('id_code').addEventListener('input', is_valid_code);
+document.getElementById('code').addEventListener('input', is_valid_code);
 document.getElementById('redeem').addEventListener('click', submit_form);
 
 /* CHOOSING CONTENT MODE AND TEMPLATE*/
-document.getElementById('id_is_handwritten').addEventListener('change', () => {
+document.getElementById('is_handwritten').addEventListener('change', () => {
     if (event.target.value === "True") {
-        document.getElementById('form_typed').hidden = true;
-        document.getElementById('form_handwriting').hidden = false;
+        document.getElementById('formTyped').hidden = true;
+        document.getElementById('formHandwriting').hidden = false;
     } else {
-        document.getElementById('form_typed').hidden = false;
-        document.getElementById('form_handwriting').hidden = true;
+        document.getElementById('formTyped').hidden = false;
+        document.getElementById('formHandwriting').hidden = true;
     }
 })
 
-const students_selector = document.getElementById('id_recipient_id');
+const students_selector = document.getElementById('recipient');
 const option = document.createElement("option");
 option.value = "";
 students_selector.add(option);
@@ -191,7 +191,7 @@ for (let student of students) {
     students_selector.add(option);
 }
 
-const choices = new Choices('#id_recipient_id', {
+const choices = new Choices('#recipient', {
     placeholderValue: "Select a person...",
     searchPlaceholderValue: "Search for a person...",
     itemSelectText: '',
@@ -200,8 +200,8 @@ const choices = new Choices('#id_recipient_id', {
     searchResultLimit: 10,
 });
 
-const typed_template_selector = document.getElementById('id_typed_template');
-const handwritten_template_selector = document.getElementById('id_handwriting_template');
+const typed_template_selector = document.getElementById('typed_template');
+const handwritten_template_selector = document.getElementById('handwriting_template');
 for (let template of Object.keys(templates)) {
     const option_handwritten = document.createElement("option");
     option_handwritten.value = template;

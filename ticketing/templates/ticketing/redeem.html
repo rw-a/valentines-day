@@ -18,40 +18,40 @@
 <body>
     <div id="content">
         <h1>Redeem Your Ticket</h1>
-        <div class="input" id="code-form">
+        <div class="input">
             <h3>Code</h3>
             <p class="info">A string of 10 random letters. You buy this in person from the prefects.</p>
-            <input type="text" title="Ticket Code" name="code" maxlength="10" minlength="10" required id="id_code">
-            <p hidden class="info error" id="code-error"></p>
+            <input type="text" title="Ticket Code" maxlength="10" minlength="10" required id="code">
+            <p hidden class="info error" id="codeError"></p>
         </div>
-        <div hidden class="input" id="period-form">
+        <div hidden class="input" id="periodForm">
             <h3>Period</h3>
             <p class="info">Please select which period you would like the Special Serenade to happen in.</p>
-            <select name="period" id="id_period">
+            <select id="period">
               <option value="-">-</option>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
               <option value="4">4</option>
             </select>
-            <p hidden class="info error" id="period-error">*Required</p>
+            <p hidden class="info error" id="periodError">*Required</p>
         </div>
-        <div class="input" id="recipient-form">
+        <div class="input">
             <h3>Recipient</h3>
-            <select title="Select Recipient" name="recipient_id" id="id_recipient_id"></select>
-            <p hidden class="info error" id="recipient-error">*Required</p>
+            <select title="Select Recipient" id="recipient"></select>
+            <p hidden class="info error" id="recipientError">*Required</p>
         </div>
-        <div class="input" id="is_handwritten-form">
+        <div class="input">
             <h3>Handwrite or Type?</h3>
-            <select title="Choose whether handwritten or typed" name="is_handwritten" id="id_is_handwritten">
+            <select title="Choose whether handwritten or typed" id="is_handwritten">
               <option value="True">Handwrite</option>
               <option value="False">Type</option>
             </select>
         </div>
-        <div hidden class="input" id="form_typed">
-            <div class="input" id="typed_template_form">
+        <div hidden class="input" id="formTyped">
+            <div class="input">
                 <h3>Template</h3>
-                <select title="Typed Template" name="typed_template" id="id_typed_template">
+                <select title="Typed Template" id="typed_template">
                     <option value="Blank" selected>Blank</option>
                 </select>
             </div>
@@ -64,16 +64,16 @@
                 <p class="info">Edit the placeholder text to write your message.</p>
                 <canvas id="fabric" width="600" height="356" style="border: 1px solid black"></canvas>
             </div>
-            <p hidden class="info error" id="typed_error">*Don't forget to remove all the placeholder text first!</p>
+            <p hidden class="info error" id="typedError">*Don't forget to remove all the placeholder text first!</p>
             <div class="buttons">
                 <span class="img undo" id="fabric_undo"></span>
                 <span class="img clear" id="fabric_clear"></span>
             </div>
         </div>
-        <div class="input" id="form_handwriting">
+        <div class="input" id="formHandwriting">
             <div class="input">
                 <h3>Template</h3>
-                <select title="Handwriting Template" name="handwriting_template" id="id_handwriting_template">
+                <select title="Handwriting Template" id="handwriting_template">
                   <option value="Blank" selected>Blank</option>
                 </select>
             </div>
@@ -81,7 +81,7 @@
                 <h3>Message</h3>
                 <p class="info">Handwrite a message!</p>
                 <canvas id="signature_pad"></canvas>
-                <p hidden class="info error" id="handwriting-error">*Required</p>
+                <p hidden class="info error" id="handwritingError">*Required</p>
                 <div class="buttons">
                     <span class="img undo" id="signature_pad_undo"></span>
                     <span class="img clear" id="signature_pad_clear"></span>
@@ -89,7 +89,7 @@
             </div>
         </div>
         <p hidden id="errors" style="color: red"></p>
-        <div id="redeem-wrapper" class="centre" style="padding-top:20px">
+        <div class="centre" style="padding-top:20px">
             <span class="img" title="Redeem" id="redeem"></span>
             <p>Redeem Ticket</p>
         </div>
