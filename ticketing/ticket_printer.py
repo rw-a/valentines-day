@@ -177,7 +177,6 @@ class TicketsToPDF:
         stylesheet = getSampleStyleSheet()
         default_style = ParagraphStyle(name="Default", parent=stylesheet['Normal'], fontSize=10, leading=11,
                                        fontName="VDay")
-        left_align_small = ParagraphStyle(name="Left Small", parent=default_style, fontSize=7, leading=8)
         centre_align = ParagraphStyle(name="Center", parent=default_style, alignment=1)
         centre_align_small = ParagraphStyle(name="Center Small", parent=default_style, alignment=1, fontSize=8,
                                             leading=9)
@@ -210,7 +209,7 @@ class TicketsToPDF:
             item_type_table = self.create_div([[item_type_image], [item_type]], colWidths=self.CELL_WIDTH / 5)
 
             """Bottom Left: Delivery Group and Ticket Number"""
-            ticket_number = Paragraph(f"{self.pdf_name}: {page_index * self.NUM_CODES_PER_PAGE + index + 1}", left_align_small)
+            ticket_number = Paragraph(f"{self.pdf_name}: {page_index * self.NUM_CODES_PER_PAGE + index + 1}", default_style)
 
             bottom_row = self.create_div([[ticket_number, item_type_table]],
                                          ('LEFTPADDING', (0, 0), (-1, -1), 6 + self.PADDING),
