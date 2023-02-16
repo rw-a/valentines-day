@@ -37,7 +37,6 @@ async function initialise_template() {
         console.error(`Template ${template} not found.`);
     }
     await load_font();
-    save_fabric();
 }
 
 document.getElementById('typed_template').addEventListener('change', async (event) => {
@@ -52,7 +51,6 @@ let undo_history = [];
 function save_fabric() {    // saves the canvas state into undo history
     if (fabric_canvas_data) {
         undo_history.push(fabric_canvas_data);
-        document.getElementById('fabric_undo').disabled = false;
     }
     fabric_canvas_data = JSON.stringify(fabric_canvas);
 }
@@ -79,6 +77,7 @@ document.getElementById("fabric_undo").addEventListener("click", (event) => {
         fabric_canvas.clear();
         fabric_canvas.loadFromJSON(fabric_canvas_data, () => {
             fabric_canvas.renderAll();
+            document.getElementById('font_selector').value = fabric_canvas.item(0).fontFamily;;
             event.target.disabled = false;
         });
     }
@@ -96,8 +95,9 @@ async function load_font() {
     const font = document.getElementById("font_selector").value;
     let myFont = new FontFaceObserver(font);
     await myFont.load();
-    fabric_canvas.getObjects().forEach(function(object) {object.set("fontFamily", font);})
+    fabric_canvas.getObjects().forEach((object) => {object.set("fontFamily", font);})
     fabric_canvas.requestRenderAll();
+    save_fabric();
 }
 
 const font_selector = document.getElementById("font_selector");
