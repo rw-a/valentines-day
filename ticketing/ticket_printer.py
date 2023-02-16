@@ -180,7 +180,6 @@ class TicketsToPDF:
         centre_align = ParagraphStyle(name="Center", parent=default_style, alignment=1)
         centre_align_small = ParagraphStyle(name="Center Small", parent=default_style, alignment=1, fontSize=8,
                                             leading=9)
-        # right_align = ParagraphStyle(name="Right", parent=default_style, alignment=2)
         large_style = ParagraphStyle(name="Large", parent=default_style, alignment=1,
                                      fontSize=max(12, round(16 - self.PADDING / 3)),
                                      leading=max(13, round(18 - self.PADDING / 3)))
@@ -189,7 +188,7 @@ class TicketsToPDF:
         for index, ticket in enumerate(tickets):
             """Top Left: Periods"""
             period_classes = [f"P1: {ticket.p1}", f"P2: {ticket.p2}", f"P3: {ticket.p3}", f"P4: {ticket.p4}"]
-            period_classes[ticket.period - 1] += " *"
+            period_classes[ticket.period - 1] += " *"   # this is a heart in the Chasing Hearts font
             periods = Paragraph("<br/>".join(period_classes), default_style)
             periods = self.create_div([[periods]],
                                       ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
