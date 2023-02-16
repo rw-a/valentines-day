@@ -13,7 +13,7 @@
     <div id="content">
         <form method="post" enctype="multipart/form-data"> {% csrf_token %}
             <h1>Load Timetables</h1>
-            <p class="info">Warning: this page probably won't work on mobile devices.</p>
+            <p class="info">Warning: this page probably won't work on mobile devices. Anything you upload here will override all previous uploads, so ensure that you upload all year levels in one go.</p>
             <h3>Upload CSV Files</h3>
             <div id="drop_area">
                 <img id="upload" title="Upload" src="{% static 'icons/upload.svg' %}">
