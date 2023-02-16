@@ -15,6 +15,14 @@
     background-image: url("../icons/undo_thick.svg");
 }
 
+.reset {
+    background-image: url("../icons/reset.svg");
+}
+
+.reset:hover {
+    background-image: url("../icons/reset_thick.svg");
+}
+
 .clear {
     background-image: url("../icons/delete.svg");
 }
