@@ -55,7 +55,6 @@ function save_fabric() {    // saves the canvas state into undo history
         document.getElementById('fabric_undo').disabled = false;
     }
     fabric_canvas_data = JSON.stringify(fabric_canvas);
-    console.log(fabric_canvas_data);
 }
 
 // reset button
@@ -72,16 +71,15 @@ document.getElementById("fabric_clear").addEventListener("click", () => {
 });
 
 // undo button
-document.getElementById("fabric_undo").addEventListener("click", () => {
+document.getElementById("fabric_undo").addEventListener("click", (event) => {
     document.getElementById('tooManyTextBoxesError').hidden = true;
     if (undo_history.length > 0) {
         fabric_canvas_data = undo_history.pop();
-        console.log(fabric_canvas_data);
-        this.disabled = true;
+        event.target.disabled = true;
         fabric_canvas.clear();
-        fabric_canvas.loadFromJSON(fabric_canvas_data, function() {
+        fabric_canvas.loadFromJSON(fabric_canvas_data, () => {
             fabric_canvas.renderAll();
-            this.disabled = false;
+            event.target.disabled = false;
         });
     }
 });
