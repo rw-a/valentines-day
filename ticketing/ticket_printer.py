@@ -1,6 +1,5 @@
 import cairosvg
 import io
-import PIL
 import random
 from lxml import etree
 from reportlab.lib.pagesizes import A4
@@ -17,9 +16,9 @@ from pypdf import PdfReader, PdfWriter
 
 if __name__ == "__main__":
     STUDENTS = {"Jeff Bezos [7A]": {"Name": "Jeff Bezos"}}
-    from constants import DirectoryLocations, PICKUP_LINES, TEMPLATES
+    from constants import DirectoryLocations, PICKUP_LINES, TEMPLATES, FONTS
 else:
-    from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES, TEMPLATES
+    from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES, TEMPLATES, FONTS
 
 
 class TicketsToPDF:
@@ -53,8 +52,9 @@ class TicketsToPDF:
         self.CANVAS_HEIGHT = 358
         self.RATIO = 4      # increases DPI by this ratio
 
-        """Load Font"""
-        pdfmetrics.registerFont(TTFont('VDay', f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
+        """Load Fonts"""
+        for font, font_file in FONTS:
+            pdfmetrics.registerFont(TTFont(font, f'{DirectoryLocations.STATIC}/fonts/{font_file}.ttf'))
 
         """Load Templates"""
         self.TEMPLATES = {}

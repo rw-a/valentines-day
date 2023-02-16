@@ -136,17 +136,11 @@ for (let font of Object.keys(fonts)) {
     option.value = font;
     font_selector.appendChild(option);
 
-    const fontFilename = fonts[font];
-    let format;
-    if (fontFilename.endsWith("woff2")) {
-        format = "format('woff2')"
-    } else if (fontFilename.endsWith("woff")) {
-        format = "format('woff')"
-    }
     fontStyles.appendChild(document.createTextNode(`\
         @font-face {\
             font-family: '${font}';\
-            src: url('${static_path}fonts/${fontFilename}') ${format};\
+            src: url('${static_path}fonts/${fonts[font]}.woff2') format('woff2'),\
+                 url('${static_path}fonts/${fonts[font]}.ttf');\
         }\
     `));
 }
