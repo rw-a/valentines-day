@@ -3,6 +3,10 @@
     justify-content: flex-end;
 }
 
+.buttons.typed {
+    margin-top: 2px;
+}
+
 .undo {
     background-image: url("../icons/undo.svg");
 }
@@ -19,15 +23,24 @@
     background-image: url("../icons/delete_thick.svg");
 }
 
+.add {
+    background-image: url("../icons/add_text.svg");
+    margin-right: auto;
+}
+
+.add:hover {
+    background-image: url("../icons/add_text_thick.svg");
+}
+
 #redeem {
     width: 50px;
     height: 50px;
-    background-image: url("../icons/add.svg");
+    background-image: url("../icons/redeem.svg");
     background-size: 50px 50px;
 }
 
 #redeem:hover {
-    background-image: url("../icons/add_thick.svg");
+    background-image: url("../icons/redeem_thick.svg");
 }
 
 #redeem > img {

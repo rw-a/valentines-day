@@ -55,11 +55,13 @@ function save_fabric() {       // this should not be called by itself. only call
 
 // clear button
 document.getElementById("fabric_clear").addEventListener("click", () => {
+    document.getElementById('tooManyTextBoxesError').hidden = true;
     initialise_template();
 });
 
 // undo button
 document.getElementById("fabric_undo").addEventListener("click", () => {
+    document.getElementById('tooManyTextBoxesError').hidden = true;
     if (undo_history.length > 0) {
         fabric_canvas_data = undo_history.pop();
         this.disabled = true;
@@ -125,3 +127,76 @@ font_selector.onchange = function() {
 }
 
 initialise_template();
+
+/* Delete text box button */
+const deleteImg = document.createElement('img');
+deleteImg.src = `${static_path}icons/cancel.svg`;
+function renderIcon(icon) {
+    return function renderIcon(ctx, left, top, styleOverride, fabricObject) {
+      let size = this.cornerSize;
+      ctx.save();
+      ctx.translate(left, top);
+      ctx.rotate(fabric.util.degreesToRadians(fabricObject.angle));
+      ctx.drawImage(icon, -size/2, -size/2, size, size);
+      ctx.restore();
+    }
+}
+
+function deleteObject(eventData, transform) {
+    let target = transform.target;
+    let canvas = target.canvas;
+    canvas.remove(target);
+    canvas.requestRenderAll();
+    document.getElementById('tooManyTextBoxesError').hidden = true;
+}
+
+fabric.Object.prototype.controls.deleteControl = new fabric.Control({
+    x: 0.5,
+    y: -0.5,
+    offsetY: -16,
+    offsetX: 16,
+    cursorStyle: 'pointer',
+    mouseUpHandler: deleteObject,
+    render: renderIcon(deleteImg),
+    cornerSize: 20
+});
+
+/* Add text box button */
+document.getElementById('fabric_add').addEventListener('click', () => {
+    const objects = fabric_canvas.getObjects();
+    if (objects.length >= 10) {
+        document.getElementById('tooManyTextBoxesError').hidden = false;
+        return;
+    }
+
+    // default coordinates to place new text boxes
+    const left_default = 400;
+    const top_default = 20;
+    let left = left_default;
+    let top = top_default;
+
+    // determine a place which is free
+    let spaceAvailable = false;
+    while (!spaceAvailable) {
+        spaceAvailable = true;
+        for (let object of objects) {
+            if (object.left === left && object.top === top) {
+                spaceAvailable = false;
+                top += 40;
+                if (top > 300) {
+                    // if not enough vertical space, move left and restart
+                    left -= 40;
+                    top = top_default;
+                    if (left <= 20) {
+                        // if entire board is full, restart entirely
+                        left = left_default;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    fabric_canvas.add(new fabric.IText('Placeholder', {"left": left, "top": top, "fontSize": 30, "fontFamily": document.getElementById("font_selector").value}));
+    save_fabric();
+});
