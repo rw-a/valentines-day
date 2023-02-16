@@ -22,7 +22,7 @@ function initialise_template() {
         ];
         fabric_canvas.add(...texts);
     } else if (Object.keys(templates).includes(template)) {
-        const filename = (templates[template].filenameFabric) ? templates[template].filenameFabric : templates[template].filename;
+        const filename = (templates[template].filenameRastered) ? templates[template].filenameRastered : templates[template].filename;
         const filePath = `${static_path}templates/${filename}`;
         load_background_image(filePath);
         let texts = [];

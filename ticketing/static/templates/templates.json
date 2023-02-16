@@ -1,7 +1,7 @@
 {
   "Classic Template": {
     "filename": "classic_template.svg",
-    "filenameFabric": "classic_template_fabric.svg",
+    "filenameRastered": "classic_template_rastered.svg",
     "textPosition": [
         {"left": 18, "top": 60, "fontSize": 30},
         {"left": 170, "top": 164, "fontSize": 30},
