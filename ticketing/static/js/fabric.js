@@ -1,5 +1,5 @@
 /* Loading Template */
-function load_background_image(template_src, default_font) {
+function load_background_image(template_src) {
     fabric.Image.fromURL(template_src, function(img) {
         fabric_canvas.setBackgroundImage(img, fabric_canvas.renderAll.bind(fabric_canvas), {
             scaleX: fabric_canvas.width / img.width,
@@ -22,9 +22,11 @@ function initialise_template() {
         ];
         fabric_canvas.add(...texts);
     } else if (Object.keys(templates).includes(template)) {
-        load_background_image(`${static_path}templates/${templates[template].filename}`, templates[template].defaultfont);
+        const filename = (templates[template].filenameFabric) ? templates[template].filenameFabric : templates[template].filename;
+        const filePath = `${static_path}templates/${filename}`;
+        load_background_image(filePath);
         let texts = [];
-        for (let text_info of templates[template].textposition) {
+        for (let text_info of templates[template].textPosition) {
             texts.push(new fabric.IText('Placeholder', text_info));
         }
         fabric_canvas.add(...texts);

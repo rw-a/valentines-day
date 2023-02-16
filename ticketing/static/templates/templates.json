@@ -1,7 +1,8 @@
 {
   "Classic Template": {
     "filename": "classic_template.svg",
-    "textposition": [
+    "filenameFabric": "classic_template_fabric.svg",
+    "textPosition": [
         {"left": 18, "top": 60, "fontSize": 30},
         {"left": 170, "top": 164, "fontSize": 30},
         {"left": 102, "top": 212, "fontSize": 30},
