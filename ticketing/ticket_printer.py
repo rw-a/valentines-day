@@ -72,17 +72,17 @@ class TicketsToPDF:
         chocolate_image.setProperties({"renderScale": 0.033})
         self.ITEM_IMAGES["Chocolate"] = chocolate_image
 
-        chocolate_image = svg2rlg(f'{DirectoryLocations.STATIC}/item_types/rose.svg')
-        chocolate_image.setProperties({"renderScale": 0.043})
-        self.ITEM_IMAGES["Rose"] = chocolate_image
+        rose_image = svg2rlg(f'{DirectoryLocations.STATIC}/item_types/rose.svg')
+        rose_image.setProperties({"renderScale": 0.043})
+        self.ITEM_IMAGES["Rose"] = rose_image
 
-        chocolate_image = svg2rlg(f'{DirectoryLocations.STATIC}/item_types/serenade.svg')
-        chocolate_image.setProperties({"renderScale": 0.025})
-        self.ITEM_IMAGES["Serenade"] = chocolate_image
+        serenade_image = svg2rlg(f'{DirectoryLocations.STATIC}/item_types/serenade.svg')
+        serenade_image.setProperties({"renderScale": 0.025})
+        self.ITEM_IMAGES["Serenade"] = serenade_image
 
-        chocolate_image = svg2rlg(f'{DirectoryLocations.STATIC}/item_types/special_serenade.svg')
-        chocolate_image.setProperties({"renderScale": 0.08})
-        self.ITEM_IMAGES["Special Serenade"] = chocolate_image
+        special_serenade_image = svg2rlg(f'{DirectoryLocations.STATIC}/item_types/special_serenade.svg')
+        special_serenade_image.setProperties({"renderScale": 0.09})
+        self.ITEM_IMAGES["Special Serenade"] = special_serenade_image
 
         """Build PDF"""
         self.generate_background_pdf()
