@@ -46,7 +46,7 @@ document.getElementById("signature_pad_undo").addEventListener("click", () => {
 document.getElementById('handwriting_template').addEventListener('change', (event) => {
     let template = event.target.value;
     if (Object.keys(templates).includes(template)) {
-        const filename = (templates[template].filenameRastered) ? templates[template].filenameRastered : templates[template].filename;
+        const filename = (templates[template].filenameRedeem) ? templates[template].filenameRedeem : templates[template].filename;
         const filePath = `${static_path}templates/${filename}`;
         document.getElementById('signature_pad').style.background = `url("${filePath}") 0% 0%/600px 356px`;
     } else {
