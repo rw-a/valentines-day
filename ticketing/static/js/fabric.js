@@ -43,6 +43,14 @@ document.getElementById('typed_template').addEventListener('change', async (even
     await initialise_template();
 });
 
+const templateFilenameMap = {};
+for (let template of Object.keys(templates)) {
+    templateFilenameMap[templates[template].filename] = template;
+    if (templates[template].filenameRedeem) {
+        templateFilenameMap[templates[template].filenameRedeem] = template;
+    }
+}
+
 
 /* Undo, Reset & Clear */
 let fabric_canvas_data;
@@ -77,7 +85,27 @@ document.getElementById("fabric_undo").addEventListener("click", (event) => {
         fabric_canvas.clear();
         fabric_canvas.loadFromJSON(fabric_canvas_data, () => {
             fabric_canvas.renderAll();
-            document.getElementById('font_selector').value = fabric_canvas.item(0).fontFamily;;
+
+            // update font selector to match canvas
+            document.getElementById('font_selector').value = fabric_canvas.item(0).fontFamily;
+
+            // update template selector to match canvas
+            let template_name;
+            if (fabric_canvas.backgroundImage) {
+                let template_src = fabric_canvas.backgroundImage.src;
+                template_src = template_src.substring(template_src.lastIndexOf("/") + 1);
+
+                if (Object.keys(templateFilenameMap).includes(template_src)) {
+                    template_name = templateFilenameMap[template_src];
+                } else {
+                    template_name = document.getElementById('typed_template').value;    // does nothing
+                    console.error(`Tried to restore unknown template loaded from ${template_src}.`);
+                }
+            } else {
+                template_name = "Blank";
+            }
+            document.getElementById('typed_template').value = template_name;
+
             event.target.disabled = false;
         });
     }
