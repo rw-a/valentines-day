@@ -140,7 +140,7 @@ for (let font of Object.keys(fonts)) {
         @font-face {\
             font-family: '${font}';\
             src: url('${static_path}fonts/${fonts[font]}.woff2') format('woff2'),\
-                 url('${static_path}fonts/${fonts[font]}.ttf');\
+                 url('${static_path}fonts/${fonts[font].replace(" ", "\ ")}.ttf');\
         }\
     `));
 }
