@@ -147,8 +147,7 @@ function is_valid_typed() {
     // typing is valid if there is at least one text box that isn't placeholder text
     for (let object of fabric_canvas.getObjects()) {
         if (object.text !== PLACEHOLDER_TEXT) {
-            document.getElementById('typedError').hidden = true;
-            document.getElementById('tooManyTextBoxesError').hidden = true;
+            clearFabricErrors();
             return true;
         }
     }

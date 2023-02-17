@@ -3,6 +3,7 @@ const PLACEHOLDER_TEXT = "Type something...";
 const PLACEHOLDER_TEXT_OPACITY = 0.25;
 const PLACEHOLDER_TEXT_WIDTH = 220;
 const MIN_SCALE_LIMIT = 0.6;
+const ALLOWED_CHARACTERS = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&'()*,-./:;<=>?@[]_{|}`;
 
 /* Loading Template */
 function load_background_image(template_src) {
@@ -80,20 +81,20 @@ function save_fabric() {    // saves the canvas state into undo history
 
 // reset button
 document.getElementById("fabric_reset").addEventListener("click", async () => {
-    document.getElementById('tooManyTextBoxesError').hidden = true;
+    clearFabricErrors();
     await initialise_template();
 });
 
 // clear button
 document.getElementById("fabric_clear").addEventListener("click", () => {
-    document.getElementById('tooManyTextBoxesError').hidden = true;
+    clearFabricErrors();
     fabric_canvas.remove(...fabric_canvas.getObjects());  // delete all objects but not background
     save_fabric();
 });
 
 // undo button
 document.getElementById("fabric_undo").addEventListener("click", (event) => {
-    document.getElementById('tooManyTextBoxesError').hidden = true;
+    clearFabricErrors();
     if (undo_history.length > 0) {
         fabric_canvas_data = undo_history.pop();
         event.target.disabled = true;
@@ -186,7 +187,7 @@ function deleteObject(eventData, transform) {
     let canvas = target.canvas;
     canvas.remove(target);
     canvas.requestRenderAll();
-    document.getElementById('tooManyTextBoxesError').hidden = true;
+    clearFabricErrors();
     save_fabric();
 }
 
@@ -241,6 +242,12 @@ document.getElementById('fabric_add').addEventListener('click', () => {
     save_fabric();
 });
 
+function clearFabricErrors() {
+    document.getElementById('tooManyTextBoxesError').hidden = true;
+    document.getElementById('weirdCharactersError').hidden = true;
+    document.getElementById('typedError').hidden = true;
+}
+
 /* Implement Placeholder Text */
 function onPlaceholderTextDeselect(event) {
     if (Object.keys(event).includes("deselected")) {
@@ -250,16 +257,21 @@ function onPlaceholderTextDeselect(event) {
                 element.set({text: PLACEHOLDER_TEXT, opacity: PLACEHOLDER_TEXT_OPACITY});
             } else if (element.text !== PLACEHOLDER_TEXT) {
                 element.set({opacity: 1, width: 0});    // setting with to zero makes textbox width collapse to text
+                for (let char of element.text) {
+                    if (!ALLOWED_CHARACTERS.includes(char)) {
+                        // only shows warning, won't prevent redemption
+                        document.getElementById('weirdCharactersError').hidden = false;
+                    }
+                }
             }
-            fabric_canvas.requestRenderAll();
         }
     }
 }
 
 function onPlaceholderTextEditing(event) {
-    console.log(event);
     if (event.target === null) return;
     if (event.target === fabric_canvas.getActiveObject()) {
+        document.getElementById('weirdCharactersError').hidden = true;
         const element = event.target;
         if (element.text === PLACEHOLDER_TEXT) {
             element.set({text: "", opacity: 1});
