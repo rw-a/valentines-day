@@ -283,22 +283,22 @@ class TicketsToPDF:
             ticket_backs.append(vertically_separated_table)
         return ticket_backs
 
-    @staticmethod
-    def split_list(ticket_codes: list, split_size: int, reverse: bool = False) -> list:
+    def split_list(self, ticket_codes: list, split_size: int, reverse: bool = False) -> list:
         # splits a list into smaller lists of a given size
-        if reverse:
-            list_split_by_size = []
-            for i in range(0, len(ticket_codes), split_size):
-                list_slice = ticket_codes[i: i + split_size]
-                if split_size == 2 and len(list_slice) < split_size:
-                    # if an odd number of pages, add a placeholder to ensure front/back side alignment
-                    list_slice_reversed = ["", *list_slice]
-                else:
-                    list_slice_reversed = list(reversed(list_slice))
-                list_split_by_size.append(list_slice_reversed)
-            return list_split_by_size
-        else:
-            return [ticket_codes[i: i + split_size] for i in range(0, len(ticket_codes), split_size)]
+        list_split_by_size = []
+        for i in range(0, len(ticket_codes), split_size):
+            list_slice = ticket_codes[i: i + split_size]
+
+            if split_size == self.NUM_COLUMNS and (len(list_slice) % self.NUM_COLUMNS) != 0:
+                # if split size equals NUM_COLUMNS, it's splitting into rows, otherwise it's into pages
+                # not enough tickets to fill row, add placeholders to ensure front/back side alignment
+                list_slice = [*list_slice, *[""] * (self.NUM_COLUMNS - (len(list_slice) % self.NUM_COLUMNS))]
+
+            if reverse:
+                list_slice = list(reversed(list_slice))
+
+            list_split_by_size.append(list_slice)
+        return list_split_by_size
 
     @staticmethod
     def scale_image(image: Image, width: float, height: float = None) -> Image:
