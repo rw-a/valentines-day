@@ -33,7 +33,11 @@ ALLOWED_HOSTS = [os.getenv("DOMAIN")]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 
+
+# Environment Variables
+
 CONTACT_EMAIL = os.getenv("CONTACT_EMAIL")
+ORG_NAME = os.getenv("ORG_NAME")
 
 
 # Application definition

@@ -7,6 +7,7 @@ from .constants import DirectoryLocations, STUDENTS
 from .models import Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup
 from .code_generator import CodesToPDF, generate_codes
 from .ticket_sorter import sort_tickets
+from vdaywebsite.settings import ORG_NAME
 import os
 import shutil
 import random
@@ -269,5 +270,5 @@ admin.site.register(TicketCodePDF, TicketCodePDFAdmin)
 admin.site.register(SortTicketsRequest, SortTicketAdmin)
 admin.site.register(DeliveryGroup, DeliveryGroupAdmin)
 
-admin.site.site_header = "BSHS Valentine's Day Ticketing System"
-admin.site.site_title = "BSHS"
+admin.site.site_header = f"{ORG_NAME} Valentine's Day Ticketing System"
+admin.site.site_title = ORG_NAME
