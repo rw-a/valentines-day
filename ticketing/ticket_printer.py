@@ -54,12 +54,10 @@ class TicketsToPDF:
         self.CANVAS_HEIGHT = 358
 
         self.VECTOR_MESSAGES = True
-        self.REMOVE_FONT_SPACES = False      # removes spaces in font names. new tickets don't need this
         self.RATIO = 4      # increases DPI by this ratio. only used if vector messages is false
 
         """Load Fonts"""
-        for font, font_file in FONTS.items():
-            pdfmetrics.registerFont(TTFont(font, f'{DirectoryLocations.STATIC}/fonts/{font_file}.ttf'))
+        pdfmetrics.registerFont(TTFont("Chasing Hearts", f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
 
         """Load Templates"""
         self.TEMPLATES = {}
@@ -171,13 +169,6 @@ class TicketsToPDF:
             # check if message is blank
             if float(xml_file.get('width')) > 0 and float(xml_file.get('height')):
                 if self.VECTOR_MESSAGES:
-                    # if typed, remove spaces in font name
-                    if self.REMOVE_FONT_SPACES and float(xml_file.get('width')) < self.CANVAS_WIDTH:
-                        for child in xml_file.iter("{http://www.w3.org/2000/svg}text"):     # to add svg prefix to tags
-                            font = child.get("font-family")
-                            font = font.replace(" ", "")
-                            child.set("font-family", font)
-
                     xml_file.set('width', str(self.CELL_WIDTH))
                     xml_file.set('height', str(self.CELL_HEIGHT))
 
