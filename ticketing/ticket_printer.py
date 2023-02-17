@@ -10,6 +10,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus.tables import Table, TableStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.graphics import renderPM
 from svglib.svglib import svg2rlg
 from pypdf import PdfReader, PdfWriter
 
@@ -17,6 +18,7 @@ from pypdf import PdfReader, PdfWriter
 if __name__ == "__main__":
     STUDENTS = {"Jeff Bezos [7A]": {"Name": "Jeff Bezos"}}
     from constants import DirectoryLocations, PICKUP_LINES, TEMPLATES, FONTS
+    random.seed(0)
 else:
     from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES, TEMPLATES, FONTS
 
@@ -47,13 +49,23 @@ class TicketsToPDF:
         self.CELL_WIDTH = self.TABLE_WIDTH / self.NUM_COLUMNS
         self.CELL_HEIGHT = self.TABLE_HEIGHT / self.NUM_ROWS
 
+        self.VECTOR_MESSAGES = False         # currently allows messages to bleed into other tickets
+        self.REMOVE_FONT_SPACES = False      # removes spaces in font names. new tickets don't need this
+
         # dimensions of canvas from signature pad in pixels
         self.CANVAS_WIDTH = 602
         self.CANVAS_HEIGHT = 358
         self.RATIO = 4      # increases DPI by this ratio
 
         """Load Fonts"""
-        for font, font_file in FONTS:
+        # pdfmetrics.registerFont(TTFont("Chasing Hearts", f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
+        for font, font_file in FONTS.items():
+            """afm = f'{DirectoryLocations.STATIC}/fonts/{font_file}.afm'
+            pfb = f'{DirectoryLocations.STATIC}/fonts/{font_file}.pfb'
+            face = pdfmetrics.EmbeddedType1Face(afm, pfb)
+            pdfmetrics.registerTypeFace(face)
+            just_font = pdfmetrics.Font(font.replace(" ", ""), font.replace(" ", ""), 'WinAnsiEncoding')
+            pdfmetrics.registerFont(just_font)"""
             pdfmetrics.registerFont(TTFont(font, f'{DirectoryLocations.STATIC}/fonts/{font_file}.ttf'))
 
         """Load Templates"""
@@ -152,12 +164,36 @@ class TicketsToPDF:
                 # change the view box to the dimensions of the canvas
                 xml_file.set('viewBox', f'0 0 {self.CANVAS_WIDTH} {self.CANVAS_HEIGHT}')
 
-            img_bytes = io.BytesIO(cairosvg.svg2png(
-                bytestring=etree.tostring(xml_file), write_to=None,
-                output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO))
+            # check if message is blank
+            if float(xml_file.get('width')) > 0 and float(xml_file.get('height')):
+                if self.VECTOR_MESSAGES:
+                    # if typed, remove spaces in font name
+                    if self.REMOVE_FONT_SPACES and float(xml_file.get('width')) < self.CANVAS_WIDTH:
+                        for child in xml_file.iter("{http://www.w3.org/2000/svg}text"):     # to add svg prefix to tags
+                            font = child.get("font-family")
+                            font = font.replace(" ", "")
+                            child.set("font-family", font)
 
-            image = Image(img_bytes)
-            self.scale_image(image, self.CELL_WIDTH - 2 * self.PADDING, self.CELL_HEIGHT - 2 * self.PADDING)
+                    xml_file.set('width', str(self.CELL_WIDTH))
+                    xml_file.set('height', str(self.CELL_HEIGHT))
+
+                    image = svg2rlg(io.StringIO(etree.tostring(xml_file).decode('utf-8')))
+                    image.setProperties({"hAlign": "CENTER", "vAlign": "MIDDLE"})
+
+                    """Legacy method to scale SVG to correct size
+                    scale_factor = min(self.CELL_WIDTH / float(xml_file.get('width')),
+                                       self.CELL_HEIGHT / float(xml_file.get('height')))
+                    image.setProperties({"renderScale": scale_factor, "hAlign": "CENTER", "vAlign": "MIDDLE"})"""
+                else:
+                    img_bytes = io.BytesIO(cairosvg.svg2png(
+                        bytestring=etree.tostring(xml_file), write_to=None,
+                        output_width=self.CANVAS_WIDTH * self.RATIO, output_height=self.CANVAS_HEIGHT * self.RATIO))
+
+                    image = Image(img_bytes)
+                    self.scale_image(image, self.CELL_WIDTH - 2 * self.PADDING, self.CELL_HEIGHT - 2 * self.PADDING)
+            else:
+                print(f"Warning: Ticket {ticket.pk} is blank.")
+                image = ""
 
             images.append(image)
 
@@ -176,7 +212,7 @@ class TicketsToPDF:
     def create_delivery_info(self, tickets: list, page_index: int) -> list:
         stylesheet = getSampleStyleSheet()
         default_style = ParagraphStyle(name="Default", parent=stylesheet['Normal'], fontSize=10, leading=11,
-                                       fontName="VDay")
+                                       fontName="Chasing Hearts")
         centre_align = ParagraphStyle(name="Center", parent=default_style, alignment=1)
         centre_align_small = ParagraphStyle(name="Center Small", parent=default_style, alignment=1, fontSize=8,
                                             leading=9)
@@ -320,7 +356,7 @@ def main():
 
     tickets = []
     for index, file in enumerate(glob(f"{DirectoryLocations().REDEEMED_TICKETS}/*.svg")):
-        if index >= 20:
+        if index >= 50:
             break
         tickets.append(Ticket(file.split("/")[-1].split(".svg")[0]))
 
