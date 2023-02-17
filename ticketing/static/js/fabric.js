@@ -249,7 +249,7 @@ function onPlaceholderTextDeselect(event) {
             if (element.text === "") {
                 element.set({text: PLACEHOLDER_TEXT, opacity: PLACEHOLDER_TEXT_OPACITY});
             } else if (element.text !== PLACEHOLDER_TEXT) {
-                element.set({opacity: 1});
+                element.set({opacity: 1, width: 0});    // setting with to zero makes textbox width collapse to text
             }
             fabric_canvas.requestRenderAll();
         }
