@@ -103,7 +103,9 @@ document.getElementById("fabric_undo").addEventListener("click", (event) => {
             fabric_canvas.renderAll();
 
             // update font selector to match canvas
-            document.getElementById('font_selector').value = fabric_canvas.item(0).fontFamily;
+            if (fabric_canvas.item(0) !== undefined) {
+                document.getElementById('font_selector').value = fabric_canvas.item(0).fontFamily;
+            }
 
             // update template selector to match canvas
             let template_name;
