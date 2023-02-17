@@ -256,7 +256,7 @@ function onPlaceholderTextDeselect(event) {
             if (element.text === "") {
                 element.set({text: PLACEHOLDER_TEXT, opacity: PLACEHOLDER_TEXT_OPACITY});
             } else if (element.text !== PLACEHOLDER_TEXT) {
-                element.set({opacity: 1, width: 0});    // setting with to zero makes textbox width collapse to text
+                element.set({opacity: 1, width: 50});    // makes textbox collapse to text if longer than this width
                 for (let char of element.text) {
                     if (!ALLOWED_CHARACTERS.includes(char)) {
                         // only shows warning, won't prevent redemption
