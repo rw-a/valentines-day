@@ -16,23 +16,31 @@ function load_background_image(template_src) {
 async function initialise_template() {
     fabric_canvas.clear();
 
-    let template = document.getElementById('typed_template').value;
-    if (template === "Blank") {
-        const texts = [
-            new fabric.IText('Placeholder', {"left": 18, "top": 20, "fontSize": 30}),
-            new fabric.IText('Placeholder', {"left": 18, "top": 120, "fontSize": 30}),
-            new fabric.IText('Placeholder', {"left": 18, "top": 220, "fontSize": 30})
-        ];
-        fabric_canvas.add(...texts);
-    } else if (Object.keys(templates).includes(template)) {
-        const filename = (templates[template].filenameRedeem) ? templates[template].filenameRedeem : templates[template].filename;
-        const filePath = `${static_path}templates/${filename}`;
-        await load_background_image(filePath);
-        let texts = [];
-        for (let text_info of templates[template].textPosition) {
-            texts.push(new fabric.IText('Placeholder', text_info));
+    const template = document.getElementById('typed_template').value;
+
+    if (template === "Blank" || Object.keys(templates).includes(template)) {
+        let textBoxOptions;
+        if (template === "Blank") {
+            textBoxOptions = [
+                {"left": 18, "top": 20, "fontSize": 30},
+                {"left": 18, "top": 120, "fontSize": 30},
+                {"left": 18, "top": 220, "fontSize": 30},
+            ];
+        } else {
+            const filename = (templates[template].filenameRedeem) ? templates[template].filenameRedeem : templates[template].filename;
+            const filePath = `${static_path}templates/${filename}`;
+            await load_background_image(filePath);
+            textBoxOptions = templates[template].textPosition;
         }
-        fabric_canvas.add(...texts);
+
+        const textBoxes = [];
+        for (let textBoxOption of textBoxOptions) {
+            textBoxOption["minScaleLimit"] = 0.6;
+            const textBox = new fabric.Textbox('Placeholder', textBoxOption);
+            textBoxes.push(textBox);
+        }
+
+        fabric_canvas.add(...textBoxes);
     } else {
         console.error(`Template ${template} not found.`);
     }
@@ -222,6 +230,6 @@ document.getElementById('fabric_add').addEventListener('click', () => {
         }
     }
 
-    fabric_canvas.add(new fabric.IText('Placeholder', {"left": left, "top": top, "fontSize": 30, "fontFamily": document.getElementById("font_selector").value}));
+    fabric_canvas.add(new fabric.Textbox('Placeholder', {"left": left, "top": top, "fontSize": 30, "minScaleLimit": 0.6, "fontFamily": document.getElementById("font_selector").value}));
     save_fabric();
 });
