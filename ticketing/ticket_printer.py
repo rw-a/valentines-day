@@ -53,8 +53,8 @@ class TicketsToPDF:
         self.CANVAS_WIDTH = 602
         self.CANVAS_HEIGHT = 358
 
-        self.VECTOR_MESSAGES = True     # ticket messages are rendered as svg files instead of being rasterized
-        self.RATIO = 4      # increases DPI by this ratio. only used if vector messages is false
+        self.VECTOR_MESSAGES = True     # render ticket messages as svg files instead of being rasterized (slower)
+        self.RATIO = 4                  # increases DPI by this ratio. only used if vector messages is false
 
         """Load Fonts"""
         pdfmetrics.registerFont(TTFont("Chasing Hearts", f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
@@ -96,9 +96,12 @@ class TicketsToPDF:
         pdf = PdfWriter()
         for index, page in enumerate(self.background_pdf.pages):
             if index % 2 == 0:
+                page_num = index // 2
                 if self.VECTOR_MESSAGES:
-                    for message_index, message_pdf in enumerate(
-                            self.message_pdfs[index * self.NUM_CODES_PER_PAGE: (index + 1) * self.NUM_CODES_PER_PAGE]):
+                    for message_index, message_pdf in enumerate(self.message_pdfs[page_num * self.NUM_CODES_PER_PAGE: (page_num + 1) * self.NUM_CODES_PER_PAGE]):
+                        if message_pdf is None:
+                            continue
+
                         message_index = message_index % self.NUM_CODES_PER_PAGE
                         message_page = PdfReader(message_pdf).pages[0]
                         transformation = Transformation()\
@@ -107,7 +110,7 @@ class TicketsToPDF:
                                        self.TABLE_HEIGHT - ((message_index // 2 + 1) * self.CELL_HEIGHT) + self.PADDING)
                         page.merge_transformed_page(message_page, transformation)
                 else:
-                    page.merge_page(self.foreground_pdf.pages[index // 2])
+                    page.merge_page(self.foreground_pdf.pages[page_num])
             page.compress_content_streams()
             pdf.add_page(page)
 
@@ -191,6 +194,10 @@ class TicketsToPDF:
             else:
                 print(f"[Ticket Printer] Warning: Ticket {ticket.pk} is blank.")
                 image = ""
+
+                # add a placeholder
+                if self.VECTOR_MESSAGES:
+                    self.message_pdfs.append(None)
 
             images.append(image)
 
