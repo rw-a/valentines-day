@@ -1,3 +1,9 @@
+/* Variables */
+const PLACEHOLDER_TEXT = "Type something...";
+const PLACEHOLDER_TEXT_OPACITY = 0.25;
+const PLACEHOLDER_TEXT_WIDTH = 220;
+const MIN_SCALE_LIMIT = 0.6;
+
 /* Loading Template */
 function load_background_image(template_src) {
     return new Promise((resolve) => {
@@ -35,9 +41,10 @@ async function initialise_template() {
 
         const textBoxes = [];
         for (let textBoxOption of textBoxOptions) {
-            textBoxOption["minScaleLimit"] = 0.6;
-            const textBox = new fabric.Textbox('Placeholder', textBoxOption);
-            textBoxes.push(textBox);
+            textBoxOption["minScaleLimit"] = MIN_SCALE_LIMIT;
+            textBoxOption["opacity"] = PLACEHOLDER_TEXT_OPACITY;
+            textBoxOption["width"] = PLACEHOLDER_TEXT_WIDTH;
+            textBoxes.push(new fabric.Textbox(PLACEHOLDER_TEXT, textBoxOption));
         }
 
         fabric_canvas.add(...textBoxes);
@@ -203,7 +210,7 @@ document.getElementById('fabric_add').addEventListener('click', () => {
     }
 
     // default coordinates to place new text boxes
-    const left_default = 400;
+    const left_default = 340;
     const top_default = 20;
     let left = left_default;
     let top = top_default;
@@ -230,6 +237,33 @@ document.getElementById('fabric_add').addEventListener('click', () => {
         }
     }
 
-    fabric_canvas.add(new fabric.Textbox('Placeholder', {"left": left, "top": top, "fontSize": 30, "minScaleLimit": 0.6, "fontFamily": document.getElementById("font_selector").value}));
+    fabric_canvas.add(new fabric.Textbox(PLACEHOLDER_TEXT, {"left": left, "top": top, "fontSize": 30, "minScaleLimit": MIN_SCALE_LIMIT, "opacity": PLACEHOLDER_TEXT_OPACITY, "width": PLACEHOLDER_TEXT_WIDTH, "fontFamily": document.getElementById("font_selector").value}));
     save_fabric();
 });
+
+/* Implement Placeholder Text */
+function updatePlaceholderText(event) {
+    if (Object.keys(event).includes("selected")) {
+        if (event.selected.length === 1) {
+            const element = event.selected[0];
+            if (element.text === PLACEHOLDER_TEXT) {
+                element.set({text: "", opacity: 1});
+            }
+        }
+    }
+    if (Object.keys(event).includes("deselected")) {
+        if (event.deselected.length === 1) {
+            const element = event.deselected[0];
+            if (element.text === "") {
+                element.set({text: PLACEHOLDER_TEXT, opacity: PLACEHOLDER_TEXT_OPACITY});
+            } else if (element.text !== PLACEHOLDER_TEXT) {
+                element.set({opacity: 1});
+            }
+        }
+    }
+    fabric_canvas.requestRenderAll();
+}
+
+fabric_canvas.on('selection:created', updatePlaceholderText);
+fabric_canvas.on('selection:cleared', updatePlaceholderText);
+fabric_canvas.on('selection:updated', updatePlaceholderText);

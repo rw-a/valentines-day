@@ -21,6 +21,15 @@ async function submit_form(event) {
             template = document.getElementById('handwriting_template').value;
             message = await dataURLToBlob(signaturePad.toDataURL("image/svg+xml")).text();
         } else {
+            fabric_canvas.backgroundImage = null;
+
+            // remove placeholder text
+            for (let object of fabric_canvas.getObjects()) {
+                if (object.text === PLACEHOLDER_TEXT) {
+                    object.set({text: ""});
+                }
+            }
+
             template = document.getElementById('typed_template').value;
             message = fabric_canvas.toSVG();
         }
@@ -135,14 +144,16 @@ function is_valid_handwriting() {
 
 function is_valid_typed() {
     fabric_canvas.discardActiveObject();
-    if (fabric_canvas_data.includes(`"text":"Placeholder"`)) {
-        document.getElementById('typedError').hidden = false;
-        return false;
-    } else {
-        document.getElementById('typedError').hidden = true;
-        fabric_canvas.backgroundImage = null;
-        return true;
+    // typing is valid if there is at least one text box that isn't placeholder text
+    for (let object of fabric_canvas.getObjects()) {
+        if (object.text !== PLACEHOLDER_TEXT) {
+            document.getElementById('typedError').hidden = true;
+            document.getElementById('tooManyTextBoxesError').hidden = true;
+            return true;
+        }
     }
+    document.getElementById('typedError').hidden = false;
+    return false;
 }
 
 function dataURLToBlob(dataURL) {
