@@ -16,10 +16,10 @@ from pypdf import PdfReader, PdfWriter, Transformation
 
 if __name__ == "__main__":
     STUDENTS = {"Jeff Bezos [7A]": {"Name": "Jeff Bezos"}}
-    from constants import DirectoryLocations, PICKUP_LINES, TEMPLATES, FONTS
+    from constants import DirectoryLocations, PICKUP_LINES, TEMPLATES
     random.seed(0)
 else:
-    from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES, TEMPLATES, FONTS
+    from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES, TEMPLATES
 
 
 class TicketsToPDF:
@@ -53,7 +53,7 @@ class TicketsToPDF:
         self.CANVAS_WIDTH = 602
         self.CANVAS_HEIGHT = 358
 
-        self.VECTOR_MESSAGES = True
+        self.VECTOR_MESSAGES = True     # ticket messages are rendered as svg files instead of being rasterized
         self.RATIO = 4      # increases DPI by this ratio. only used if vector messages is false
 
         """Load Fonts"""
