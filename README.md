@@ -1,7 +1,5 @@
 # Valentine's Day Ticketing System
-
-### Disclaimer
-Made in 2022. Last updated February 2023. Links may have broken or changed. Information may be outdated.
+Last updated February 2023.
 
 ## Tutorial for Prefects
 
