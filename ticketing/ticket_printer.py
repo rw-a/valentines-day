@@ -10,9 +10,8 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus.tables import Table, TableStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.graphics import renderPM
 from svglib.svglib import svg2rlg
-from pypdf import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter, Transformation
 
 
 if __name__ == "__main__":
@@ -29,7 +28,8 @@ class TicketsToPDF:
         self.pdf_output_path = pdf_output_path
         self.pdf_name = pdf_name
         self.background_pdf = None
-        self.foreground_pdf = None
+        self.foreground_pdf = None          # only if vector messages is false
+        self.message_pdfs = []              # only if vector messages is true
 
         """Constants and Settings"""
         # flip the order of the cells in the back page
@@ -49,23 +49,16 @@ class TicketsToPDF:
         self.CELL_WIDTH = self.TABLE_WIDTH / self.NUM_COLUMNS
         self.CELL_HEIGHT = self.TABLE_HEIGHT / self.NUM_ROWS
 
-        self.VECTOR_MESSAGES = False         # currently allows messages to bleed into other tickets
-        self.REMOVE_FONT_SPACES = False      # removes spaces in font names. new tickets don't need this
-
         # dimensions of canvas from signature pad in pixels
         self.CANVAS_WIDTH = 602
         self.CANVAS_HEIGHT = 358
-        self.RATIO = 4      # increases DPI by this ratio
+
+        self.VECTOR_MESSAGES = True
+        self.REMOVE_FONT_SPACES = False      # removes spaces in font names. new tickets don't need this
+        self.RATIO = 4      # increases DPI by this ratio. only used if vector messages is false
 
         """Load Fonts"""
-        # pdfmetrics.registerFont(TTFont("Chasing Hearts", f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
         for font, font_file in FONTS.items():
-            """afm = f'{DirectoryLocations.STATIC}/fonts/{font_file}.afm'
-            pfb = f'{DirectoryLocations.STATIC}/fonts/{font_file}.pfb'
-            face = pdfmetrics.EmbeddedType1Face(afm, pfb)
-            pdfmetrics.registerTypeFace(face)
-            just_font = pdfmetrics.Font(font.replace(" ", ""), font.replace(" ", ""), 'WinAnsiEncoding')
-            pdfmetrics.registerFont(just_font)"""
             pdfmetrics.registerFont(TTFont(font, f'{DirectoryLocations.STATIC}/fonts/{font_file}.ttf'))
 
         """Load Templates"""
@@ -105,7 +98,18 @@ class TicketsToPDF:
         pdf = PdfWriter()
         for index, page in enumerate(self.background_pdf.pages):
             if index % 2 == 0:
-                page.merge_page(self.foreground_pdf.pages[index // 2])
+                if self.VECTOR_MESSAGES:
+                    for message_index, message_pdf in enumerate(
+                            self.message_pdfs[index * self.NUM_CODES_PER_PAGE: (index + 1) * self.NUM_CODES_PER_PAGE]):
+                        message_index = message_index % self.NUM_CODES_PER_PAGE
+                        message_page = PdfReader(message_pdf).pages[0]
+                        transformation = Transformation()\
+                            .translate(self.MARGIN * 1.5, self.MARGIN * 1.79)\
+                            .translate((message_index % self.NUM_COLUMNS) * self.CELL_WIDTH,
+                                       self.TABLE_HEIGHT - ((message_index // 2 + 1) * self.CELL_HEIGHT))
+                        page.merge_transformed_page(message_page, transformation)
+                else:
+                    page.merge_page(self.foreground_pdf.pages[index // 2])
             page.compress_content_streams()
             pdf.add_page(page)
 
@@ -177,13 +181,12 @@ class TicketsToPDF:
                     xml_file.set('width', str(self.CELL_WIDTH))
                     xml_file.set('height', str(self.CELL_HEIGHT))
 
-                    image = svg2rlg(io.StringIO(etree.tostring(xml_file).decode('utf-8')))
-                    image.setProperties({"hAlign": "CENTER", "vAlign": "MIDDLE"})
+                    img_bytes = io.BytesIO(cairosvg.svg2pdf(
+                        bytestring=etree.tostring(xml_file), write_to=None,
+                        output_width=self.CELL_WIDTH * 4 / 3, output_height=self.CELL_HEIGHT * 4 / 3))
+                    self.message_pdfs.append(img_bytes)
 
-                    """Legacy method to scale SVG to correct size
-                    scale_factor = min(self.CELL_WIDTH / float(xml_file.get('width')),
-                                       self.CELL_HEIGHT / float(xml_file.get('height')))
-                    image.setProperties({"renderScale": scale_factor, "hAlign": "CENTER", "vAlign": "MIDDLE"})"""
+                    image = ""   # just return a blank image and add it later by merging pdfs
                 else:
                     img_bytes = io.BytesIO(cairosvg.svg2png(
                         bytestring=etree.tostring(xml_file), write_to=None,
@@ -192,7 +195,7 @@ class TicketsToPDF:
                     image = Image(img_bytes)
                     self.scale_image(image, self.CELL_WIDTH - 2 * self.PADDING, self.CELL_HEIGHT - 2 * self.PADDING)
             else:
-                print(f"Warning: Ticket {ticket.pk} is blank.")
+                print(f"[Ticket Printer] Warning: Ticket {ticket.pk} is blank.")
                 image = ""
 
             images.append(image)
