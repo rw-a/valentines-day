@@ -242,15 +242,7 @@ document.getElementById('fabric_add').addEventListener('click', () => {
 });
 
 /* Implement Placeholder Text */
-function updatePlaceholderText(event) {
-    if (Object.keys(event).includes("selected")) {
-        if (event.selected.length === 1) {
-            const element = event.selected[0];
-            if (element.text === PLACEHOLDER_TEXT) {
-                element.set({text: "", opacity: 1});
-            }
-        }
-    }
+function onPlaceholderTextDeselect(event) {
     if (Object.keys(event).includes("deselected")) {
         if (event.deselected.length === 1) {
             const element = event.deselected[0];
@@ -259,11 +251,22 @@ function updatePlaceholderText(event) {
             } else if (element.text !== PLACEHOLDER_TEXT) {
                 element.set({opacity: 1});
             }
+            fabric_canvas.requestRenderAll();
         }
     }
-    fabric_canvas.requestRenderAll();
 }
 
-fabric_canvas.on('selection:created', updatePlaceholderText);
-fabric_canvas.on('selection:cleared', updatePlaceholderText);
-fabric_canvas.on('selection:updated', updatePlaceholderText);
+function onPlaceholderTextEditing(event) {
+    console.log(event);
+    if (event.target === null) return;
+    if (event.target === fabric_canvas.getActiveObject()) {
+        const element = event.target;
+        if (element.text === PLACEHOLDER_TEXT) {
+            element.set({text: "", opacity: 1});
+        }
+    }
+}
+
+fabric_canvas.on('selection:cleared', onPlaceholderTextDeselect);
+fabric_canvas.on('selection:updated', onPlaceholderTextDeselect);
+fabric_canvas.on('mouse:down:before', onPlaceholderTextEditing);
