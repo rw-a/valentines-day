@@ -103,8 +103,8 @@ class TicketsToPDF:
                         message_page = PdfReader(message_pdf).pages[0]
                         transformation = Transformation()\
                             .translate(self.MARGIN * 1.5, self.MARGIN * 1.79)\
-                            .translate((message_index % self.NUM_COLUMNS) * self.CELL_WIDTH,
-                                       self.TABLE_HEIGHT - ((message_index // 2 + 1) * self.CELL_HEIGHT))
+                            .translate((message_index % self.NUM_COLUMNS) * self.CELL_WIDTH + self.PADDING,
+                                       self.TABLE_HEIGHT - ((message_index // 2 + 1) * self.CELL_HEIGHT) + self.PADDING)
                         page.merge_transformed_page(message_page, transformation)
                 else:
                     page.merge_page(self.foreground_pdf.pages[index // 2])
@@ -174,7 +174,10 @@ class TicketsToPDF:
 
                     img_bytes = io.BytesIO(cairosvg.svg2pdf(
                         bytestring=etree.tostring(xml_file), write_to=None,
-                        output_width=self.CELL_WIDTH * 4 / 3, output_height=self.CELL_HEIGHT * 4 / 3))
+                        output_width=4 / 3 * (self.CELL_WIDTH - 2 * self.PADDING),
+                        output_height=4 / 3 * (self.CELL_HEIGHT - 2 * self.PADDING)))
+                    # padding shrinks message at 4/3x faster rate than back of tickets
+
                     self.message_pdfs.append(img_bytes)
 
                     image = ""   # just return a blank image and add it later by merging pdfs
