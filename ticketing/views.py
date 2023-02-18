@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from vdaywebsite.settings import CONTACT_EMAIL
+from vdaywebsite.settings import CONTACT_EMAIL, NUM_TICKETS_PER_PDF
 from .models import Ticket, TicketCode, SortTicketsRequest
 from .forms import CSVFileForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
@@ -109,21 +109,25 @@ def file_codepdf(request, pk):
 
 
 @staff_member_required
-def tickets(request, pk):
+def page_tickets(request, pk):
     sort_tickets_request = SortTicketsRequest.objects.get(pk=pk)
     group_data = {}
     for group in sort_tickets_request.deliverygroup_set.all():
         group_data[group.code] = {}
         group_data[group.code]["num_tickets"] = group.tickets.count()
-        group_data[group.code]["is_printed"] = group.is_printed
+        group_data[group.code]["num_tickets_printed"] = group.num_tickets_printed
 
     return render(request, 'ticketing/tickets.html', {
-        'pk': pk, 'date': sort_tickets_request.date, 'group_data': json.dumps(group_data)})
+        'pk': pk,
+        'num_tickets_per_pdf': NUM_TICKETS_PER_PDF,
+        'date': sort_tickets_request.date,
+        'group_data': json.dumps(group_data)
+    })
 
 
 @staff_member_required
-def file_delivery_group(request, pk, group_id):
-    return FileResponse(open(f'{DirectoryLocations.SORTED_TICKETS}/{pk}/{group_id}.pdf', 'rb'))
+def file_delivery_group(request, pk, group_id, part):
+    return FileResponse(open(f'{DirectoryLocations.SORTED_TICKETS}/{pk}/{group_id}_{part}.pdf', 'rb'))
 
 
 def page_redeem_done(request):
@@ -195,10 +199,16 @@ def api_validate_code(request):
 def api_print_tickets(request):
     pk = request.GET['pk']
     group_code = request.GET['group']
+    part = request.GET['part']
+
     group = SortTicketsRequest.objects.get(pk=pk).deliverygroup_set.get(code=group_code)
+
     if not os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{pk}"):
         os.mkdir(f"{DirectoryLocations().SORTED_TICKETS}/{pk}")
-    TicketsToPDF(group.tickets.all(), f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}.pdf", group_code)
-    group.is_printed = True
+
+    TicketsToPDF(group.tickets.all(), f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}_{part}.pdf", group_code)
+
+    group.num_tickets_printed += NUM_TICKETS_PER_PDF
     group.save()
+
     return JsonResponse({"success": "true"})

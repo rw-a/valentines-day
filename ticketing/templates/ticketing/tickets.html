@@ -25,9 +25,33 @@
 </body>
 <script>
     // Generate table
-    let table = document.getElementById("groups");
-    let group_data = {{ group_data|safe }};
+    const table = document.getElementById("groups");
+    const group_data = {{ group_data|safe }};
+    const NUM_TICKETS_PER_PDF = {{num_tickets_per_pdf}};
     let generating = [];
+
+    async function printPart(group, part) {
+        const partName = `${group}_${part}`;
+        generating.push(partName);
+        new Promise((resolve) => {
+            fetch("{% url 'ticketing:api_print' %}?" + new URLSearchParams({
+                    'pk': "{{ pk }}",
+                    "group": group,
+                    "part": part
+                }))
+                    .then((response) => response.json())
+                    .then((data) => {
+                        group_data[group].num_tickets_printed += NUM_TICKETS_PER_PDF;
+                        generating.splice(generating.indexOf(partName), 1);
+                        refresh();
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    })
+            }
+        );
+    }
 
     function refresh() {
         // clear table
@@ -49,99 +73,82 @@
 
             let tickets_pdf = row.insertCell(2);
             tickets_pdf.id = `${group}_pdf`;
+
             if (group_data[group]["num_tickets"] === 0) {
                 tickets_pdf.innerHTML = "No Tickets :(";
-                group_data[group]['is_printed'] = true;
-            } else if (group_data[group]['is_printed']) {
-                // if already generated
-                let link = document.createElement('a');
-                let text = document.createTextNode("Download");
-                link.appendChild(text);
-                link.title = "Generated PDF of tickets for group";
-                link.href = `${"{{pk}}"}/${group}`;
-                tickets_pdf.appendChild(link);
+
             } else {
-                let generate_button = document.createElement('button');
-                if (generating.includes(group)) {
-                    // if currently generating
-                    generate_button.disabled = true;
-                    generate_button.innerHTML = "Generating..."
-                } else {
-                    // if not yet generated
-                    generate_button.innerHTML = "Generate"
-                    generate_button.onclick = (event) => {
-                        generate_button.disabled = true;
-                        generate_button.innerHTML = "Generating..."
-                        generating.push(group);
-                        fetch("{% url 'ticketing:api_print' %}?" + new URLSearchParams({
-                            'pk': "{{ pk }}", "group": group
-                        }))
-                        .then((response) => response.json())
-                        .then((data) => {
-                            group_data[group]['is_printed'] = true;
-                            generating.splice(generating.indexOf(group), 1);
-                            refresh();
-                        })
-                        .catch((error) => {
-                            console.error('Error:', error);
-                        });
-                    };
+                const num_parts_required = Math.ceil(group_data[group].num_tickets / NUM_TICKETS_PER_PDF);
+                const num_parts_done = group_data[group].num_tickets_printed / NUM_TICKETS_PER_PDF;
+                for (let part = 1; part <= num_parts_required; part++) {
+                    if (part <= num_parts_done) {
+                        // if part has been completed
+                        const link = document.createElement('a');
+                        const text = (num_parts_required === 1) ? document.createTextNode("Download") : document.createTextNode(`Download Part ${part}`);
+                        link.appendChild(text);
+                        link.title = (num_parts_required === 1) ? `PDF of tickets for group ${group}` : `PDF of tickets for group ${group} (part ${part})`;
+                        link.href = `${"{{pk}}"}/${group}/${part}`;
+                        tickets_pdf.appendChild(link);
+                    } else {
+                        // if part has not been completed
+                        let generate_button = document.createElement('button');
+                        const partName = `${group}_${part}`;
+                        if (generating.includes(partName)) {
+                            // if currently generating
+                            generate_button.disabled = true;
+                            generate_button.innerHTML = (num_parts_required === 1) ? "Generating" : `Generating Part ${part}...`;
+                        } else {
+                            // if not yet generated
+                            generate_button.innerHTML = (num_parts_required === 1) ? "Generate" : `Generate Part ${part}`;
+                            generate_button.onclick = (event) => {
+                                generate_button.disabled = true;
+                                generate_button.innerHTML = (num_parts_required === 1) ? "Generating" : `Generating Part ${part}...`;
+                                printPart(group, part);
+                            };
+                        }
+                        tickets_pdf.appendChild(generate_button);
+                    }
                 }
-                tickets_pdf.appendChild(generate_button);
             }
+            refresh_generate_all();
         }
-        refresh_generate_all();
     }
 
     /* Generate All Button */
     let generate_all_button = document.getElementById('generate_all');
 
-    function completed_all() {
+    function isGroupDone(group) {
+        return group_data[group].num_tickets_printed >= group_data[group].num_tickets;
+    }
+    function hasCompletedAll() {
         for (let group of Object.keys(group_data)) {
-            if (!group_data[group]['is_printed']) return false;
+            if (!isGroupDone(group)) return false;
         }
         return true;
     }
 
     function refresh_generate_all() {
-        generate_all_button.hidden = completed_all();
+        generate_all_button.hidden = hasCompletedAll();
     }
 
-    generate_all_button.onclick = () => {
+    generate_all_button.onclick = async () => {
         // get the groups which haven't been printed yet
-        let groups = Object.keys(group_data).filter((group) => {
-            return !group_data[group]['is_printed'] && !generating.includes(group)});
+        const groups = Object.keys(group_data).filter((group) => {return !isGroupDone(group)});
         generating = generating.concat(groups);
+
         // disable further print requests
         refresh();
+
         generate_all_button.innerHTML = "Generating all...";
         generate_all_button.disabled = true;
 
-        // loop through every group sequentially
-        let group_index = 0;
-        function get_next_group() {
-            let group = groups[group_index];
-            fetch("{% url 'ticketing:api_print' %}?" + new URLSearchParams({
-                'pk': "{{ pk }}", "group": group
-            }))
-            .then((response) => response.json())
-            .then((data) => {
-                group_data[group]['is_printed'] = true;
-                generating.splice(generating.indexOf(group), 1);
-                refresh();
-                group_index += 1;
-                if (generating.length > 0) {
-                    get_next_group();
-                } else {
-                    refresh_generate_all();
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-
+        for (let group of groups) {
+            const num_parts_required = Math.ceil(group_data[group].num_tickets / NUM_TICKETS_PER_PDF);
+            const num_parts_done = group_data[group].num_tickets_printed / NUM_TICKETS_PER_PDF;
+            for (let part = num_parts_done + 1; part <= num_parts_required; part++) {
+                await printPart(group, part);
+            }
         }
-        get_next_group();
     };
 
     refresh();

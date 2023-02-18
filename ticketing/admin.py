@@ -216,17 +216,10 @@ class SortTicketAdmin(admin.ModelAdmin):
 
 
 class DeliveryGroupAdmin(admin.ModelAdmin):
-    list_display = ('code', 'is_printed', 'num_serenades', 'num_non_serenades', 'num_tickets', 'url', 'sort_request',)
+    list_display = ('code', 'percentage_printed', 'num_serenades', 'num_non_serenades', 'num_tickets', 'sort_request',)
+    readonly_fields = ('num_tickets_printed',)
     actions = ('unprint',)
     date_hierarchy = "date"
-
-    @admin.display(description='URL')
-    def url(self, obj):
-        if obj.is_printed:
-            url = reverse("ticketing:delivery_group", args=[obj.sort_request.pk, obj.code])
-            return format_html("<a href='{url}'>{url}</a>", url=url)
-        else:
-            return "Not generated yet"
 
     @admin.display(description='Number of Serenade Tickets')
     def num_serenades(self, obj):
@@ -240,14 +233,22 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
     def num_tickets(self, obj):
         return obj.tickets.count()
 
+    @admin.display(description='Percentage of Tickets Printed')
+    def percentage_printed(self, obj):
+        num_tickets = obj.tickets.count()
+        if num_tickets > 0:
+            return f"{min(100, round(obj.num_tickets_printed / obj.tickets.count() * 100))}%"
+        else:
+            return "100%"
+
     @admin.action(description="Undo printing of delivery group tickets (delete its PDF).")
     def unprint(self, request, queryset):
         for obj in queryset:
-            if obj.is_printed:
+            if obj.num_tickets_printed >= obj.tickets.count():
                 sort_request = obj.sort_request
                 if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}.pdf"):
                     os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}.pdf")
-                obj.is_printed = False
+                obj.num_tickets_printed = 0
                 obj.save()
 
     def delete_model(self, request, obj):

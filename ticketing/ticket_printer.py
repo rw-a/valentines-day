@@ -25,7 +25,7 @@ else:
 class TicketsToPDF:
     def __init__(self, tickets, pdf_output_path: str, pdf_name: str, padding: int = 0):
         self.tickets = tickets
-        self.pdf_output_path = pdf_output_path
+        self.pdf_output_path = pdf_output_path  # supports str for filepath or BytesIO
         self.pdf_name = pdf_name
         self.background_pdf = None
         self.foreground_pdf = None          # only if vector messages is false
@@ -114,8 +114,13 @@ class TicketsToPDF:
             page.compress_content_streams()
             pdf.add_page(page)
 
-        with open(self.pdf_output_path, 'wb') as file:
-            pdf.write(file)
+        if type(self.pdf_output_path) == str:
+            with open(self.pdf_output_path, 'wb') as file:
+                pdf.write(file)
+        elif isinstance(self.pdf_output_path, io.BytesIO):
+            pdf.write(self.pdf_output_path)
+        else:
+            print(f"[Ticket Printer] Error: unknown type of self.pdf_output_path {self.pdf_output_path}")
 
     def generate_foreground_pdf(self):
         foreground_pdf_stream = io.BytesIO()

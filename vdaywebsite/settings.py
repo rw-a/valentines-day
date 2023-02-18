@@ -39,6 +39,10 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 CONTACT_EMAIL = os.getenv("CONTACT_EMAIL")
 ORG_NAME = os.getenv("ORG_NAME")
 
+# Global Constants
+
+NUM_TICKETS_PER_PDF = 100   # split delivery groups into smaller pdfs of this size
+
 
 # Application definition
 
