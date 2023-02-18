@@ -5,6 +5,7 @@ const PLACEHOLDER_TEXT_WIDTH = 250;
 const MIN_SCALE_LIMIT = 0.6;
 const ALLOWED_CHARACTERS = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&'()*,-./:;<=>?@[]_{|} `;
 
+
 /* Loading Template */
 function load_background_image(template_src) {
     return new Promise((resolve) => {
@@ -53,7 +54,7 @@ async function initialise_template() {
     } else {
         console.error(`Template ${template} not found.`);
     }
-    await load_font();
+    await load_font(true);
 }
 
 document.getElementById('typed_template').addEventListener('change', async (event) => {
@@ -137,19 +138,27 @@ fabric_canvas.on('object:modified', function() {
     save_fabric();
 });
 
+
 /* Load Fonts */
-async function load_font() {
+async function load_font(from_template_change = false) {
     const font = document.getElementById("font_selector").value;
     let myFont = new FontFaceObserver(font);
     await myFont.load();
     const fontSizeFactor = getFontSizeFactor();
     const yOffset = fonts[font].yOffset;
     for (let object of fabric_canvas.getObjects()) {
-        const fontSize = object.fontSize;
-        const options = {"fontFamily": font, "fontSize": fontSize * fontSizeFactor};
-        if (yOffset !== 0) {
-            options.top = object.top - yOffset;     // minus means positive values moves object up
+        const options = {"fontFamily": font};
+
+        if (from_template_change) {
+            if (fontSizeFactor !== 1) {
+                const fontSize = object.fontSize;
+                options.fontSize = fontSize * fontSizeFactor;
+            }
+            if (yOffset !== 0) {
+                options.top = object.top - yOffset;     // minus means positive values moves object up
+            }
         }
+
         object.set(options);
     }
     fabric_canvas.requestRenderAll();
@@ -185,6 +194,7 @@ function getFontSizeFactor() {
     return fonts[font].fontSizeFactor;
 }
 
+
 /* Delete text box button */
 const deleteImg = document.createElement('img');
 deleteImg.src = `${static_path}icons/cancel.svg`;
@@ -218,6 +228,7 @@ fabric.Textbox.prototype.controls.deleteControl = new fabric.Control({
     render: renderIcon(deleteImg),
     cornerSize: 20
 });
+
 
 /* Add text box button */
 document.getElementById('fabric_add').addEventListener('click', () => {
@@ -272,6 +283,7 @@ function clearFabricErrors() {
     document.getElementById('weirdCharactersError').hidden = true;
     document.getElementById('typedError').hidden = true;
 }
+
 
 /* Implement Placeholder Text */
 function onPlaceholderTextDeselect(event) {
