@@ -3,7 +3,7 @@ const PLACEHOLDER_TEXT = "Type something...";
 const PLACEHOLDER_TEXT_OPACITY = 0.25;
 const PLACEHOLDER_TEXT_WIDTH = 250;
 const MIN_SCALE_LIMIT = 0.6;
-const ALLOWED_CHARACTERS = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&'()*,-./:;<=>?@[]_{|}`;
+const ALLOWED_CHARACTERS = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&'()*,-./:;<=>?@[]_{|} `;
 
 /* Loading Template */
 function load_background_image(template_src) {
