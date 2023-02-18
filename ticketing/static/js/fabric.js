@@ -1,7 +1,7 @@
 /* Variables */
 const PLACEHOLDER_TEXT = "Type something...";
 const PLACEHOLDER_TEXT_OPACITY = 0.25;
-const PLACEHOLDER_TEXT_WIDTH = 220;
+const PLACEHOLDER_TEXT_WIDTH = 250;
 const MIN_SCALE_LIMIT = 0.6;
 const ALLOWED_CHARACTERS = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&'()*,-./:;<=>?@[]_{|}`;
 
