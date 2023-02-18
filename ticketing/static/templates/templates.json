@@ -3,11 +3,11 @@
     "filename": "classic_template.svg",
     "filenameRedeem": "classic_template_redeem.svg",
     "textPosition": [
-        {"left": 18, "top": 93, "fontSize": 30},
-        {"left": 170, "top": 197, "fontSize": 30},
-        {"left": 102, "top": 245, "fontSize": 30},
-        {"left": 102, "top": 293, "fontSize": 30},
-        {"left": 157, "top": 341, "fontSize": 30}
+        {"left": 18, "top": 60, "fontSize": 30},
+        {"left": 170, "top": 164, "fontSize": 30},
+        {"left": 102, "top": 212, "fontSize": 30},
+        {"left": 102, "top": 260, "fontSize": 30},
+        {"left": 157, "top": 308, "fontSize": 30}
     ]
   }
 }
