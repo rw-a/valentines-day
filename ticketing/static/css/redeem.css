@@ -1,6 +1,7 @@
 .buttons {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
 }
 
 .buttons.typed {
@@ -38,6 +39,13 @@
 
 .add:hover {
     background-image: url("../icons/add_text_thick.svg");
+}
+
+.buttonDivider {
+    background-color: rgb(204, 204, 204);
+    width: 1.5px;
+    margin: 0 4px;
+    height: 25px;
 }
 
 #redeem {
