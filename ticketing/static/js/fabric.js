@@ -29,9 +29,9 @@ async function initialise_template() {
         let textBoxOptions;
         if (template === "Blank") {
             textBoxOptions = [
-                {"left": 18, "top": 50, "fontSize": 30},
-                {"left": 18, "top": 150, "fontSize": 30},
-                {"left": 18, "top": 250, "fontSize": 30},
+                {"left": 18, "top": 20, "fontSize": 30},
+                {"left": 18, "top": 120, "fontSize": 30},
+                {"left": 18, "top": 220, "fontSize": 30},
             ];
         } else {
             const filename = (templates[template].filenameRedeem) ? templates[template].filenameRedeem : templates[template].filename;
@@ -45,7 +45,6 @@ async function initialise_template() {
             textBoxOption["minScaleLimit"] = MIN_SCALE_LIMIT;
             textBoxOption["opacity"] = PLACEHOLDER_TEXT_OPACITY;
             textBoxOption["width"] = PLACEHOLDER_TEXT_WIDTH;
-            textBoxOption["originY"] = "bottom";
             textBoxes.push(new fabric.Textbox(PLACEHOLDER_TEXT, textBoxOption));
         }
 
@@ -142,16 +141,7 @@ async function load_font() {
     const font = document.getElementById("font_selector").value;
     let myFont = new FontFaceObserver(font);
     await myFont.load();
-    const fontSizeFactor = getFontSizeFactor();
-    const yOffset = fonts[font].yOffset;
-    for (let object of fabric_canvas.getObjects()) {
-        const fontSize = object.fontSize;
-        const options = {"fontFamily": font, "fontSize": fontSize * fontSizeFactor};
-        if (yOffset !== 0) {
-            options.top = object.top - yOffset;     // minus means positive values moves object up
-        }
-        object.set(options);
-    }
+    fabric_canvas.getObjects().forEach((object) => {object.set("fontFamily", font);})
     fabric_canvas.requestRenderAll();
     save_fabric();
 }
@@ -167,8 +157,8 @@ for (let font of Object.keys(fonts)) {
     fontStyles.appendChild(document.createTextNode(`\
         @font-face {\
             font-family: '${font}';\
-            src: url('${static_path}fonts/${fonts[font].filename}.woff2') format('woff2'),\
-                 url('${static_path}fonts/${fonts[font].filename.replace(" ", "\ ")}.ttf');\
+            src: url('${static_path}fonts/${fonts[font]}.woff2') format('woff2'),\
+                 url('${static_path}fonts/${fonts[font].replace(" ", "\ ")}.ttf');\
         }\
     `));
 }
@@ -179,11 +169,6 @@ font_selector.onchange = async function() {
 }
 
 initialise_template();
-
-function getFontSizeFactor() {
-    const font = document.getElementById('font_selector').value;
-    return fonts[font].fontSizeFactor;
-}
 
 /* Delete text box button */
 const deleteImg = document.createElement('img');
@@ -229,7 +214,7 @@ document.getElementById('fabric_add').addEventListener('click', () => {
 
     // default coordinates to place new text boxes
     const left_default = 340;
-    const top_default = 50;
+    const top_default = 20;
     let left = left_default;
     let top = top_default;
 
@@ -254,16 +239,8 @@ document.getElementById('fabric_add').addEventListener('click', () => {
             }
         }
     }
-    fabric_canvas.add(new fabric.Textbox(PLACEHOLDER_TEXT, {
-        "left": left,
-        "top": top,
-        "minScaleLimit": MIN_SCALE_LIMIT,
-        "opacity": PLACEHOLDER_TEXT_OPACITY,
-        "width": PLACEHOLDER_TEXT_WIDTH,
-        "originY": "bottom",
-        "fontSize": 30 * getFontSizeFactor(),
-        "fontFamily": document.getElementById("font_selector").value,
-    }));
+
+    fabric_canvas.add(new fabric.Textbox(PLACEHOLDER_TEXT, {"left": left, "top": top, "fontSize": 30, "minScaleLimit": MIN_SCALE_LIMIT, "opacity": PLACEHOLDER_TEXT_OPACITY, "width": PLACEHOLDER_TEXT_WIDTH, "fontFamily": document.getElementById("font_selector").value}));
     save_fabric();
 });
 
