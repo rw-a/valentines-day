@@ -29,9 +29,9 @@ async function initialise_template() {
         let textBoxOptions;
         if (template === "Blank") {
             textBoxOptions = [
-                {"left": 18, "top": 20, "fontSize": 30},
-                {"left": 18, "top": 120, "fontSize": 30},
-                {"left": 18, "top": 220, "fontSize": 30},
+                {"left": 18, "top": 50, "fontSize": 30},
+                {"left": 18, "top": 150, "fontSize": 30},
+                {"left": 18, "top": 250, "fontSize": 30},
             ];
         } else {
             const filename = (templates[template].filenameRedeem) ? templates[template].filenameRedeem : templates[template].filename;
@@ -45,6 +45,7 @@ async function initialise_template() {
             textBoxOption["minScaleLimit"] = MIN_SCALE_LIMIT;
             textBoxOption["opacity"] = PLACEHOLDER_TEXT_OPACITY;
             textBoxOption["width"] = PLACEHOLDER_TEXT_WIDTH;
+            textBoxOption["originY"] = "bottom";
             textBoxes.push(new fabric.Textbox(PLACEHOLDER_TEXT, textBoxOption));
         }
 
@@ -214,7 +215,7 @@ document.getElementById('fabric_add').addEventListener('click', () => {
 
     // default coordinates to place new text boxes
     const left_default = 340;
-    const top_default = 20;
+    const top_default = 50;
     let left = left_default;
     let top = top_default;
 
@@ -240,7 +241,16 @@ document.getElementById('fabric_add').addEventListener('click', () => {
         }
     }
 
-    fabric_canvas.add(new fabric.Textbox(PLACEHOLDER_TEXT, {"left": left, "top": top, "fontSize": 30, "minScaleLimit": MIN_SCALE_LIMIT, "opacity": PLACEHOLDER_TEXT_OPACITY, "width": PLACEHOLDER_TEXT_WIDTH, "fontFamily": document.getElementById("font_selector").value}));
+    fabric_canvas.add(new fabric.Textbox(PLACEHOLDER_TEXT, {
+        "left": left,
+        "top": top,
+        "fontSize": 30,
+        "minScaleLimit": MIN_SCALE_LIMIT,
+        "opacity": PLACEHOLDER_TEXT_OPACITY,
+        "width": PLACEHOLDER_TEXT_WIDTH,
+        "originY": "bottom",
+        "fontFamily": document.getElementById("font_selector").value,
+    }));
     save_fabric();
 });
 
