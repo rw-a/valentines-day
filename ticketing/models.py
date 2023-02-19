@@ -166,6 +166,11 @@ class SortTicketsRequest(models.Model):
                                                          "once (no promises). "
                                                          "Increases number of class visits required.")
 
+    padding = models.IntegerField(default=0, help_text="Adds a border within each ticket when generating PDFs. "
+                                                       "Useful if your printer can't align the front/back of the paper "
+                                                       "when printing, or you want leeway so that you can cut them out "
+                                                       "faster. Otherwise, don't use as it will shrink the ticket size")
+
     date = models.DateTimeField(default=timezone.now, help_text="Date created")
 
     class Meta:

@@ -23,10 +23,12 @@ else:
 
 
 class TicketsToPDF:
-    def __init__(self, tickets, pdf_output_path: str, pdf_name: str, padding: int = 0):
+    def __init__(self, tickets, pdf_output_path: str, pdf_name: str, padding: int = 0, starting_index: int = 0):
         self.tickets = tickets
         self.pdf_output_path = pdf_output_path  # supports str for filepath or BytesIO
         self.pdf_name = pdf_name
+        self.starting_index = starting_index
+
         self.background_pdf = None
         self.foreground_pdf = None          # only if vector messages is false
         self.message_pdfs = []              # only if vector messages is true
@@ -185,7 +187,6 @@ class TicketsToPDF:
                         bytestring=etree.tostring(xml_file), write_to=None,
                         output_width=4 / 3 * (self.CELL_WIDTH - 2 * self.PADDING),
                         output_height=4 / 3 * (self.CELL_HEIGHT - 2 * self.PADDING)))
-                    # padding shrinks message at 4/3x faster rate than back of tickets
 
                     self.message_pdfs.append(img_bytes)
 
@@ -254,7 +255,9 @@ class TicketsToPDF:
             item_type_table = self.create_div([[item_type_image], [item_type]], colWidths=self.CELL_WIDTH / 5)
 
             """Bottom Left: Delivery Group and Ticket Number"""
-            ticket_number = Paragraph(f"{self.pdf_name}: {page_index * self.NUM_CODES_PER_PAGE + index + 1}", default_style)
+            ticket_number = Paragraph(f"{self.pdf_name}: "
+                                      f"{page_index * self.NUM_CODES_PER_PAGE + index + 1 + self.starting_index}",
+                                      default_style)
 
             bottom_row = self.create_div([[ticket_number, item_type_table]],
                                          ('LEFTPADDING', (0, 0), (-1, -1), 6 + self.PADDING),

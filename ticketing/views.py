@@ -201,14 +201,19 @@ def api_print_tickets(request):
     group_code = request.GET['group']
     part = int(request.GET['part'])
 
-    group = SortTicketsRequest.objects.get(pk=pk).deliverygroup_set.get(code=group_code)
+    sort_request = SortTicketsRequest.objects.get(pk=pk)
+
+    group = sort_request.deliverygroup_set.get(code=group_code)
 
     if not os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{pk}"):
         os.mkdir(f"{DirectoryLocations().SORTED_TICKETS}/{pk}")
 
     TicketsToPDF(group.tickets.all()[(part - 1) * NUM_TICKETS_PER_PDF:
                                      min(part * NUM_TICKETS_PER_PDF, group.tickets.count() - 1)],
-                 f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}_{part}.pdf", group_code)
+                 f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}_{part}.pdf",
+                 group_code,
+                 padding=sort_request.padding,
+                 starting_index=(part - 1) * NUM_TICKETS_PER_PDF)
 
     group.num_tickets_printed += NUM_TICKETS_PER_PDF
     group.save()
