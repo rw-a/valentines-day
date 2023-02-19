@@ -199,14 +199,16 @@ def api_validate_code(request):
 def api_print_tickets(request):
     pk = request.GET['pk']
     group_code = request.GET['group']
-    part = request.GET['part']
+    part = int(request.GET['part'])
 
     group = SortTicketsRequest.objects.get(pk=pk).deliverygroup_set.get(code=group_code)
 
     if not os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{pk}"):
         os.mkdir(f"{DirectoryLocations().SORTED_TICKETS}/{pk}")
 
-    TicketsToPDF(group.tickets.all(), f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}_{part}.pdf", group_code)
+    TicketsToPDF(group.tickets.all()[(part - 1) * NUM_TICKETS_PER_PDF:
+                                     min(part * NUM_TICKETS_PER_PDF, group.tickets.count() - 1)],
+                 f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}_{part}.pdf", group_code)
 
     group.num_tickets_printed += NUM_TICKETS_PER_PDF
     group.save()

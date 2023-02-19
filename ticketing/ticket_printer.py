@@ -117,6 +117,7 @@ class TicketsToPDF:
         if type(self.pdf_output_path) == str:
             with open(self.pdf_output_path, 'wb') as file:
                 pdf.write(file)
+                print(f"[Ticket Printer] Success: finished printing, writing to file {self.pdf_output_path}")
         elif isinstance(self.pdf_output_path, io.BytesIO):
             pdf.write(self.pdf_output_path)
         else:

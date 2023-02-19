@@ -7,8 +7,9 @@ from .constants import DirectoryLocations, STUDENTS
 from .models import Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup
 from .code_generator import CodesToPDF, generate_codes
 from .ticket_sorter import sort_tickets
-from vdaywebsite.settings import ORG_NAME
+from vdaywebsite.settings import ORG_NAME, NUM_TICKETS_PER_PDF
 import os
+import math
 import shutil
 import random
 
@@ -244,12 +245,12 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
     @admin.action(description="Undo printing of delivery group tickets (delete its PDF).")
     def unprint(self, request, queryset):
         for obj in queryset:
-            if obj.num_tickets_printed >= obj.tickets.count():
-                sort_request = obj.sort_request
-                if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}.pdf"):
-                    os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}.pdf")
-                obj.num_tickets_printed = 0
-                obj.save()
+            sort_request = obj.sort_request
+            for part in range(math.ceil(obj.tickets.count() / NUM_TICKETS_PER_PDF)):
+                if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}_{part + 1}.pdf"):
+                    os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}_{part + 1}.pdf")
+            obj.num_tickets_printed = 0
+            obj.save()
 
     def delete_model(self, request, obj):
         sort_request = obj.sort_request
