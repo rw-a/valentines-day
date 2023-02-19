@@ -150,7 +150,7 @@
         const uncompletedParts = [];
         const num_parts_required = Math.ceil(group_data[group].num_tickets / NUM_TICKETS_PER_PDF);
         for (let part = 1; part <= num_parts_required; part++) {
-            if (!group_data[group].parts.includes(part)) {
+            if (!group_data[group].parts.includes(String(part))) {
                 uncompletedParts.push(part);
             }
         }
@@ -166,13 +166,13 @@
 
         // get the groups which haven't been printed yet
         const groups = Object.keys(group_data).filter((group) => {return !isGroupDone(group)});
-        const uncompletedParts = [];
-        for (const group in groups) {
-            for (const part in getUncompletedParts(group)) {
-                uncompletedParts.push(getPartName(group, part));
+        const uncompletedPartNames = [];
+        for (const group of groups) {
+            for (const part of getUncompletedParts(group)) {
+                uncompletedPartNames.push(getPartName(group, part));
             }
         }
-        generating = generating.concat(groups);
+        generating = generating.concat(uncompletedPartNames);
 
         // disable further print requests
         refresh();
@@ -181,9 +181,7 @@
         generate_all_button.disabled = true;
 
         for (let group of groups) {
-            const num_parts_required = Math.ceil(group_data[group].num_tickets / NUM_TICKETS_PER_PDF);
-            const num_parts_done = group_data[group].num_tickets_printed / NUM_TICKETS_PER_PDF;
-            for (let part = num_parts_done + 1; part <= num_parts_required; part++) {
+            for (let part of getUncompletedParts(group)) {
                 await printPart(group, part);
             }
         }
