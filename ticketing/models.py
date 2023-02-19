@@ -181,7 +181,8 @@ class SortTicketsRequest(models.Model):
 class DeliveryGroup(models.Model):
     code = models.CharField(max_length=3)
     is_serenading_group = models.BooleanField()
-    num_tickets_printed = models.IntegerField(default=0)
+    parts_printed = models.TextField()    # the PDF parts which have been printed as a comma delimited str (e.g. "1,2")
+
     sort_request = models.ForeignKey(SortTicketsRequest, on_delete=models.CASCADE)
     tickets = models.ManyToManyField(Ticket)
 

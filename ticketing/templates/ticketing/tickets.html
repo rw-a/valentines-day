@@ -32,7 +32,7 @@
     let generating = [];
 
     async function printPart(group, part) {
-        const partName = `${group}_${part}`;
+        const partName = getPartName(group, part);
         generating.push(partName);
         return new Promise((resolve) => {
             fetch("{% url 'ticketing:api_print' %}?" + new URLSearchParams({
@@ -50,6 +50,7 @@
                 .then((data) => {
                     group_data[group].num_tickets_printed += NUM_TICKETS_PER_PDF;
                     generating.splice(generating.indexOf(partName), 1);
+                    group_data[group].parts.push(part);
                     refresh();
                     resolve();
                 }).catch((error) => {
@@ -88,9 +89,8 @@
 
             } else {
                 const num_parts_required = Math.ceil(group_data[group].num_tickets / NUM_TICKETS_PER_PDF);
-                const num_parts_done = group_data[group].num_tickets_printed / NUM_TICKETS_PER_PDF;
                 for (let part = 1; part <= num_parts_required; part++) {
-                    if (part <= num_parts_done) {
+                    if (group_data[group].parts.includes(String(part))) {
                         // if part has been completed
                         const link = document.createElement('a');
                         const text = document.createTextNode((num_parts_required === 1) ? "Download" : `Part${part} `);
@@ -98,11 +98,11 @@
                         link.title = (num_parts_required === 1) ? `PDF of tickets for group ${group}` : `PDF of tickets for group ${group} (part ${part})`;
                         link.href = `${"{{pk}}"}/${group}/${part}`;
                         tickets_pdf.appendChild(link);
+
                     } else {
                         // if part has not been completed
                         let generate_button = document.createElement('button');
-                        const partName = `${group}_${part}`;
-                        if (generating.includes(partName)) {
+                        if (generating.includes(getPartName(group, part))) {
                             // if currently generating
                             generate_button.disabled = true;
                             generate_button.innerHTML = (num_parts_required === 1) ? "Generating" : `Part ${part}...`;
@@ -120,15 +120,25 @@
                     }
                 }
             }
-            refresh_generate_all();
+            refreshGenerateAllButton();
         }
+    }
+
+    function getPartName(group, part) {
+        return `${group}_${part}`;
     }
 
     /* Generate All Button */
     let generate_all_button = document.getElementById('generate_all');
 
     function isGroupDone(group) {
-        return group_data[group].num_tickets_printed >= group_data[group].num_tickets;
+        const num_parts_required = Math.ceil(group_data[group].num_tickets / NUM_TICKETS_PER_PDF);
+        for (let part = 1; part <= num_parts_required; part++) {
+            if (!group_data[group].parts.includes(part)) {
+                return false;
+            }
+        }
+        return true;
     }
     function hasCompletedAll() {
         for (let group of Object.keys(group_data)) {
@@ -137,7 +147,18 @@
         return true;
     }
 
-    function refresh_generate_all() {
+    function getUncompletedParts(group) {
+        const uncompletedParts = [];
+        const num_parts_required = Math.ceil(group_data[group].num_tickets / NUM_TICKETS_PER_PDF);
+        for (let part = 1; part <= num_parts_required; part++) {
+            if (!group_data[group].parts.includes(part)) {
+                uncompletedParts.push(part);
+            }
+        }
+        return uncompletedParts;
+    }
+
+    function refreshGenerateAllButton() {
         generate_all_button.hidden = hasCompletedAll();
     }
 
@@ -146,6 +167,12 @@
 
         // get the groups which haven't been printed yet
         const groups = Object.keys(group_data).filter((group) => {return !isGroupDone(group)});
+        const uncompletedParts = [];
+        for (const group in groups) {
+            for (const part in getUncompletedParts(group)) {
+                uncompletedParts.push(getPartName(group, part));
+            }
+        }
         generating = generating.concat(groups);
 
         // disable further print requests

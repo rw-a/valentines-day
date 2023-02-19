@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from .constants import DirectoryLocations, STUDENTS
 from .models import Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup
 from .code_generator import CodesToPDF, generate_codes
-from .ticket_sorter import sort_tickets
+from .ticket_sorter import sort_tickets, get_parts
 from vdaywebsite.settings import ORG_NAME, NUM_TICKETS_PER_PDF
 import os
 import math
@@ -218,7 +218,7 @@ class SortTicketAdmin(admin.ModelAdmin):
 
 class DeliveryGroupAdmin(admin.ModelAdmin):
     list_display = ('code', 'percentage_printed', 'num_serenades', 'num_non_serenades', 'num_tickets', 'sort_request',)
-    readonly_fields = ('num_tickets_printed',)
+    readonly_fields = ('parts_printed',)
     actions = ('unprint',)
     date_hierarchy = "date"
 
@@ -238,7 +238,13 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
     def percentage_printed(self, obj):
         num_tickets = obj.tickets.count()
         if num_tickets > 0:
-            return f"{min(100, round(obj.num_tickets_printed / obj.tickets.count() * 100))}%"
+            num_printed_tickets = 0
+            for part in get_parts(obj):
+                if part == num_tickets // NUM_TICKETS_PER_PDF + 1:
+                    num_printed_tickets += num_tickets - num_tickets // NUM_TICKETS_PER_PDF
+                else:
+                    num_printed_tickets += NUM_TICKETS_PER_PDF
+            return f"{min(100, round(num_printed_tickets / num_tickets * 100))}%"
         else:
             return "100%"
 
@@ -249,7 +255,7 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
             for part in range(math.ceil(obj.tickets.count() / NUM_TICKETS_PER_PDF)):
                 if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}_{part + 1}.pdf"):
                     os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}_{part + 1}.pdf")
-            obj.num_tickets_printed = 0
+            obj.parts_printed = ""
             obj.save()
 
     def delete_model(self, request, obj):
