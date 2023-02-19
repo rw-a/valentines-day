@@ -23,11 +23,15 @@ else:
 
 
 class TicketsToPDF:
-    def __init__(self, tickets, pdf_output_path: str, pdf_name: str, padding: int = 0, starting_index: int = 0):
+    def __init__(self, tickets, pdf_output_path: str, pdf_name: str, starting_index: int = 0,
+                 padding: int = 0, use_vector: bool = False, dpi_factor: float = 2):
         self.tickets = tickets
         self.pdf_output_path = pdf_output_path  # supports str for filepath or BytesIO
         self.pdf_name = pdf_name
         self.starting_index = starting_index
+
+        self.VECTOR_MESSAGES = use_vector     # render ticket messages as svg files instead of being rasterized (slower)
+        self.RATIO = 2 * dpi_factor               # multiplies DPI by this ratio. only used if vector messages is false
 
         self.background_pdf = None
         self.foreground_pdf = None          # only if vector messages is false
@@ -54,9 +58,6 @@ class TicketsToPDF:
         # dimensions of canvas from signature pad in pixels
         self.CANVAS_WIDTH = 602
         self.CANVAS_HEIGHT = 358
-
-        self.VECTOR_MESSAGES = True     # render ticket messages as svg files instead of being rasterized (slower)
-        self.RATIO = 4                  # increases DPI by this ratio. only used if vector messages is false
 
         """Load Fonts"""
         pdfmetrics.registerFont(TTFont("Chasing Hearts", f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))

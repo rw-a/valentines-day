@@ -15,3 +15,7 @@ td, th {
     align-items: center;
     gap: 5px;
 }
+
+.option {
+    margin-top: 10px;
+}

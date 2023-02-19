@@ -20,7 +20,27 @@
                 <th>Tickets PDF</th>
               </tr>
         </table>
-        <button id="generate_all">Generate All</button>
+        <button id="generate_all">Generate All</button><br>
+        <h2>Options</h2>
+        <p class="info">These only affect PDFs generated after these options have been change (will not retroactively change PDFs). If you want to reprint PDFs, go to the <a href="/admin/ticketing/deliverygroup/">admin</a> page, select a delivery group, choose the dropdown option "Undo printing...", and press the Go button.</p>
+        <div class="option">
+            <h3>Vector Messages</h3>
+            <p class="info">Increases resolution of PDF and decreases PDF file size.</p>
+            <p class="info error">Warning: takes significantly longer to generate PDFs.</p>
+            <input id="vector" type="checkbox">
+            <label>Enable</label>
+        </div>
+        <div class="option" id="dpi_factor_option">
+            <h3>DPI Factor</h3>
+            <p class="info">Increases the resolution of the PDFs by this factor. Has no effect if <u>Vector Messages</u> is enabled.</p>
+            <p class="info error">Warning: increases filesize of PDFs. High values may cause the storage quota to be exceeded.</p>
+            <input id="dpi_factor" type="number" min="1" max="3" value="2">
+        </div>
+        <div class="option">
+            <h3>Padding</h3>
+            <p class="info">Adds a margin within each ticket when generating PDFs. Useful if your printer can't align the front/back of the paper when printing, or you want leeway so that you can cut them out faster. Otherwise, don't use as it will shrink the ticket size. A very high value may also cause the formatting to become weird.</p>
+            <input id="padding" type="number" min="0" max="10" value="0">
+        </div>
         <p id="error" style="color: red;" hidden></p>
     </div>
 </body>
@@ -38,7 +58,10 @@
             fetch("{% url 'ticketing:api_print' %}?" + new URLSearchParams({
                 'pk': "{{ pk }}",
                 "group": group,
-                "part": part
+                "part": part,
+                "padding": document.getElementById('padding').value,
+                "vector": document.getElementById('vector').checked,
+                "dpi_factor": document.getElementById('dpi_factor').value,
             }))
                 .then((response) => {
                     if (response.ok) {
@@ -188,5 +211,10 @@
     };
 
     refresh();
+
+    /* Options */
+    document.getElementById('vector').addEventListener('click', (event) => {
+        document.getElementById('dpi_factor_option').hidden = event.target.checked;
+    });
 </script>
 </html>

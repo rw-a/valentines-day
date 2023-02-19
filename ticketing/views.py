@@ -201,6 +201,9 @@ def api_print_tickets(request):
     pk = request.GET['pk']
     group_code = request.GET['group']
     part = int(request.GET['part'])
+    padding = int(request.GET['padding'])
+    use_vector = request.GET['vector'] == "true"
+    dpi_factor = float(request.GET['dpi_factor'])
 
     group = SortTicketsRequest.objects.get(pk=pk).deliverygroup_set.get(code=group_code)
 
@@ -211,7 +214,10 @@ def api_print_tickets(request):
                                      min(part * NUM_TICKETS_PER_PDF, group.tickets.count() - 1)],
                  f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}_{part}.pdf",
                  group_code,
-                 starting_index=(part - 1) * NUM_TICKETS_PER_PDF)
+                 starting_index=(part - 1) * NUM_TICKETS_PER_PDF,
+                 padding=padding,
+                 use_vector=use_vector,
+                 dpi_factor=dpi_factor)
 
     group.parts_printed += f",{part}"
     group.save()
