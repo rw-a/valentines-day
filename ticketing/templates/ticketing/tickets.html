@@ -21,6 +21,7 @@
               </tr>
         </table>
         <button id="generate_all">Generate All</button>
+        <p id="error" style="color: red;" hidden></p>
     </div>
 </body>
 <script>
@@ -33,24 +34,29 @@
     async function printPart(group, part) {
         const partName = `${group}_${part}`;
         generating.push(partName);
-        new Promise((resolve) => {
+        return new Promise((resolve) => {
             fetch("{% url 'ticketing:api_print' %}?" + new URLSearchParams({
-                    'pk': "{{ pk }}",
-                    "group": group,
-                    "part": part
-                }))
-                    .then((response) => response.json())
-                    .then((data) => {
-                        group_data[group].num_tickets_printed += NUM_TICKETS_PER_PDF;
-                        generating.splice(generating.indexOf(partName), 1);
-                        refresh();
-                        resolve();
-                    })
-                    .catch((error) => {
-                        console.error('Error:', error);
-                    })
-            }
-        );
+                'pk': "{{ pk }}",
+                "group": group,
+                "part": part
+            }))
+                .then((response) => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error(`${response.status} ${response.statusText}.`);
+                    }
+                })
+                .then((data) => {
+                    group_data[group].num_tickets_printed += NUM_TICKETS_PER_PDF;
+                    generating.splice(generating.indexOf(partName), 1);
+                    refresh();
+                    resolve();
+                }).catch((error) => {
+                    document.getElementById('error').hidden = false;
+                    document.getElementById('error').innerText = error;
+            });
+        });
     }
 
     function refresh() {
@@ -101,6 +107,7 @@
                             // if not yet generated
                             generate_button.innerHTML = (num_parts_required === 1) ? "Generate" : `Generate Part ${part}`;
                             generate_button.onclick = (event) => {
+                                document.getElementById('error').hidden = true;
                                 generate_button.disabled = true;
                                 generate_button.innerHTML = (num_parts_required === 1) ? "Generating" : `Generating Part ${part}...`;
                                 printPart(group, part);
@@ -132,6 +139,8 @@
     }
 
     generate_all_button.onclick = async () => {
+        document.getElementById('error').hidden = true;
+
         // get the groups which haven't been printed yet
         const groups = Object.keys(group_data).filter((group) => {return !isGroupDone(group)});
         generating = generating.concat(groups);
