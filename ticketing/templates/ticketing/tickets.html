@@ -48,9 +48,8 @@
                     }
                 })
                 .then((data) => {
-                    group_data[group].num_tickets_printed += NUM_TICKETS_PER_PDF;
+                    group_data[group].parts.push(String(part));
                     generating.splice(generating.indexOf(partName), 1);
-                    group_data[group].parts.push(part);
                     refresh();
                     resolve();
                 }).catch((error) => {
