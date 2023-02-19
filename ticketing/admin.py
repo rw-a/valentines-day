@@ -240,8 +240,9 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
         if num_tickets > 0:
             num_printed_tickets = 0
             for part in get_parts(obj):
+                part = int(part)
                 if part == num_tickets // NUM_TICKETS_PER_PDF + 1:
-                    num_printed_tickets += num_tickets - num_tickets // NUM_TICKETS_PER_PDF
+                    num_printed_tickets += num_tickets - (part - 1) * NUM_TICKETS_PER_PDF
                 else:
                     num_printed_tickets += NUM_TICKETS_PER_PDF
             return f"{min(100, round(num_printed_tickets / num_tickets * 100))}%"
