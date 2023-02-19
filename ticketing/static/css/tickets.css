@@ -4,7 +4,14 @@ table {
     text-align: center;
 }
 
-td,th {
+td, th {
     border: 1px solid;
     padding: 3px;
+}
+
+.tickets_pdf {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
 }

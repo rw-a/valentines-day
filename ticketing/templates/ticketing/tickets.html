@@ -77,8 +77,11 @@
             let num_tickets = row.insertCell(1);
             num_tickets.innerHTML = group_data[group]["num_tickets"];
 
-            let tickets_pdf = row.insertCell(2);
+            let tickets_pdf_row = row.insertCell(2);
+            let tickets_pdf = document.createElement('div');
             tickets_pdf.id = `${group}_pdf`;
+            tickets_pdf.classList.add("tickets_pdf");
+            tickets_pdf_row.appendChild(tickets_pdf);
 
             if (group_data[group]["num_tickets"] === 0) {
                 tickets_pdf.innerHTML = "No Tickets :(";
@@ -90,7 +93,7 @@
                     if (part <= num_parts_done) {
                         // if part has been completed
                         const link = document.createElement('a');
-                        const text = (num_parts_required === 1) ? document.createTextNode("Download") : document.createTextNode(`Download Part ${part}`);
+                        const text = document.createTextNode((num_parts_required === 1) ? "Download" : `Part${part} `);
                         link.appendChild(text);
                         link.title = (num_parts_required === 1) ? `PDF of tickets for group ${group}` : `PDF of tickets for group ${group} (part ${part})`;
                         link.href = `${"{{pk}}"}/${group}/${part}`;
@@ -102,14 +105,14 @@
                         if (generating.includes(partName)) {
                             // if currently generating
                             generate_button.disabled = true;
-                            generate_button.innerHTML = (num_parts_required === 1) ? "Generating" : `Generating Part ${part}...`;
+                            generate_button.innerHTML = (num_parts_required === 1) ? "Generating" : `Part ${part}...`;
                         } else {
                             // if not yet generated
-                            generate_button.innerHTML = (num_parts_required === 1) ? "Generate" : `Generate Part ${part}`;
+                            generate_button.innerHTML = (num_parts_required === 1) ? "Generate" : `Part ${part}`;
                             generate_button.onclick = (event) => {
                                 document.getElementById('error').hidden = true;
                                 generate_button.disabled = true;
-                                generate_button.innerHTML = (num_parts_required === 1) ? "Generating" : `Generating Part ${part}...`;
+                                generate_button.innerHTML = (num_parts_required === 1) ? "Generating" : `Part ${part}...`;
                                 printPart(group, part);
                             };
                         }
