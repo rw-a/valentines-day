@@ -184,7 +184,7 @@ class TicketsToPDF:
                 xml_file.set('viewBox', f'0 0 {self.CANVAS_WIDTH} {self.CANVAS_HEIGHT}')
 
             # check if message is blank
-            if float(xml_file.get('width')) > 0 and float(xml_file.get('height')):
+            if float(xml_file.get('width')) > 0 and float(xml_file.get('height')) > 0:
                 if self.VECTOR_MESSAGES:
                     xml_file.set('width', str(self.CELL_WIDTH))
                     xml_file.set('height', str(self.CELL_HEIGHT))
@@ -201,7 +201,7 @@ class TicketsToPDF:
                     else:
                         if float(xml_file.get('width')) < self.CANVAS_WIDTH:
                             # if fabric, remove font spaces in names
-                            for child in xml_file.iter("{http://www.w3.org/2000/svg}text"):  # to add svg prefix to tags
+                            for child in xml_file.iter("{http://www.w3.org/2000/svg}text"):  # need svg prefix on tags
                                 font = child.get("font-family")
 
                                 if " " not in font:
