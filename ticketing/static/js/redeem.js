@@ -19,7 +19,7 @@ async function submit_form(event) {
         let message;
         if (document.getElementById('is_handwritten').value === "True") {
             template = document.getElementById('handwriting_template').value;
-            message = await dataURLToBlob(signaturePad.toDataURL("image/svg+xml")).text();
+            message = signaturePad.toSVG();
         } else {
             fabric_canvas.backgroundImage = null;
 
@@ -173,20 +173,6 @@ function is_valid_typed() {
     const unempty = is_fabric_not_empty();
     const not_over = is_fabric_not_spilling();
     return unempty && not_over;
-}
-
-function dataURLToBlob(dataURL) {
-  const parts = dataURL.split(';base64,');
-  const contentType = parts[0].split(":")[1];
-  const raw = window.atob(parts[1]);
-  const rawLength = raw.length;
-  const uInt8Array = new Uint8Array(rawLength);
-
-  for (let i = 0; i < rawLength; ++i) {
-    uInt8Array[i] = raw.charCodeAt(i);
-  }
-
-  return new Blob([uInt8Array], { type: contentType });
 }
 
 // only allow letters in code input and automatically make uppercase
