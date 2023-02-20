@@ -16,10 +16,10 @@ from pypdf import PdfReader, PdfWriter, Transformation
 
 if __name__ == "__main__":
     STUDENTS = {"Jeff Bezos [7A]": {"Name": "Jeff Bezos"}}
-    from constants import DirectoryLocations, PICKUP_LINES, TEMPLATES
+    from constants import DirectoryLocations, PICKUP_LINES, TEMPLATES, FONTS
     random.seed(0)
 else:
-    from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES, TEMPLATES
+    from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES, TEMPLATES, FONTS
 
 
 class TicketsToPDF:
@@ -31,7 +31,8 @@ class TicketsToPDF:
         self.starting_index = starting_index
 
         self.VECTOR_MESSAGES = use_vector     # render ticket messages as svg files instead of being rasterized (slower)
-        self.RATIO = 2 * dpi_factor               # multiplies DPI by this ratio. only used if vector messages is false
+        self.RATIO = 2 * dpi_factor           # multiplies DPI by this ratio. only used if vector messages is false
+        self.ENFORCE_BOUNDARIES = True
 
         self.background_pdf = None
         self.foreground_pdf = None          # only if vector messages is false
@@ -60,7 +61,11 @@ class TicketsToPDF:
         self.CANVAS_HEIGHT = 358
 
         """Load Fonts"""
-        pdfmetrics.registerFont(TTFont("Chasing Hearts", f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
+        if self.VECTOR_MESSAGES and not self.ENFORCE_BOUNDARIES:
+            for font, font_file in FONTS.items():
+                pdfmetrics.registerFont(TTFont(font, f'{DirectoryLocations.STATIC}/fonts/{font_file}.ttf'))
+        else:
+            pdfmetrics.registerFont(TTFont("Chasing Hearts", f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
 
         """Load Templates"""
         self.TEMPLATES = {}
@@ -100,7 +105,7 @@ class TicketsToPDF:
         for index, page in enumerate(self.background_pdf.pages):
             if index % 2 == 0:
                 page_num = index // 2
-                if self.VECTOR_MESSAGES:
+                if self.ENFORCE_BOUNDARIES:
                     for message_index, message_pdf in enumerate(self.message_pdfs[page_num * self.NUM_CODES_PER_PAGE: (page_num + 1) * self.NUM_CODES_PER_PAGE]):
                         if message_pdf is None:
                             continue
@@ -184,14 +189,29 @@ class TicketsToPDF:
                     xml_file.set('width', str(self.CELL_WIDTH))
                     xml_file.set('height', str(self.CELL_HEIGHT))
 
-                    img_bytes = io.BytesIO(cairosvg.svg2pdf(
-                        bytestring=etree.tostring(xml_file), write_to=None,
-                        output_width=4 / 3 * (self.CELL_WIDTH - 2 * self.PADDING),
-                        output_height=4 / 3 * (self.CELL_HEIGHT - 2 * self.PADDING)))
+                    if self.ENFORCE_BOUNDARIES:
+                        img_bytes = io.BytesIO(cairosvg.svg2pdf(
+                            bytestring=etree.tostring(xml_file), write_to=None,
+                            output_width=4 / 3 * (self.CELL_WIDTH - 2 * self.PADDING),
+                            output_height=4 / 3 * (self.CELL_HEIGHT - 2 * self.PADDING)))
 
-                    self.message_pdfs.append(img_bytes)
+                        self.message_pdfs.append(img_bytes)
+                        image = ""  # just return a blank image and add it later by merging pdfs
 
-                    image = ""   # just return a blank image and add it later by merging pdfs
+                    else:
+                        if float(xml_file.get('width')) < self.CANVAS_WIDTH:
+                            for child in xml_file.iter("{http://www.w3.org/2000/svg}text"):  # to add svg prefix to tags
+                                font = child.get("font-family")
+
+                                if " " not in font:
+                                    break
+
+                                font = font.replace(" ", "")
+                                child.set("font-family", font)
+
+                        image = svg2rlg(io.StringIO(etree.tostring(xml_file).decode('utf-8')))
+                        image.setProperties({"hAlign": "CENTER", "vAlign": "MIDDLE"})
+
                 else:
                     img_bytes = io.BytesIO(cairosvg.svg2png(
                         bytestring=etree.tostring(xml_file), write_to=None,
@@ -374,7 +394,7 @@ def main():
             break
         tickets.append(Ticket(file.split("/")[-1].split(".svg")[0]))
 
-    TicketsToPDF(tickets, 'export.pdf', 'S1', padding=0)
+    TicketsToPDF(tickets, 'export.pdf', 'S1', padding=0, use_vector=True)
 
 
 if __name__ == "__main__":
