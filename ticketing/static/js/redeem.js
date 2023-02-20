@@ -142,8 +142,7 @@ function is_valid_handwriting() {
     }
 }
 
-function is_valid_typed() {
-    fabric_canvas.discardActiveObject();
+function is_fabric_not_empty() {
     // typing is valid if there is at least one text box that isn't placeholder text
     for (let object of fabric_canvas.getObjects()) {
         if (object.text !== PLACEHOLDER_TEXT) {
@@ -153,6 +152,27 @@ function is_valid_typed() {
     }
     document.getElementById('typedError').hidden = false;
     return false;
+}
+
+function is_fabric_not_spilling() {
+    const canvasWidth = document.querySelector('div[class="canvas-container"]').offsetWidth;
+    for (let object of fabric_canvas.getObjects()) {
+        if (object.left + object.width > canvasWidth) {
+            object.set({"width": canvasWidth - object.left});  // try to make it fit
+            if (object.left + object.width > canvasWidth) {
+                document.getElementById('overFlowingError').hidden = false;
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function is_valid_typed() {
+    fabric_canvas.discardActiveObject().requestRenderAll();
+    const unempty = is_fabric_not_empty();
+    const not_over = is_fabric_not_spilling();
+    return unempty && not_over;
 }
 
 function dataURLToBlob(dataURL) {

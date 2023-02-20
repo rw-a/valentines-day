@@ -247,6 +247,7 @@ document.getElementById('fabric_add').addEventListener('click', () => {
 function clearFabricErrors() {
     document.getElementById('tooManyTextBoxesError').hidden = true;
     document.getElementById('weirdCharactersError').hidden = true;
+    document.getElementById('overFlowingError').hidden = true;
     document.getElementById('typedError').hidden = true;
 }
 
