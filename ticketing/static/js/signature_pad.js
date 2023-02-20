@@ -1,3 +1,5 @@
+const PADDING = 0;  // how much to pad canvas to ensure no strokes bleed outside canvas
+
 const canvas = document.getElementById("signature_pad");
 const signaturePad = new SignaturePad(canvas, {
   minDistance: 1,
@@ -9,6 +11,20 @@ let signaturePadData = {};
 let signaturePadDataBackup = {};    // to allow you to undo clearing
 signaturePad.addEventListener("endStroke", () => {
     signaturePadData = signaturePad.toData();
+    let lastPoint = {};     // ensures that no two adjacent points are identical, which causes corruption
+    for (let stroke of signaturePadData) {
+        for (let i = 0; i < stroke.points.length; i++) {
+            let point = stroke.points[i];
+            point.x = Math.max(2 + PADDING, Math.min(point.x, 600 - PADDING));
+            point.y = Math.max(2 + PADDING, Math.min(point.y, 356 - PADDING));
+            if (point.x === lastPoint.x && point.y === lastPoint.y) {
+                stroke.points.splice(i);
+            } else {
+                lastPoint = point;
+            }
+        }
+    }
+    signaturePad.fromData(signaturePadData);
 });
 
 // scale canvas for retina display
