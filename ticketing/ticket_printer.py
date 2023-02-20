@@ -200,6 +200,7 @@ class TicketsToPDF:
 
                     else:
                         if float(xml_file.get('width')) < self.CANVAS_WIDTH:
+                            # if fabric, remove font spaces in names
                             for child in xml_file.iter("{http://www.w3.org/2000/svg}text"):  # to add svg prefix to tags
                                 font = child.get("font-family")
 
@@ -224,7 +225,7 @@ class TicketsToPDF:
                 image = ""
 
                 # add a placeholder
-                if self.VECTOR_MESSAGES:
+                if self.VECTOR_MESSAGES and self.ENFORCE_BOUNDARIES:
                     self.message_pdfs.append(None)
 
             images.append(image)
