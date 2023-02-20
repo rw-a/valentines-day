@@ -24,17 +24,11 @@
         <h2>Options</h2>
         <p class="info">These only affect PDFs generated after these options have been change (will not retroactively change PDFs). If you want to reprint PDFs, go to the <a href="/admin/ticketing/deliverygroup/">admin</a> page, select a delivery group, choose the dropdown option "Undo printing...", and press the Go button.</p>
         <div class="option">
-            <h3>Vector Messages</h3>
-            <p class="info">Increases resolution of PDF and decreases PDF file size.</p>
+            <h3>Enforce Ticket Boundaries</h3>
+            <p class="info">While unlikely, some tickets may have messages which spill over into other tickets. This ensures that any parts which spill over are cropped out.</p>
             <p class="info error">Warning: takes significantly longer to generate PDFs.</p>
-            <input id="vector" type="checkbox">
+            <input id="boundary" type="checkbox">
             <label>Enable</label>
-        </div>
-        <div class="option" id="dpi_factor_option">
-            <h3>DPI Factor</h3>
-            <p class="info">Increases the resolution of the PDFs by this factor. Has no effect if <u>Vector Messages</u> is enabled.</p>
-            <p class="info error">Warning: increases filesize of PDFs. High values may cause the storage quota to be exceeded.</p>
-            <input id="dpi_factor" type="number" min="1" max="3" value="2">
         </div>
         <div class="option">
             <h3>Padding</h3>
@@ -60,8 +54,7 @@
                 "group": group,
                 "part": part,
                 "padding": document.getElementById('padding').value,
-                "vector": document.getElementById('vector').checked,
-                "dpi_factor": document.getElementById('dpi_factor').value,
+                "boundary": document.getElementById('boundary').checked,
             }))
                 .then((response) => {
                     if (response.ok) {
@@ -211,10 +204,5 @@
     };
 
     refresh();
-
-    /* Options */
-    document.getElementById('vector').addEventListener('click', (event) => {
-        document.getElementById('dpi_factor_option').hidden = event.target.checked;
-    });
 </script>
 </html>

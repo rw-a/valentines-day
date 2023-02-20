@@ -24,15 +24,15 @@ else:
 
 class TicketsToPDF:
     def __init__(self, tickets, pdf_output_path: str, pdf_name: str, starting_index: int = 0,
-                 padding: int = 0, use_vector: bool = False, dpi_factor: float = 2):
+                 padding: int = 0, enforce_boundaries: bool = False):
         self.tickets = tickets
         self.pdf_output_path = pdf_output_path  # supports str for filepath or BytesIO
         self.pdf_name = pdf_name
         self.starting_index = starting_index
 
-        self.VECTOR_MESSAGES = use_vector     # render ticket messages as svg files instead of being rasterized (slower)
-        self.RATIO = 2 * dpi_factor           # multiplies DPI by this ratio. only used if vector messages is false
-        self.ENFORCE_BOUNDARIES = False       # should be enforced on redemption now
+        self.VECTOR_MESSAGES = True         # render ticket messages as svg files instead of being rasterized (slower)
+        self.ENFORCE_BOUNDARIES = enforce_boundaries  # should be enforced on redemption now. only if vector messages is true
+        self.RATIO = 4                      # multiplies DPI by this ratio. only used if vector messages is false
 
         self.background_pdf = None
         self.foreground_pdf = None          # only if vector messages is false
@@ -395,7 +395,7 @@ def main():
             break
         tickets.append(Ticket(file.split("/")[-1].split(".svg")[0]))
 
-    TicketsToPDF(tickets, 'export.pdf', 'S1', padding=0, use_vector=True)
+    TicketsToPDF(tickets, 'export.pdf', 'S1', padding=0)
 
 
 if __name__ == "__main__":
