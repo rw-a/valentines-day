@@ -32,7 +32,7 @@ class TicketsToPDF:
 
         self.VECTOR_MESSAGES = use_vector     # render ticket messages as svg files instead of being rasterized (slower)
         self.RATIO = 2 * dpi_factor           # multiplies DPI by this ratio. only used if vector messages is false
-        self.ENFORCE_BOUNDARIES = True
+        self.ENFORCE_BOUNDARIES = False       # should be enforced on redemption now
 
         self.background_pdf = None
         self.foreground_pdf = None          # only if vector messages is false
