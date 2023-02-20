@@ -183,10 +183,10 @@ class SortTicketAdmin(admin.ModelAdmin):
                 tickets = []
                 for ticket_index, ticket_to_sort in enumerate(group.tickets):
                     ticket = Ticket.objects.get(pk=ticket_to_sort.pk)
-                    ticket.p1 = ticket_to_sort.p1.clean_name
-                    ticket.p2 = ticket_to_sort.p2.clean_name
-                    ticket.p3 = ticket_to_sort.p3.clean_name
-                    ticket.p4 = ticket_to_sort.p4.clean_name
+                    ticket.p1 = ticket_to_sort.p1.original_name
+                    ticket.p2 = ticket_to_sort.p2.original_name
+                    ticket.p3 = ticket_to_sort.p3.original_name
+                    ticket.p4 = ticket_to_sort.p4.original_name
                     ticket.period = ticket_to_sort.chosen_period
                     sort_order = int(f"{'1' if is_serenading else '0'}{group_index + 1}{str(ticket_index).zfill(4)}")
                     ticket.sort_order = sort_order
