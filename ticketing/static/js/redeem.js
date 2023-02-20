@@ -157,9 +157,9 @@ function is_fabric_not_empty() {
 function is_fabric_not_spilling() {
     const canvasWidth = document.querySelector('div[class="canvas-container"]').offsetWidth;
     for (let object of fabric_canvas.getObjects()) {
-        if (object.left + object.width > canvasWidth) {
-            object.set({"width": canvasWidth - object.left});  // try to make it fit
-            if (object.left + object.width > canvasWidth) {
+        if (object.left + object.width * object.scaleX > canvasWidth) {
+            object.set({"width": canvasWidth / object.scaleX - object.left});  // try to make it fit
+            if (object.left + object.width * object.scaleX > canvasWidth) {
                 document.getElementById('overFlowingError').hidden = false;
                 return false;
             }
