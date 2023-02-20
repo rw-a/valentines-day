@@ -62,8 +62,8 @@ class TicketsToPDF:
 
         """Load Fonts"""
         if self.VECTOR_MESSAGES and not self.ENFORCE_BOUNDARIES:
-            for font, font_file in FONTS.items():
-                pdfmetrics.registerFont(TTFont(font, f'{DirectoryLocations.STATIC}/fonts/{font_file}.ttf'))
+            for font, font_info in FONTS.items():
+                pdfmetrics.registerFont(TTFont(font, f'{DirectoryLocations.STATIC}/fonts/{font_info["filename"]}.ttf'))
         else:
             pdfmetrics.registerFont(TTFont("Chasing Hearts", f'{DirectoryLocations.STATIC}/fonts/Chasing Hearts.ttf'))
 

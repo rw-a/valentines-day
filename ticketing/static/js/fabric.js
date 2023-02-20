@@ -1,4 +1,4 @@
-/* Variables */
+/* Constants */
 const PLACEHOLDER_TEXT = "Type something...";
 const PLACEHOLDER_TEXT_OPACITY = 0.25;
 const PLACEHOLDER_TEXT_WIDTH = 250;
@@ -157,8 +157,8 @@ for (let font of Object.keys(fonts)) {
     fontStyles.appendChild(document.createTextNode(`\
         @font-face {\
             font-family: '${font}';\
-            src: url('${static_path}fonts/${fonts[font]}.woff2') format('woff2'),\
-                 url('${static_path}fonts/${fonts[font].replace(" ", "\ ")}.ttf');\
+            src: url('${static_path}fonts/${fonts[font].filename}.woff2') format('woff2'),\
+                 url('${static_path}fonts/${fonts[font].filename.replace(" ", "\ ")}.ttf');\
         }\
     `));
 }

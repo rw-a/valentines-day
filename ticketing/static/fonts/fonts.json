@@ -1,11 +1,38 @@
 {
-  "Calibri":  "Calibri",
-  "Chasing Hearts":  "Chasing Hearts",
-  "Delique":  "Delique",
-  "Easy Love": "Easy Love",
-  "Heartales":  "Heartales",
-  "Hello Valentine": "Hello Valentine",
-  "La Rosse":  "La Rosse",
-  "Love Letters":  "Love Letters",
-  "Love Song": "Love Song"
+  "Calibri": {
+    "filename": "Calibri",
+    "yOffset": 0
+  },
+  "Chasing Hearts": {
+    "filename": "Chasing Hearts",
+    "yOffset": 0
+  },
+  "Delique": {
+    "filename": "Delique",
+    "yOffset": 0
+  },
+  "Easy Love": {
+    "filename": "Easy Love",
+    "yOffset": 0
+  },
+  "Heartales": {
+    "filename": "Heartales",
+    "yOffset": 0
+  },
+  "Hello Valentine": {
+    "filename": "Hello Valentine",
+    "yOffset": -14
+  },
+  "La Rosse": {
+    "filename": "La Rosse",
+    "yOffset": 0
+  },
+  "Love Letters": {
+    "filename": "Love Letters",
+    "yOffset": 0
+  },
+  "Love Song": {
+    "filename": "Love Song",
+    "yOffset": 0
+  }
 }

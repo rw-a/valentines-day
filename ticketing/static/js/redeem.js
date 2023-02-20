@@ -156,13 +156,33 @@ function is_fabric_not_empty() {
 
 function is_fabric_not_spilling() {
     const canvasWidth = document.querySelector('div[class="canvas-container"]').offsetWidth;
+    const canvasHeight = document.querySelector('div[class="canvas-container"]').offsetHeight;
+
     for (let object of fabric_canvas.getObjects()) {
+        if (object.text === PLACEHOLDER_TEXT) {
+            continue;
+        }
+
+        // check if width exceeding right
         if (object.left + object.width * object.scaleX > canvasWidth) {
             object.set({"width": canvasWidth / object.scaleX - object.left});  // try to make it fit
             if (object.left + object.width * object.scaleX > canvasWidth) {
                 document.getElementById('overFlowingError').hidden = false;
                 return false;
             }
+        }
+
+        // check if height exceeding bottom
+        const yOffset = fonts[document.getElementById('font_selector').value].yOffset;
+        if (object.top + (object.height - yOffset) * object.scaleY > canvasHeight) {
+            document.getElementById('overFlowingError').hidden = false;
+            return false;
+        }
+
+        // check if text is too left or top
+        if (object.top < 0 || object.left < 0) {
+            document.getElementById('overFlowingError').hidden = false;
+            return false;
         }
     }
     return true;
