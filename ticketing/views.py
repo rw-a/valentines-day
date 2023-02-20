@@ -210,7 +210,7 @@ def api_print_tickets(request):
         os.mkdir(f"{DirectoryLocations().SORTED_TICKETS}/{pk}")
 
     TicketsToPDF(group.tickets.all()[(part - 1) * NUM_TICKETS_PER_PDF:
-                                     min(part * NUM_TICKETS_PER_PDF, group.tickets.count() - 1)],
+                                     min(part * NUM_TICKETS_PER_PDF, group.tickets.count())],
                  f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}_{part}.pdf",
                  group_code,
                  starting_index=(part - 1) * NUM_TICKETS_PER_PDF,
