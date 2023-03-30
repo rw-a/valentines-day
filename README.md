@@ -1,5 +1,5 @@
 # Valentine's Day Ticketing System
-Last updated February 2023.
+Last updated March 2023.
 
 ## Tutorial for Prefects
 
@@ -50,10 +50,14 @@ Last updated February 2023.
   - Recommended: this page shows you how many tickets have been assigned to each group. Usually, the serenading groups will have significantly more tickets than the non-serenading groups. You can delete the SortTicketRequest and make a new one with different settings to better suit how you want the tickets to be distributed. You may have to do this several times.
   - Warning: only one ticket request can exist at a time. If you create a second one, it will override the previous one (it won't be deleted but it might order the tickets incorrectly). Therefore, you should remember to delete a ticket request before you generate a new one.
 5. Here you generate the PDF for each group.
-6. Download the PDFs for each group and print them all out
-  - **Important**: make sure to print double-sided flipped along the **horizontal** edge.
+  - Warning: this process is very slow and can take more than 1 hour to complete for all tickets.
+  - Recommended: close ticket sales at least an hour before you want to start cutting out the tickets. Then you can start this step early so it won't hold you up. As long as you keep this page open, you should be able to click the *generate all* button and leave it until its done.
+6. Download the PDFs for each group and print them all out.
+  - **Important**: make sure to print double-sided flipped along the **horizontal/long** edge.
   - Recommended: print out only a few pages first to test whether your printer correctly aligns the front and back when printing double sided.
-7. Cut them out and assign them to the corresponding delivery group (Recommended: when cutting out the tickets, cut along the long vertical line in the middle first, then the smaller horizontal ones so that the order is maintained).
+7. Cut them out and assign them to the corresponding delivery group.
+  - Recommended: when cutting out the tickets, cut along the long vertical line in the middle first, then the smaller horizontal ones so that the order is maintained.
+  - Recommended: if you want to optimise for speed, set up an assembly line and break down the cutting into smaller, easy, repetitive tasks. Look out for what the bottleneck is and try to fix it (e.g. if printing is too slow, use multiple printers simultaneously).
 
 ### Step 5: Valentine's Day has arrived!
 Now it's time to deliver the tickets! Here are some things to know:
