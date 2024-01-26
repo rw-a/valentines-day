@@ -1,58 +1,50 @@
 import re
 import csv
+import json
 import random
 import math
+from typing import Literal
 
-# tells the algorithm what order the classrooms are physically located in (only linear unfortunately)
+
+# Tells the algorithm what order the classrooms are physically located in
+# (only linear unfortunately)
 CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
 
+
+ITEM_TYPES = Literal["Special Serenade", "Serenade", "Rose", "Chocolate"]
+
+
 if __name__ == "__main__":
-    from constants import FileNames, DirectoryLocations
+    from constants import DirectoryLocations
     from timetable_parser import room_format, bad_room_format
+
+    # Can't import so use a dummy class
+    class Ticket:
+        pass
 
     random.seed(56)
 
-    STUDENTS = {}
-    with open(FileNames.PEOPLE) as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            STUDENTS[row['ID']] = row
 else:
     from .constants import STUDENTS
     from .timetable_parser import room_format, bad_room_format
+    from .models import Ticket
 
 
-def convert_tickets(tickets) -> list:
-    # converts: tickets -> tickets_to_sort
-    # tickets: list of tickets following the SQL Ticket class in model.py
-    # tickets_to_sort: list of tickets following the TicketToSort class in sort_tickets.py
-    tickets_to_sort = []
-    for ticket in tickets:
-        recipient_id = ticket.recipient_id
-        p1 = STUDENTS[ticket.recipient_id]["P1"]
-        p2 = STUDENTS[ticket.recipient_id]["P2"]
-        p3 = STUDENTS[ticket.recipient_id]["P3"]
-        p4 = STUDENTS[ticket.recipient_id]["P4"]
-        if ticket.item_type == "Special Serenade":
-            ticket_to_sort = TicketToSort(ticket.pk, recipient_id, ticket.item_type, p1, p2, p3, p4, ticket.ss_period)
-        else:
-            ticket_to_sort = TicketToSort(ticket.pk, recipient_id, ticket.item_type, p1, p2, p3, p4)
-        tickets_to_sort.append(ticket_to_sort)
-    return tickets_to_sort
-
-
-def sort_tickets(tickets: list, num_serenading_groups: int, num_non_serenading_groups: int,
+def sort_tickets(tickets: list[Ticket], num_serenading_groups: int, num_non_serenading_groups: int,
                  max_serenades_per_class: int, max_non_serenades_per_serenading_class: int,
                  extra_special_serenades: bool, enforce_distribution: bool) -> dict:
-    # input in argument: tickets = Ticket.objects.all()
-    tickets_to_sort = convert_tickets(tickets)
-    ticket_sorter = TicketSorter(tickets_to_sort, num_serenading_groups, num_non_serenading_groups,
-                                 max_serenades_per_class=max_serenades_per_class,
-                                 max_non_serenades_per_serenading_class=max_non_serenades_per_serenading_class,
-                                 extra_special_serenades=extra_special_serenades,
-                                 enforce_distribution=enforce_distribution)
-    groups = {True: ticket_sorter.output_serenading_groups,
-              False: ticket_sorter.output_non_serenading_groups}
+    ticket_sorter = TicketSorter(
+        TicketList.from_sql_ticket_list(tickets), num_serenading_groups, num_non_serenading_groups,
+        max_serenades_per_class=max_serenades_per_class,
+        max_non_serenades_per_serenading_class=max_non_serenades_per_serenading_class,
+        extra_special_serenades=extra_special_serenades,
+        enforce_distribution=enforce_distribution
+    )
+
+    groups = {
+        True: ticket_sorter.output_serenading_groups,
+        False: ticket_sorter.output_non_serenading_groups
+    }
     return groups
 
 
@@ -64,19 +56,21 @@ def get_parts(group) -> list:
 class TicketToSort:
     def __init__(self, pk: int, recipient_id: str, item_type: str, p1: str, p2: str, p3: str, p4: str,
                  ss_period: int = None):
-        # ticket info
+        # Ticket info
         self.pk = pk
         self.recipient_id = recipient_id
         self.item_type = item_type
         self.ss_period = ss_period  # the period chosen by the special serenade (if applicable)
 
-        # where the recipient's classes are for each period don't rename or else setattr() will break
+        # Where the recipient's classes are for each period
+        # Don't rename the variable or else getattr()/setattr() will break
         self.p1 = p1
         self.p2 = p2
         self.p3 = p3
         self.p4 = p4
 
-        # whether the algorithm has chosen this period. don't rename or else setattr() will break
+        # Whether the algorithm has chosen this period.
+        # Don't rename or else getattr()/setattr() will break
         self.is_p1 = True
         self.is_p2 = True
         self.is_p3 = True
@@ -84,6 +78,29 @@ class TicketToSort:
 
         if item_type == "Special Serenade" and self.ss_period is None:
             raise AssertionError("SS_period must be specified for special serenades.")
+
+    @classmethod
+    def from_sql_ticket(cls, sql_ticket: Ticket):
+        """
+        Converts a Ticket (the object stored in the SQL database, i.e. the Django model Ticket)
+        into a TicketToSort
+        """
+        recipient_id = sql_ticket.recipient_id
+
+        p1 = STUDENTS[sql_ticket.recipient_id]["P1"]
+        p2 = STUDENTS[sql_ticket.recipient_id]["P2"]
+        p3 = STUDENTS[sql_ticket.recipient_id]["P3"]
+        p4 = STUDENTS[sql_ticket.recipient_id]["P4"]
+
+        if sql_ticket.item_type == "Special Serenade":
+            ticket_to_sort = cls(
+                sql_ticket.pk, recipient_id, sql_ticket.item_type,
+                p1, p2, p3, p4, sql_ticket.ss_period)
+        else:
+            ticket_to_sort = cls(
+                sql_ticket.pk, recipient_id, sql_ticket.item_type, p1, p2, p3, p4)
+
+        return ticket_to_sort
 
     @property
     def chosen_period(self) -> int:
@@ -161,6 +178,10 @@ class TicketToSort:
 
 
 class TicketList(list):
+    @classmethod
+    def from_sql_ticket_list(cls, sql_ticket_list: list[Ticket]):
+        return cls(TicketToSort.from_sql_ticket(sql_ticket) for sql_ticket in sql_ticket_list)
+
     def has_item_type(self, items=None) -> bool:
         # checks if a list of tickets contains any ticket with a given item type(s)
         for ticket in self:
@@ -1088,46 +1109,41 @@ class TicketSorter:
                 print(f"\t{ticket}")
 
 
-def load_tickets() -> dict:
-    tickets_data = {}
-    with open(f"{DirectoryLocations.TIMETABLES}/tickets.csv") as file:
+def load_tickets() -> TicketList:
+    tickets = TicketList()
+
+    STUDENTS = {}
+    with open(f"{DirectoryLocations.DEV_STUFF}/people_2023.csv") as file:
         reader = csv.DictReader(file)
-        for index, line in enumerate(reader):
-            recipient_id = line["ID"]
-            if line["Chocolate"] == "1":
-                item_type = "Chocolate"
-            elif line["Rose"] == "1":
-                item_type = "Rose"
-            elif line["Serenade"] == "1":
-                if random.random() < 0.70:
-                    item_type = "Serenade"
-                else:
-                    item_type = "Special Serenade"
-            if item_type == "Special Serenade":
-                period = random.choice([1, 2, 3, 4])
-            else:
-                period = ""
-            tickets_data[index] = {"Recipient ID": recipient_id, "Item Type": item_type, "Period": period}
-    return tickets_data
+        for row in reader:
+            STUDENTS[row['ID']] = row
 
+    with open(f"{DirectoryLocations.DEV_STUFF}/tickets_2023.json") as tickets_file:
+        data = json.load(tickets_file)
 
-def create_tickets(tickets_data: dict):
-    tickets = []
-    for ticket_number, values in tickets_data.items():
-        recipient_id = values['Recipient ID']
-        recipient_classes = STUDENTS[recipient_id]
-        item_type = values['Item Type']
-        ticket = TicketToSort(ticket_number, recipient_id, item_type, recipient_classes['P1'],
-                              recipient_classes['P2'], recipient_classes['P3'], recipient_classes['P4'],
-                              ss_period=values['Period'])
-        tickets.append(ticket)
+        for ticket in data:
+            fields = ticket["fields"]
+            recipient_id = fields["recipient_id"]
+
+            ticket = TicketToSort(
+                pk=ticket["pk"],
+                recipient_id=recipient_id,
+                item_type=fields["item_type"],
+                p1=STUDENTS[recipient_id]["P1"],
+                p2=STUDENTS[recipient_id]["P2"],
+                p3=STUDENTS[recipient_id]["P3"],
+                p4=STUDENTS[recipient_id]["P4"],
+                ss_period=fields["ss_period"]
+            )
+
+            tickets.append(ticket)
+
     return tickets
 
 
 def main():
     # load data
-    tickets_data = load_tickets()
-    tickets = create_tickets(tickets_data)
+    tickets = load_tickets()
 
     ticket_sorter = TicketSorter(tickets, 10, 10,
                                  max_serenades_per_class=2, max_non_serenades_per_serenading_class=3,

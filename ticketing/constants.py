@@ -12,6 +12,7 @@ class DirectoryLocations:
     SORTED_TICKETS = "sorted_tickets"           # the folder containing the PDFs of the tickets to print
     TIMETABLES = "timetables"                   # the folder containing the CSV with all the people data
     TIMETABLES_INPUT = f"{TIMETABLES}/uploaded_timetables"  # the folder containing the timetable CSVs of each grade
+    DEV_STUFF = "dev"                           # the folder containing files for development/testing
 
     """All methods need to end with __ or else dir(self) will think it's an attribute"""
     def verify_dirs__(self):
