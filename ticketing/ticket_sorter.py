@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import re
 import csv
 import json
 import random
 import math
-from typing import Literal, Any
+from datetime import datetime
+from typing import Literal, Any, Sequence, Generator
 
 # Tells the algorithm what order the classrooms are physically located in
 # (only linear unfortunately)
@@ -11,7 +14,7 @@ CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
 
 
 ItemType = Literal["Special Serenade", "Serenade", "Rose", "Chocolate"]
-PeriodType = Literal[1, 2, 3, 4] | None
+PeriodType = Literal[1, 2, 3, 4]
 
 
 if __name__ == "__main__":
@@ -32,9 +35,33 @@ else:
     from .models import DeliveryGroup as DeliveryGroupModel
 
 
+def sort_tickets(tickets: list[Ticket], num_serenading_groups: int, num_non_serenading_groups: int,
+                 max_serenades_per_class: int, max_non_serenades_per_serenading_class: int,
+                 extra_special_serenades: bool, enforce_distribution: bool) \
+        -> dict[bool, DeliveryGroupList[Any]]:
+    ticket_sorter = TicketSorter(
+        TicketList.from_sql_ticket_list(tickets), num_serenading_groups, num_non_serenading_groups,
+        max_serenades_per_class=max_serenades_per_class,
+        max_non_serenades_per_serenading_class=max_non_serenades_per_serenading_class,
+        extra_special_serenades=extra_special_serenades,
+        enforce_distribution=enforce_distribution
+    )
+
+    groups = {
+        True: ticket_sorter.output_serenading_groups,
+        False: ticket_sorter.output_non_serenading_groups
+    }
+    return groups
+
+
+def get_parts(group: DeliveryGroupModel) -> list:
+    """Receives a DeliveryGroup obj and returns the parts that have already been printed"""
+    return list(filter(lambda part: len(part) > 0, group.parts_printed.split(",")))
+
+
 class TicketToSort:
     def __init__(self, pk: int, recipient_id: str, item_type: ItemType,
-                 p1: str, p2: str, p3: str, p4: str, ss_period: PeriodType = None):
+                 p1: str, p2: str, p3: str, p4: str, ss_period: PeriodType | None = None):
         # Ticket info
         self.pk = pk
         self.recipient_id = recipient_id
@@ -93,7 +120,7 @@ class TicketToSort:
                             f"{str(self)}")
 
     @property
-    def chosen_classroom(self):
+    def chosen_classroom(self) -> str:
         if self.has_no_choice:
             return getattr(self, f"p{self.chosen_period}")
 
@@ -124,26 +151,32 @@ class TicketToSort:
         return self.num_periods_available <= 1
 
     @property
-    def available_classrooms(self) -> list:
+    def available_classrooms(self) -> list[str]:
         return [getattr(self, f"p{period}") for period in range(1, 5) if getattr(self, f"is_p{period}")]
 
     @property
-    def available_periods(self) -> list:
+    def available_periods(self) -> list[PeriodType]:
         return [period for period in range(1, 5) if getattr(self, f"is_p{period}")]
 
-    def semi_available_periods(self, available_classrooms, exclude_chosen_period: bool = True) -> list:
+    def semi_available_periods(
+            self, available_classrooms: ClassroomList,
+            exclude_chosen_period: bool = True):
         """
         exclude_chosen_period: don't include the chosen period of the ticket (assumes it exists)
-        Returns a list of periods where the period's classroom exists. Means that this ticket can be chucked into
-        these classrooms without decreasing efficiency.
+        Returns a list of periods where the period's classroom exists.
+        Means that this ticket can be chucked into these classrooms without decreasing efficiency.
         """
-        semi_available_periods = []
+        semi_available_periods: list[PeriodType] = []
+
         for period in range(1, 5):
+            period: PeriodType
+
             if exclude_chosen_period and period == self.chosen_period:
                 continue
             classroom = getattr(self, f"p{period}")
             if classroom in available_classrooms:
                 semi_available_periods.append(period)
+
         return semi_available_periods
 
     def __repr__(self):
@@ -177,8 +210,8 @@ class TicketList(list):
     def has_non_serenades(self):
         return self.has_item_type(('Chocolate', 'Rose'))
 
-    def num_items(self, items: tuple) -> int:
-        # returns the number of serenades (including special) in a list of tickets
+    def num_items(self, items: Sequence[ItemType]) -> int:
+        # Returns the number of tickets that are a specified type of item(s)
         count = 0
         for ticket in self:
             if ticket.item_type in items:
@@ -197,7 +230,10 @@ class TicketList(list):
         self.sort(key=lambda ticket: ticket.item_type)
         return self
 
-    def filter_by_item_type(self, items: tuple):
+    def filter_by_item_type(self, items: Sequence[ItemType]):
+        """
+        Returns a copy of self but only containing tickets of the specified item type
+        """
         cls = self.__class__
         filtered = cls()
         for ticket in self:
@@ -210,9 +246,11 @@ class TicketList(list):
         return self.filter_by_item_type(("Serenade", "Special Serenade"))
 
     @property
-    def period_distribution(self) -> dict:
-        """Gets how many tickets each period has (ignores tickets which haven't been allocated yet)"""
-        distribution = {1: 0, 2: 0, 3: 0, 4: 0}
+    def period_distribution(self):
+        """
+        Gets how many tickets each period has (ignores tickets which haven't been allocated yet)
+        """
+        distribution: dict[PeriodType, int] = {1: 0, 2: 0, 3: 0, 4: 0}
         for ticket in self:
             if ticket.has_no_choice:
                 period = ticket.chosen_period
@@ -225,7 +263,7 @@ class TicketList(list):
         return cls([ticket for ticket in self if ticket.has_no_choice])
 
     @property
-    def grouped_by_num_periods_available(self) -> dict:
+    def grouped_by_num_periods_available(self):
         """
         A dict grouping tickets by the number of periods that are still available to them
         \nKey: number of periods available
@@ -233,17 +271,25 @@ class TicketList(list):
         :return: Dict
         """
         cls = self.__class__
-        num_periods_available_distribution = {1: cls(), 2: cls(), 3: cls(), 4: cls()}
+        num_periods_available_distribution: dict[PeriodType, TicketList] = {
+            1: cls(), 2: cls(), 3: cls(), 4: cls()
+        }
+
         for ticket in self:
             num_periods_available_distribution[ticket.num_periods_available].append(ticket)
+
         return num_periods_available_distribution
 
     @property
-    def grouped_by_num_periods_available_reversed(self) -> dict:
+    def grouped_by_num_periods_available_reversed(self):
         cls = self.__class__
-        num_periods_available_distribution = {4: cls(), 3: cls(), 2: cls(), 1: cls()}
+        num_periods_available_distribution: dict[PeriodType, TicketList] = {
+            4: cls(), 3: cls(), 2: cls(), 1: cls()
+        }
+
         for ticket in self:
             num_periods_available_distribution[ticket.num_periods_available].append(ticket)
+
         return num_periods_available_distribution
 
 
@@ -254,7 +300,7 @@ class Classroom:
     classroom_pattern = room_format
     bad_classroom_pattern = bad_room_format
 
-    def __init__(self, original_name: str, period: int):
+    def __init__(self, original_name: str, period: PeriodType):
         """Variables"""
         self.period = period
         self.original_name = original_name       # the name as it appears on the timetable
@@ -284,22 +330,25 @@ class Classroom:
         return self._is_special
 
     @is_special.setter
-    def is_special(self, value):
+    def is_special(self, value: bool):
         self._is_special = value
-        if value is True:
+
+        if value:
             original_block = self.original_name[0]
             original_block_index = CLASSROOM_GEOGRAPHIC_ORDER.index(original_block)
+
             new_block_index = (original_block_index + math.floor(len(CLASSROOM_GEOGRAPHIC_ORDER) / 2)) \
                               % len(CLASSROOM_GEOGRAPHIC_ORDER)
             new_block = CLASSROOM_GEOGRAPHIC_ORDER[new_block_index]
+
             self.clean_name = new_block + self.clean_name[1:]
 
-    def verify_classroom_name(self):
+    def verify_classroom_name(self) -> bool:
         return re.match(self.classroom_pattern, self.clean_name) is not None \
                and re.match(self.bad_classroom_pattern, self.clean_name) is None  # must be a valid AND not a bad class
 
     @property
-    def is_bad(self):
+    def is_bad(self) -> bool:
         return re.match(self.bad_classroom_pattern, self.clean_name)
 
     @property
@@ -428,13 +477,14 @@ class ClassroomList(list):
         return num_tickets
 
     @property
-    def grouped_by_length(self) -> dict:
+    def grouped_by_length(self):
         """
         Key: number of tickets in a given classroom
         Value: list of classrooms with that many tickets
         E.g. {0: ["1-A204", "3-I115"], 1: ["1-F101", "2-G101"]}
         """
         classrooms_by_length = {}
+
         for classroom in self:
             tickets = classroom.tickets
             length = len(tickets)
@@ -443,12 +493,15 @@ class ClassroomList(list):
             else:
                 cls = self.__class__
                 classrooms_by_length[length] = cls([classroom])
+
         classrooms_by_length = {length: classrooms_by_length[length] for length in sorted(classrooms_by_length.keys())}
+
         return classrooms_by_length
 
     @property
-    def grouped_by_length_reversed(self) -> dict:
+    def grouped_by_length_reversed(self):
         classrooms_by_length = {}
+
         for classroom in self:
             tickets = classroom.tickets
             length = len(tickets)
@@ -457,27 +510,34 @@ class ClassroomList(list):
             else:
                 cls = self.__class__
                 classrooms_by_length[length] = cls([classroom])
+
         classrooms_by_length = {length: classrooms_by_length[length]
                                 for length in sorted(classrooms_by_length.keys(), reverse=True)}
+
         return classrooms_by_length
 
     @staticmethod
-    def split(a, n):
+    def split(a, n: int):
         k, m = divmod(len(a), n)
         return list((a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)))
 
     @property
-    def grouped_by_period(self) -> dict:
+    def grouped_by_period(self):
         """
         :return: Returns a dict with key=period and value=ClassroomList of classrooms in that period
         """
-        classrooms_by_period = {1: ClassroomList(), 2: ClassroomList(), 3: ClassroomList(), 4: ClassroomList()}
+        cls = self.__class__
+        classrooms_by_period: dict[PeriodType, ClassroomList] = {
+            1: cls(), 2: cls(), 3: cls(), 4: cls()
+        }
+
         for classroom in self:
             classrooms_by_period[classroom.period].append(classroom)
+
         return classrooms_by_period
 
     @property
-    def grouped_by_geography(self) -> dict:
+    def grouped_by_geography(self):
         """
         :return: Returns a dict where key is a classroom block and values are a ClassroomList in that block.
         Classrooms physically next to each other appear adjacent in the list.
@@ -507,25 +567,32 @@ class ClassroomList(list):
             classrooms_by_geography.extend(classrooms)
         return classrooms_by_geography
 
-    def sorted_by_period_distribution(self, tickets: TicketList):
+    def sorted_by_period_distribution(self, tickets: TicketList) -> Generator[Classroom]:
         """
-        Sorts self by order of ticket distribution (fullest first), then distribution of destroyed classes.
-        Recalculates the smallest period after each yield so that modifications to the period distribution between
-            yields are considered
-        Tickets input is the TicketList which the period distribution is derived from (should be a list of every ticket)
+        Sorts self by order of ticket distribution (fullest first),
+        then distribution of destroyed classes.
+
+        Recalculates the smallest period after each yield so that modifications to the period
+        distribution between yields are considered.
+
+        Tickets input is the TicketList which the period distribution is derived from
+        (should be a list of every ticket).
         """
         classroom_copy = self.copy()
         for i in range(len(classroom_copy)):
             if len(classroom_copy) > 1:  # don't bother if only 1 class in list
                 ticket_period_distribution = tickets.period_distribution
-                chosen_classroom = max(classroom_copy,
-                                       key=lambda classroom: ticket_period_distribution[classroom.period])
+                chosen_classroom = max(
+                    classroom_copy,
+                    key=lambda classroom: ticket_period_distribution[classroom.period]
+                )
                 classroom_copy.remove(chosen_classroom)
                 yield chosen_classroom
             else:
                 yield classroom_copy[0]
 
-    def sorted_by_eliminated_period_distribution_then_length(self, period_distribution: dict):
+    def sorted_by_eliminated_period_distribution_then_length(
+            self, period_distribution: dict[PeriodType, int]) -> Generator[Classroom]:
         """
         Sorts by order of periods which have the least number of tickets eliminated from, then by length
         """
@@ -582,32 +649,38 @@ class People(list):
     def __contains__(self, person: Person):
         return person.id in map(lambda existing_person: existing_person.id, self)
 
-    def get_existing_person(self, new_person: Person):
+    def get_existing_person(self, new_person: Person) -> Person:
         # gets an existing person in the list, given a new Person object with the same name
         for existing_person in self:
             if existing_person.id == new_person.id:
                 return existing_person
         raise KeyError("Person not found")
 
-    def grouped_by_num_items(self, items: tuple = None, reverse: bool = True) -> dict:
+    def grouped_by_num_items(
+            self, items: Sequence[ItemType] | None = None, reverse: bool = True):
         """
         Groups people with x number of items of specified type
         Key: number of items of the specified type
         Value: list of people with that number of items of specified type
         Also sorted by ascending order (can be reversed to descending)
         """
-        people_grouped_by_num_items = {}
+        people_grouped_by_num_items: dict[int, list[Person]] = {}
+
         for person in self:
             if items is None:
                 num_items = len(person.tickets)
             else:
                 num_items = person.num_items(items)
+
             if num_items in people_grouped_by_num_items:
                 people_grouped_by_num_items[num_items].append(person)
             else:
                 people_grouped_by_num_items[num_items] = [person]
-        people_grouped_by_num_items = {num_items: people_grouped_by_num_items[num_items]
-                                       for num_items in sorted(people_grouped_by_num_items.keys(), reverse=reverse)}
+
+        people_grouped_by_num_items = {
+            num_items: people_grouped_by_num_items[num_items]
+            for num_items in sorted(people_grouped_by_num_items.keys(), reverse=reverse)}
+
         return people_grouped_by_num_items
 
 
@@ -649,7 +722,7 @@ class PeriodGroupList(list):
         self.sort_tickets_by_person()
 
     @staticmethod
-    def split(a, n):
+    def split(a, n: int):
         k, m = divmod(len(a), n)
         return list((a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)))
 
@@ -777,7 +850,7 @@ class DeliveryGroupList(list):
                                   if len(getattr(delivery_group, f"p{period}")) == 0])
 
     @property
-    def fullest_group(self):
+    def fullest_group(self) -> DeliveryGroup:
         if len(self) > 1:
             return max(self, key=lambda group: len(group.tickets))
         elif len(self) == 1:
@@ -786,7 +859,7 @@ class DeliveryGroupList(list):
             raise KeyError("Cannot return max of blank.")
 
     @property
-    def emptiest_group(self):
+    def emptiest_group(self) -> DeliveryGroup:
         if len(self) > 1:
             return min(self, key=lambda group: len(group.tickets))
         elif len(self) == 1:
@@ -904,7 +977,7 @@ class TicketSorter:
         for classroom in self.special_classrooms:
             classroom.is_special = True
 
-    def distribute_tickets(self, items: tuple):
+    def distribute_tickets(self, items: tuple[ItemType]):
         """
         Distributes each person's tickets so that they receive them all over many periods instead of all at once
         :param items: Only tickets of these item types are considered
@@ -1089,33 +1162,6 @@ class TicketSorter:
                 print(f"\t{ticket}")
 
 
-"""Utility Functions"""
-
-
-def sort_tickets(tickets: list[Ticket], num_serenading_groups: int, num_non_serenading_groups: int,
-                 max_serenades_per_class: int, max_non_serenades_per_serenading_class: int,
-                 extra_special_serenades: bool, enforce_distribution: bool) \
-        -> dict[bool, DeliveryGroupList[Any]]:
-    ticket_sorter = TicketSorter(
-        TicketList.from_sql_ticket_list(tickets), num_serenading_groups, num_non_serenading_groups,
-        max_serenades_per_class=max_serenades_per_class,
-        max_non_serenades_per_serenading_class=max_non_serenades_per_serenading_class,
-        extra_special_serenades=extra_special_serenades,
-        enforce_distribution=enforce_distribution
-    )
-
-    groups = {
-        True: ticket_sorter.output_serenading_groups,
-        False: ticket_sorter.output_non_serenading_groups
-    }
-    return groups
-
-
-def get_parts(group: DeliveryGroupModel) -> list:
-    """Receives a DeliveryGroup obj and returns the parts that have already been printed"""
-    return list(filter(lambda part: len(part) > 0, group.parts_printed.split(",")))
-
-
 """Dev/Testing Stuff"""
 
 
@@ -1154,8 +1200,12 @@ def load_tickets() -> TicketList:
 
 
 def main():
-    # load data
+    start_time = datetime.now()
+
+    # Load dummy data for testing
     tickets = load_tickets()
+
+    loaded_time = datetime.now()
 
     ticket_sorter = TicketSorter(
         tickets, 10, 10,
@@ -1164,7 +1214,10 @@ def main():
         extra_special_serenades=True,
         enforce_distribution=True
     )
-    print("Done!")
+
+    end_time = datetime.now()
+
+    print(f"Done! Loading: {loaded_time - start_time} Sorting: {end_time - loaded_time}")
 
 
 if __name__ == "__main__":
