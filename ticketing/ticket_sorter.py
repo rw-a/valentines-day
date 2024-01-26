@@ -3,15 +3,15 @@ import csv
 import json
 import random
 import math
-from typing import Literal
-
+from typing import Literal, Any
 
 # Tells the algorithm what order the classrooms are physically located in
 # (only linear unfortunately)
 CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
 
 
-ITEM_TYPES = Literal["Special Serenade", "Serenade", "Rose", "Chocolate"]
+ItemType = Literal["Special Serenade", "Serenade", "Rose", "Chocolate"]
+PeriodType = Literal[1, 2, 3, 4] | None
 
 
 if __name__ == "__main__":
@@ -21,41 +21,20 @@ if __name__ == "__main__":
     # Can't import so use a dummy class
     class Ticket:
         pass
+    class DeliveryGroupModel:
+        pass
 
     random.seed(56)
-
 else:
     from .constants import STUDENTS
     from .timetable_parser import room_format, bad_room_format
     from .models import Ticket
-
-
-def sort_tickets(tickets: list[Ticket], num_serenading_groups: int, num_non_serenading_groups: int,
-                 max_serenades_per_class: int, max_non_serenades_per_serenading_class: int,
-                 extra_special_serenades: bool, enforce_distribution: bool) -> dict:
-    ticket_sorter = TicketSorter(
-        TicketList.from_sql_ticket_list(tickets), num_serenading_groups, num_non_serenading_groups,
-        max_serenades_per_class=max_serenades_per_class,
-        max_non_serenades_per_serenading_class=max_non_serenades_per_serenading_class,
-        extra_special_serenades=extra_special_serenades,
-        enforce_distribution=enforce_distribution
-    )
-
-    groups = {
-        True: ticket_sorter.output_serenading_groups,
-        False: ticket_sorter.output_non_serenading_groups
-    }
-    return groups
-
-
-def get_parts(group) -> list:
-    """Receives a DeliveryGroup obj and returns the parts that have already been printed"""
-    return list(filter(lambda part: len(part) > 0, group.parts_printed.split(",")))
+    from .models import DeliveryGroup as DeliveryGroupModel
 
 
 class TicketToSort:
-    def __init__(self, pk: int, recipient_id: str, item_type: str, p1: str, p2: str, p3: str, p4: str,
-                 ss_period: int = None):
+    def __init__(self, pk: int, recipient_id: str, item_type: ItemType,
+                 p1: str, p2: str, p3: str, p4: str, ss_period: PeriodType = None):
         # Ticket info
         self.pk = pk
         self.recipient_id = recipient_id
@@ -110,7 +89,8 @@ class TicketToSort:
                 if getattr(self, f"is_p{period}"):
                     return period
         else:
-            raise Exception(f"Tried to get only_period when there were multiple periods possible {self}")
+            raise Exception(f"Tried to get only_period when there were multiple periods possible "
+                            f"{str(self)}")
 
     @property
     def chosen_classroom(self):
@@ -1109,15 +1089,47 @@ class TicketSorter:
                 print(f"\t{ticket}")
 
 
+"""Utility Functions"""
+
+
+def sort_tickets(tickets: list[Ticket], num_serenading_groups: int, num_non_serenading_groups: int,
+                 max_serenades_per_class: int, max_non_serenades_per_serenading_class: int,
+                 extra_special_serenades: bool, enforce_distribution: bool) \
+        -> dict[bool, DeliveryGroupList[Any]]:
+    ticket_sorter = TicketSorter(
+        TicketList.from_sql_ticket_list(tickets), num_serenading_groups, num_non_serenading_groups,
+        max_serenades_per_class=max_serenades_per_class,
+        max_non_serenades_per_serenading_class=max_non_serenades_per_serenading_class,
+        extra_special_serenades=extra_special_serenades,
+        enforce_distribution=enforce_distribution
+    )
+
+    groups = {
+        True: ticket_sorter.output_serenading_groups,
+        False: ticket_sorter.output_non_serenading_groups
+    }
+    return groups
+
+
+def get_parts(group: DeliveryGroupModel) -> list:
+    """Receives a DeliveryGroup obj and returns the parts that have already been printed"""
+    return list(filter(lambda part: len(part) > 0, group.parts_printed.split(",")))
+
+
+"""Dev/Testing Stuff"""
+
+
 def load_tickets() -> TicketList:
     tickets = TicketList()
 
-    STUDENTS = {}
+    # Load student timetables
+    students = {}
     with open(f"{DirectoryLocations.DEV_STUFF}/people_2023.csv") as file:
         reader = csv.DictReader(file)
         for row in reader:
-            STUDENTS[row['ID']] = row
+            students[row['ID']] = row
 
+    # Create tickets from file
     with open(f"{DirectoryLocations.DEV_STUFF}/tickets_2023.json") as tickets_file:
         data = json.load(tickets_file)
 
@@ -1129,10 +1141,10 @@ def load_tickets() -> TicketList:
                 pk=ticket["pk"],
                 recipient_id=recipient_id,
                 item_type=fields["item_type"],
-                p1=STUDENTS[recipient_id]["P1"],
-                p2=STUDENTS[recipient_id]["P2"],
-                p3=STUDENTS[recipient_id]["P3"],
-                p4=STUDENTS[recipient_id]["P4"],
+                p1=students[recipient_id]["P1"],
+                p2=students[recipient_id]["P2"],
+                p3=students[recipient_id]["P3"],
+                p4=students[recipient_id]["P4"],
                 ss_period=fields["ss_period"]
             )
 
@@ -1145,9 +1157,13 @@ def main():
     # load data
     tickets = load_tickets()
 
-    ticket_sorter = TicketSorter(tickets, 10, 10,
-                                 max_serenades_per_class=2, max_non_serenades_per_serenading_class=3,
-                                 extra_special_serenades=True, enforce_distribution=True)
+    ticket_sorter = TicketSorter(
+        tickets, 10, 10,
+        max_serenades_per_class=2,
+        max_non_serenades_per_serenading_class=3,
+        extra_special_serenades=True,
+        enforce_distribution=True
+    )
     print("Done!")
 
 
