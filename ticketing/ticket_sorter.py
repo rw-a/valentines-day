@@ -10,7 +10,7 @@ from typing import Literal, Any, Sequence, Generator
 
 # Tells the algorithm what order the classrooms are physically located in
 # (only linear unfortunately)
-CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX"
+CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX" # noqa
 
 
 ItemType = Literal["Special Serenade", "Serenade", "Rose", "Chocolate"]
@@ -24,6 +24,7 @@ if __name__ == "__main__":
     # Can't import so use a dummy class
     class Ticket:
         pass
+
     class DeliveryGroupModel:
         pass
 
@@ -92,6 +93,8 @@ class TicketToSort:
         into a TicketToSort
         """
         recipient_id = sql_ticket.recipient_id
+        item_type: ItemType = sql_ticket.item_type # noqa
+        period: PeriodType = sql_ticket.ss_period  # noqa
 
         p1 = STUDENTS[sql_ticket.recipient_id]["P1"]
         p2 = STUDENTS[sql_ticket.recipient_id]["P2"]
@@ -100,11 +103,11 @@ class TicketToSort:
 
         if sql_ticket.item_type == "Special Serenade":
             ticket_to_sort = cls(
-                sql_ticket.pk, recipient_id, sql_ticket.item_type,
-                p1, p2, p3, p4, sql_ticket.ss_period)
+                sql_ticket.pk, recipient_id, item_type,
+                p1, p2, p3, p4, period)
         else:
             ticket_to_sort = cls(
-                sql_ticket.pk, recipient_id, sql_ticket.item_type, p1, p2, p3, p4)
+                sql_ticket.pk, recipient_id, item_type, p1, p2, p3, p4)
 
         return ticket_to_sort
 
@@ -124,16 +127,26 @@ class TicketToSort:
         if self.has_no_choice:
             return getattr(self, f"p{self.chosen_period}")
 
-    def choose_period(self, chosen_period: int):
-        # remove this ticket from the non-chosen classrooms
-        for period in range(1, 5):  # generates 1, 2, 3, 4 (corresponding to period numbers)
+    def choose_period(self, chosen_period: PeriodType):
+        """
+        Makes the chosen_period the only period available for this Ticket.
+        I.e., sets every period in this Ticket (besides the chosen one) to False.
+
+        Adds the ticket to the chosen classroom, if not already
+        """
+        # Remove this ticket from the non-chosen classrooms and
+        # set every period to false except the chosen one
+        for period in range(1, 5):
             if period is not chosen_period:
-                setattr(self, f'is_p{period}', False)    # set every period to false except the chosen one
+                setattr(self, f'is_p{period}', False)
                 classroom = getattr(self, f"p{period}")
                 if self in classroom.tickets:
                     classroom.tickets.remove(self)
-        # add this ticket to the chosen classroom (if not already)
-        setattr(self, f'is_p{chosen_period}', True)  # sets chosen period as true
+
+        # Sets chosen period as true
+        setattr(self, f'is_p{chosen_period}', True)
+
+        # Add this ticket to the chosen classroom (if not already)
         chosen_classroom = getattr(self, f"p{chosen_period}")
         if self not in chosen_classroom.tickets:
             chosen_classroom.tickets.append(self)
@@ -152,14 +165,19 @@ class TicketToSort:
 
     @property
     def available_classrooms(self) -> list[str]:
-        return [getattr(self, f"p{period}") for period in range(1, 5) if getattr(self, f"is_p{period}")]
+        return [
+            getattr(self, f"p{period}")
+            for period in range(1, 5)
+            if getattr(self, f"is_p{period}")
+        ]
 
     @property
     def available_periods(self) -> list[PeriodType]:
-        return [period for period in range(1, 5) if getattr(self, f"is_p{period}")]
+        return [period for period in range(1, 5) if getattr(self, f"is_p{period}")] # noqa
 
     def semi_available_periods(
-            self, available_classrooms: ClassroomList,
+            self,
+            available_classrooms: ClassroomList,
             exclude_chosen_period: bool = True):
         """
         exclude_chosen_period: don't include the chosen period of the ticket (assumes it exists)
@@ -185,7 +203,9 @@ class TicketToSort:
         p2 = '' if self.is_p2 else '\''
         p3 = '' if self.is_p3 else '\''
         p4 = '' if self.is_p4 else '\''
+
         item = "SS" if self.item_type == "Special Serenade" else self.item_type[0]
+
         return f"<{self.pk} {STUDENTS[self.recipient_id]['Name']} " \
                f"{self.p1}{p1} {self.p2}{p2} {self.p3}{p3} {self.p4}{p4} {item}>"
 
@@ -337,19 +357,21 @@ class Classroom:
             original_block = self.original_name[0]
             original_block_index = CLASSROOM_GEOGRAPHIC_ORDER.index(original_block)
 
-            new_block_index = (original_block_index + math.floor(len(CLASSROOM_GEOGRAPHIC_ORDER) / 2)) \
-                              % len(CLASSROOM_GEOGRAPHIC_ORDER)
+            new_block_index = (original_block_index
+                               + math.floor(len(CLASSROOM_GEOGRAPHIC_ORDER) / 2)
+                               ) % len(CLASSROOM_GEOGRAPHIC_ORDER)
             new_block = CLASSROOM_GEOGRAPHIC_ORDER[new_block_index]
 
             self.clean_name = new_block + self.clean_name[1:]
 
     def verify_classroom_name(self) -> bool:
+        # Must be a valid AND not a bad class
         return re.match(self.classroom_pattern, self.clean_name) is not None \
-               and re.match(self.bad_classroom_pattern, self.clean_name) is None  # must be a valid AND not a bad class
+               and re.match(self.bad_classroom_pattern, self.clean_name) is None
 
     @property
     def is_bad(self) -> bool:
-        return re.match(self.bad_classroom_pattern, self.clean_name)
+        return bool(re.match(self.bad_classroom_pattern, self.clean_name))
 
     @property
     def must_keep(self):
@@ -359,50 +381,86 @@ class Classroom:
         return False
 
     def limit_serenades(self, max_num_serenades: int):
-        # limits the number of serenading tickets in this classroom
-        # IMPORTANT: must be externally checked to ensure that there are enough classrooms left for remaining serenades
+        """
+        Limits the number of serenades in this classroom by removing all excess serenades from this
+        classroom (unless they have no other choice)
+
+        Precondition:
+            There are enough classrooms left for remaining serenades
+        """
         num_serenades = self.tickets.num_serenades
+
+        # If num_serenades haven't reached the max yet, there is no need to limit
         if num_serenades <= max_num_serenades:
             return
+
         for num_periods, tickets in self.tickets.grouped_by_num_periods_available_reversed.items():
             for ticket in tickets:
-                if ticket.item_type == "Serenade":
-                    if not ticket.has_no_choice:
-                        setattr(ticket, f"is_p{self.period}", False)
-                        self.tickets.remove(ticket)
-                        num_serenades -= 1
-                        if num_serenades <= max_num_serenades:
-                            return
+                # Only consider serenades. If ticket has no choice, can't kick it out
+                if ticket.item_type != "Serenade" or ticket.has_no_choice:
+                    continue
+
+                setattr(ticket, f"is_p{self.period}", False)
+                self.tickets.remove(ticket)
+
+                num_serenades -= 1
+
+                # If now under the max, no need to remove any more
+                if num_serenades <= max_num_serenades:
+                    return
 
     def limit_non_serenades(self, max_num_non_serenades: int):
-        # limits the number of non_serenading tickets in this classroom
-        # IMPORTANT: must be externally checked to ensure that there are enough classrooms left for the remaining items
+        """
+        Limits the number of non-serenades in this classroom by removing all excess non-serenades
+        from this classroom (unless they have no other choice).
 
-        # only if this classrooms has a serenade
+        Note: is only enforced if the classroom contains at least one serenade.
+
+        Precondition:
+            There are enough classrooms left for remaining items
+        """
+        # Only enforce if this classroom has a serenade
         if not self.tickets.has_serenades:
             return
 
         num_non_serenades = self.tickets.num_non_serenades
+
+        # If already under the limit, no need to enforce
         if num_non_serenades <= max_num_non_serenades:
             return
+
         for num_periods, tickets in self.tickets.grouped_by_num_periods_available_reversed.items():
             for ticket in tickets:
-                if ticket.item_type == "Chocolate" or ticket.item_type == "Rose":
-                    if not ticket.has_no_choice:
-                        setattr(ticket, f"is_p{self.period}", False)
-                        self.tickets.remove(ticket)
-                        num_non_serenades -= 1
-                        if num_non_serenades <= max_num_non_serenades:
-                            return
+                # Only enforce for non-serenades. Also don't kick out if ticket has no other choice
+                if ticket.item_type not in ("Chocolate", "Rose") or ticket.has_no_choice:
+                    continue
+
+                setattr(ticket, f"is_p{self.period}", False)
+                self.tickets.remove(ticket)
+
+                num_non_serenades -= 1
+
+                # If under the limit, no need to keep checking
+                if num_non_serenades <= max_num_non_serenades:
+                    return
 
 
 class ClassroomList(list):
     def __contains__(self, classroom: Classroom) -> bool:
-        return classroom.extended_name in map(lambda existing_classroom: existing_classroom.extended_name, self)
+        return classroom.extended_name in map(
+            lambda existing_classroom: existing_classroom.extended_name, self
+        )
 
     @classmethod
     def from_tickets(cls, tickets: TicketList, existing_tickets: TicketList = None):
+        """
+        Create a classroom list from a list of tickets.
+
+        Goes through each ticket and gets all the classrooms in those tickets.
+        """
         self = cls()
+
+        # If there are existing tickets, use their classrooms first
         if existing_tickets is not None:
             for ticket in existing_tickets:
                 for period in range(1, 5):
@@ -411,9 +469,13 @@ class ClassroomList(list):
                         self.append(classroom)
 
         for ticket in tickets:
+            # If ticket was in existing_tickets, skip because already checked
             if existing_tickets is not None and ticket in existing_tickets:
                 continue
+
             for period in range(1, 5):
+                period: PeriodType
+
                 classroom_name = getattr(ticket, f"p{period}")
                 new_classroom = Classroom(classroom_name, period)
 
@@ -430,10 +492,11 @@ class ClassroomList(list):
                 if not new_classroom.is_valid:
                     setattr(ticket, f"is_p{period}", False)
 
-        # remove non-existent classrooms
+        # Remove non-existent classrooms
         for classroom in self[:]:
             if not classroom.is_valid:
                 self.remove(classroom)
+
         return self
 
     def get_existing_classroom(self, new_classroom: Classroom):
@@ -494,7 +557,10 @@ class ClassroomList(list):
                 cls = self.__class__
                 classrooms_by_length[length] = cls([classroom])
 
-        classrooms_by_length = {length: classrooms_by_length[length] for length in sorted(classrooms_by_length.keys())}
+        classrooms_by_length = {
+            length: classrooms_by_length[length]
+            for length in sorted(classrooms_by_length.keys())
+        }
 
         return classrooms_by_length
 
@@ -539,8 +605,9 @@ class ClassroomList(list):
     @property
     def grouped_by_geography(self):
         """
-        :return: Returns a dict where key is a classroom block and values are a ClassroomList in that block.
-        Classrooms physically next to each other appear adjacent in the list.
+        :return: Returns a dict where key is a classroom block and values are a
+            ClassroomList in that block. Within each block, the classrooms are sorted
+            alphabetically (equivalent to geographically).
         """
         # group classrooms in blocks, with the blocks in correct oder
         classrooms_by_geography = {block: ClassroomList() for block in CLASSROOM_GEOGRAPHIC_ORDER}
@@ -594,26 +661,52 @@ class ClassroomList(list):
     def sorted_by_eliminated_period_distribution_then_length(
             self, period_distribution: dict[PeriodType, int]) -> Generator[Classroom]:
         """
-        Sorts by order of periods which have the least number of tickets eliminated from, then by length
+        Sorts by order of periods which have the least number of tickets eliminated from,
+        then by length.
         """
         classroom_copy = self.copy()
+
         for i in range(len(classroom_copy)):
-            emptiest_period = min(period_distribution, key=lambda period: period_distribution[period])
-            classrooms_in_period = [classroom for classroom in classroom_copy if classroom.period == emptiest_period]
+            emptiest_period = min(
+                period_distribution,
+                key=lambda period: period_distribution[period]
+            )
+
+            classrooms_in_period = [
+                classroom for classroom in classroom_copy
+                if classroom.period == emptiest_period
+            ]
+
             if len(classrooms_in_period) > 0:
-                chosen_classroom = min(classrooms_in_period,
-                                       key=lambda classroom: (not classroom.tickets.has_serenades,
-                                                              len(classroom.tickets), random.random()))
+                chosen_classroom = min(
+                    classrooms_in_period,
+                    key=lambda classroom: (
+                        not classroom.tickets.has_serenades,
+                        len(classroom.tickets),
+                        random.random())
+                )
+
                 classroom_copy.remove(chosen_classroom)
                 yield chosen_classroom
             else:
                 del period_distribution[emptiest_period]
-                emptiest_period = min(period_distribution, key=lambda period: period_distribution[period])
-                classrooms_in_period = [classroom for classroom in classroom_copy if
-                                        classroom.period == emptiest_period]
-                chosen_classroom = min(classrooms_in_period,
-                                       key=lambda classroom: (not classroom.tickets.has_serenades,
-                                                              len(classroom.tickets), random.random()))
+
+                emptiest_period = min(
+                    period_distribution,
+                    key=lambda period: period_distribution[period]
+                )
+                classrooms_in_period = [
+                    classroom for classroom in classroom_copy
+                    if classroom.period == emptiest_period
+                ]
+
+                chosen_classroom = min(
+                    classrooms_in_period,
+                    key=lambda classroom: (
+                        not classroom.tickets.has_serenades,
+                        len(classroom.tickets), random.random())
+                )
+
                 classroom_copy.remove(chosen_classroom)
                 yield chosen_classroom
 
@@ -685,7 +778,7 @@ class People(list):
 
 
 class PeriodGroup:
-    """A group but for a specific period. Each delivery group is made of 4 period groups.
+    """A DeliveryGroup but for a specific period. Each DeliveryGroup is made of 4 period groups.
     Mostly a virtual object for intermediate use only"""
     def __init__(self, classrooms: ClassroomList):
         self.classrooms = classrooms
@@ -781,14 +874,20 @@ class PeriodGroupList(list):
     @property
     def as_classroom_sizes(self) -> list:
         """
-        :return: Returns itself but all of the PeriodGroups have been converted into lists of its classroom lengths
+        :return: Returns itself but all its PeriodGroups have been mapped into a list of their
+            classroom lengths.
         """
-        return [list(map(lambda classroom: len(classroom.tickets), period_group.classrooms)) for period_group in self]
+        return [
+            [len(classroom.tickets) for classroom in period_group.classrooms]
+            for period_group in self
+        ]
 
     @property
     def as_classroom_sizes_serenades(self) -> list:
-        return [list(map(lambda classroom: classroom.tickets.num_serenades, period_group.classrooms))
-                for period_group in self]
+        return [
+            [classroom.tickets.num_serenades for classroom in period_group.classrooms]
+            for period_group in self
+        ]
 
     @property
     def fullest_group(self):
@@ -835,7 +934,8 @@ class DeliveryGroup:
 class DeliveryGroupList(list):
     def update(self, period_groups: PeriodGroupList, period: int):
         if len(period_groups) > len(self):
-            raise OverflowError("Length of PeriodGroupList must not be more than length of DeliveryGroupList")
+            raise OverflowError(
+                "Length of PeriodGroupList must not be more than length of DeliveryGroupList")
 
         empty_delivery_groups = self.filter_empty_delivery_groups(period)
         for i in range(len(empty_delivery_groups)):
@@ -915,24 +1015,33 @@ class TicketSorter:
         # Duplicate classrooms because extra_special_serenades
         self.special_classrooms = ClassroomList()
 
-        # first pass with only serenades
+        """First pass with only serenades"""
         self.tickets = self.all_tickets.filter_serenades
         self.classrooms = ClassroomList.from_tickets(self.tickets)
+
         self.initialise_special_serenades()
+
         if self.EXTRA_SPECIAL_SERENADES:
             self.make_special_serenades_extra_special()
+
         self.distribute_tickets(("Serenade",))
+
         if not self.ENFORCE_DISTRIBUTION:
             self.eliminate_classrooms(True)
 
-        # second pass with all item types
+        """Second pass with all item types"""
         self.classrooms = ClassroomList.from_tickets(self.all_tickets, self.tickets)
+
         if self.EXTRA_SPECIAL_SERENADES:
             self.classrooms.extend(self.special_classrooms)
         self.classrooms.extend(self.bad_classrooms)
         self.tickets = self.all_tickets
-        # self.distribute_tickets(("Chocolate", "Rose"))        # optional. massively decreases efficiency (~2x)
+
+        # Optional. massively decreases efficiency (~2x)
+        # self.distribute_tickets(("Chocolate", "Rose"))
+
         self.eliminate_classrooms(False)
+
         if self.EXTRA_SPECIAL_SERENADES:
             self.fill_special_classrooms()
 
@@ -989,7 +1098,8 @@ class TicketSorter:
                         self.classrooms.append(special_classroom)
                         self.special_classrooms.append(special_classroom)
                     else:
-                        special_classroom = self.special_classrooms.get_existing_classroom(special_classroom)
+                        special_classroom = self.special_classrooms.get_existing_classroom(
+                            special_classroom)
 
                     if ticket not in special_classroom.tickets:
                         classroom.tickets.remove(ticket)
@@ -1008,7 +1118,8 @@ class TicketSorter:
         :return: None
         """
         period_distribution = self.tickets.period_distribution
-        item_period_distribution = {1: 0, 2: 0, 3: 0, 4: 0}
+        item_period_distribution: dict[PeriodType, int] = {1: 0, 2: 0, 3: 0, 4: 0}
+
         for num_tickets, people in People(self.tickets).grouped_by_num_items(items).items():
             # num_tickets is the number of total tickets the person has
             if num_tickets <= 0:
@@ -1016,21 +1127,28 @@ class TicketSorter:
 
             for person in people:
                 person_tickets = person.tickets.filter_by_item_type(items)
+
                 if self.ENFORCE_DISTRIBUTION:
                     for ticket in person_tickets:
                         if ticket.has_no_choice:
                             item_period_distribution[ticket.chosen_period] += 1
+
                     for ticket in person_tickets:
                         if not ticket.has_no_choice:
-                            self.choose_emptiest_period(ticket, item_period_distribution, period_distribution)
+                            self.choose_emptiest_period(
+                                ticket, item_period_distribution, period_distribution)
                 else:
-                    for num_periods_available, tickets in person_tickets.grouped_by_num_periods_available.items():
+                    for num_periods_available, tickets in (
+                            person_tickets.grouped_by_num_periods_available.items()):
+
                         # num_periods_available is how many free periods each ticket has
                         if not 1 < num_periods_available <= num_tickets:
                             continue
 
                         for ticket in tickets:
-                            self.choose_emptiest_period(ticket, item_period_distribution, period_distribution)
+                            self.choose_emptiest_period(
+                                ticket, item_period_distribution, period_distribution)
+
         self.cleanup_classrooms()
 
     @staticmethod
@@ -1093,21 +1211,23 @@ class TicketSorter:
                     break
 
                 if classroom.period == special_classroom.period and \
-                        classroom.clean_name == special_classroom.clean_name:       # if the same class
+                        classroom.clean_name == special_classroom.clean_name:    # If the same class
 
                     people = People(classroom.tickets.filter_by_item_type(("Chocolate", "Rose")))
 
                     for num_tickets, people in people.grouped_by_num_items().items():
                         for person in people:
-                            if len(special_classroom.tickets) >= \
-                                    self.MAX_SERENADES_PER_CLASS + self.MAX_NON_SERENADES_PER_SERENADING_CLASS:
+                            if (len(special_classroom.tickets) >=
+                                    self.MAX_SERENADES_PER_CLASS
+                                    + self.MAX_NON_SERENADES_PER_SERENADING_CLASS):
                                 break
 
                             # Pick random ticket (doesn't really matter since non-serenade)
                             ticket = person.tickets[0]
 
-                            if len(special_classroom.tickets) >= \
-                                    self.MAX_SERENADES_PER_CLASS + self.MAX_NON_SERENADES_PER_SERENADING_CLASS:
+                            if (len(special_classroom.tickets) >=
+                                    self.MAX_SERENADES_PER_CLASS
+                                    + self.MAX_NON_SERENADES_PER_SERENADING_CLASS):
                                 break
                             else:
                                 classroom.tickets.remove(ticket)
@@ -1169,7 +1289,8 @@ class TicketSorter:
         total_serenading_groups = 0
         for group in self.output_serenading_groups:
             print(f"\tClassrooms: {group.num_classrooms} \t| "
-                  f"Serenades: {group.tickets.num_serenades}\t+ Non-serenades: {group.tickets.num_non_serenades} "
+                  f"Serenades: {group.tickets.num_serenades}\t"
+                  f"+ Non-serenades: {group.tickets.num_non_serenades} "
                   f"= Total: {group.tickets.num_serenades + group.tickets.num_non_serenades}")
             total_serenading_groups += group.tickets.num_serenades + group.tickets.num_non_serenades
         print(f"Total: {total_serenading_groups}")
@@ -1177,7 +1298,8 @@ class TicketSorter:
         print("\nTickets per non-serenading group:")
         total_non_serenading_groups = 0
         for group in self.output_non_serenading_groups:
-            print(f"\tClassrooms: {group.num_classrooms} \t| Non-serenades: {group.tickets.num_non_serenades}")
+            print(f"\tClassrooms: {group.num_classrooms} \t| "
+                  f"Non-serenades: {group.tickets.num_non_serenades}")
             total_non_serenading_groups += group.tickets.num_non_serenades
         print(f"Total: {total_non_serenading_groups}")
         print(f"\nTotal (both types): {total_serenading_groups + total_non_serenading_groups}")
@@ -1219,6 +1341,8 @@ def load_tickets() -> TicketList:
     with open(f"{DirectoryLocations.DEV_STUFF}/people_2023.csv") as file:
         reader = csv.DictReader(file)
         for row in reader:
+            row: dict
+
             students[row['ID']] = row
 
     # Create tickets from file
