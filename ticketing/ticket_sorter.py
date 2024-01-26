@@ -873,20 +873,22 @@ class TicketSorter:
                  max_serenades_per_class: int = 2, max_non_serenades_per_serenading_class: int = 3,
                  extra_special_serenades: bool = True, enforce_distribution: bool = True):
         """Options (Disclaimer: enabling an option does not guarantee that it is always true)"""
-        # special serenades will not be grouped with regular serenades (ignores non-serenades)
-        # less efficient but nicer for those who receive special serenades
-        # puts more stress on serenading groups
+        # Special serenades will not be grouped with regular serenades (ignores non-serenades).
+        # Less efficient but nicer for those who receive special serenades.
+        # Puts more stress on serenading groups.
         self.EXTRA_SPECIAL_SERENADES = extra_special_serenades
 
-        # the algorithm will try to ensure that a person will have each of their items done separately
-        # this is normally done if it is possible without decreasing efficiency (pretty rarely)
-        # this enforces it to happen whenever possible, which decreases efficiency but items are more evenly distributed
+        # Will try to ensure that a person will have each of their items done separately
+        # (across periods, not all at once).
+        # When this option is disabled, it is still done but with minimal cost to efficiency.
+        # Enabling this option enforces it to happen whenever possible, which decreases efficiency
+        # but items are more evenly distributed.
         self.ENFORCE_DISTRIBUTION = enforce_distribution
 
-        # the max number of serenades in a class (ignores non-serenades)
-        # increasing these values increases the efficiency (decreases class visits required)
-        # however, too a high a value make class visits fat
-        # set to 0 to disable limiting
+        # The max number of serenades in a class (ignores non-serenades).
+        # Increasing these values increases the efficiency (decreases class visits required).
+        # However, setting the value too high will make class visits fat (bad for teachers).
+        # Set to 0 to disable limiting.
         self.MAX_SERENADES_PER_CLASS = max_serenades_per_class
 
         # the max number of non-serenade items in a class
@@ -895,19 +897,23 @@ class TicketSorter:
         self.MAX_NON_SERENADES_PER_SERENADING_CLASS = max_non_serenades_per_serenading_class
 
         """Constants"""
-        # these two are mutually exclusive (you cannot be both a serenading group AND a non-serenading group)
-        self.NUM_SERENADING_GROUPS = serenading_groups  # the number of serenading groups
-        self.NUM_NON_SERENADING_GROUPS = non_serenading_groups  # the number of groups which are NOT serenading
+        # These two are mutually exclusive
+        # (you cannot be both a serenading group AND a non-serenading group)
+        self.NUM_SERENADING_GROUPS = serenading_groups
+        self.NUM_NON_SERENADING_GROUPS = non_serenading_groups
 
-        """Output"""
-        # a list of groups (both serenading and non-serenading), with their assigned tickets as attributes
+        """Output Variables"""
+        # A list of groups (both serenading and non-serenading),
+        # with their assigned tickets as attributes
         self.output_serenading_groups = DeliveryGroupList()
         self.output_non_serenading_groups = DeliveryGroupList()
 
         """Methods"""
         self.all_tickets = TicketList(tickets)
-        self.bad_classrooms = ClassroomList()    # classrooms which are bad but have special serenade so must be visited
-        self.special_classrooms = ClassroomList()       # duplicate classrooms because extra_special_serenades
+        # Classrooms which are bad (difficult to visit) but have special serenade so must be visited
+        self.bad_classrooms = ClassroomList()
+        # Duplicate classrooms because extra_special_serenades
+        self.special_classrooms = ClassroomList()
 
         # first pass with only serenades
         self.tickets = self.all_tickets.filter_serenades
@@ -1028,7 +1034,11 @@ class TicketSorter:
         self.cleanup_classrooms()
 
     @staticmethod
-    def choose_emptiest_period(ticket: TicketToSort, item_period_distribution: dict, period_distribution: dict):
+    def choose_emptiest_period(
+            ticket: TicketToSort,
+            item_period_distribution: dict,
+            period_distribution: dict):
+
         available_periods = ticket.available_periods
         # evenly distribute the tickets among the available classes
         # if already even, try to keep the global distribution even
@@ -1044,6 +1054,7 @@ class TicketSorter:
 
         for classroom in self.classrooms.sorted_by_eliminated_period_distribution_then_length(
                 eliminated_period_distribution):
+
             period = classroom.period
             tickets = classroom.tickets
 
@@ -1074,7 +1085,7 @@ class TicketSorter:
                 self.classrooms.remove(classroom)
 
     def fill_special_classrooms(self):
-        # adds non-serenades to special classrooms so it's not just a single special serenade
+        # Adds non-serenades to special classrooms, so it's not just a single special serenade
         for special_classroom in self.special_classrooms:
             for classroom in self.classrooms:
                 if len(special_classroom.tickets) >= \
