@@ -194,7 +194,7 @@ def page_redeem(request):
         'ticketing/redeem.html',
         {
             'templates': templates,
-            'students': Recipient.objects.all().values_list('recipient_id', flat=True),
+            'students': list(Recipient.objects.all().values_list('recipient_id', flat=True)),
             'contact_email': CONTACT_EMAIL,
             'fonts': FONTS
         }
