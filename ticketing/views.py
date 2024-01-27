@@ -1,8 +1,13 @@
-from django.http import HttpResponseRedirect, JsonResponse, FileResponse
+from django.http import HttpResponseRedirect, FileResponse
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAdminUser
+from rest_framework.request import Request
+from rest_framework.response import Response
 from vdaywebsite.settings import CONTACT_EMAIL, NUM_TICKETS_PER_PDF
 from .models import Ticket, TicketCode, SortTicketsRequest
 from .forms import CSVFileForm
@@ -57,51 +62,73 @@ def page_stats(request):
     return render(request, 'ticketing/stats.html')
 
 
-@staff_member_required
-def api_count(request):
-    data = {}
+class ApiCount(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAdminUser]
 
-    # get number of tickets per item type
-    for choice in Ticket.item_type.field.choices:
-        item_type = choice[0]
-        item_type_name = item_type.lower().replace(' ', '_')
-        # get total ticket codes created
-        created = TicketCode.objects.filter(item_type=item_type).count()
-        data[f'{item_type_name}s_created'] = created
-        # gets total redeemed ticket codes (actually the number of tickets, in case some were manually added)
-        redeemed = Ticket.objects.filter(item_type=item_type).count()
-        data[f'{item_type_name}s_redeemed'] = redeemed
+    @staticmethod
+    def get(request: Request):
+        data = {}
 
-    # get number of tickers per grade
-    for grade in range(7, 13):
-        data[f"grade_{grade}"] = 0
-    for ticket in Ticket.objects.all():
-        recipient_arc = STUDENTS[ticket.recipient_id]['ARC']
-        recipient_grade = re.match(r"\d+", recipient_arc)
-        if recipient_grade is not None and f"grade_{recipient_grade[0]}" in data:
-            data[f"grade_{recipient_grade[0]}"] += 1
-        else:
-            print(f"Stats: Error getting grade of {STUDENTS[ticket.recipient_id]}")
-    return JsonResponse(data)
+        # For each item type in a ticket
+        for choice in Ticket.item_type.field.choices:
+            item_type = choice[0]
+            item_type_name = item_type.lower().replace(' ', '_')
+
+            # Get total ticket codes created
+            created = TicketCode.objects.filter(item_type=item_type).count()
+            data[f'{item_type_name}s_created'] = created
+
+            # Gets total redeemed ticket codes
+            # (actually the number of tickets, in case some were manually added)
+            redeemed = Ticket.objects.filter(item_type=item_type).count()
+            data[f'{item_type_name}s_redeemed'] = redeemed
+
+        # Initialise grades to zero
+        for grade in range(7, 13):
+            data[f"grade_{grade}"] = 0
+
+        # Get number of tickers per grade
+        for ticket in Ticket.objects.all():
+            recipient_arc = STUDENTS[ticket.recipient_id]['ARC']
+            recipient_grade = re.match(r"\d+", recipient_arc)
+
+            if recipient_grade is not None and f"grade_{recipient_grade[0]}" in data:
+                data[f"grade_{recipient_grade[0]}"] += 1
+            else:
+                print(f"Stats: Error getting grade of {STUDENTS[ticket.recipient_id]}")
+
+        return Response(data=data, status=status.HTTP_200_OK)
 
 
-@staff_member_required
-def api_graph(request):
-    """Returns a histogram with time in the x-axis (in hourly intervals) and number of tickets redeemed in y-axis"""
-    # not enough tickets to make a useful graph
-    if Ticket.objects.count() <= 2:
-        return JsonResponse({"success": "false"})
+class ApiGraph(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAdminUser]
 
-    oldest_redeem = Ticket.objects.earliest('date').date + datetime.timedelta(hours=10)     # add 10 hours for timezone
-    newest_redeem = Ticket.objects.latest('date').date + datetime.timedelta(hours=10)
+    @staticmethod
+    def get(request: Request, *args, **kwargs):
+        """
+        Returns a histogram with time in the x-axis (in hourly intervals)
+        and number of tickets redeemed in y-axis
+        """
+        # Not enough tickets to make a useful graph
+        if Ticket.objects.count() <= 2:
+            return Response(data={"success": "false"}, status=status.HTTP_200_OK)
 
-    times = []  # x-axis
-    num_tickets = []    # y-axis
-    while oldest_redeem < newest_redeem:
-        times.append(oldest_redeem.replace(microsecond=0, second=0, minute=0).strftime("%Y-%m-%d %H:%M:%S"))
-        num_tickets.append(Ticket.objects.filter(date__date=oldest_redeem.date(), date__hour=oldest_redeem.hour).count())
-        oldest_redeem += datetime.timedelta(hours=1)
-    return JsonResponse({"success": "true", "xData": times, "yData": num_tickets})
+        oldest_redeem = Ticket.objects.earliest('date').date + datetime.timedelta(hours=10)     # add 10 hours for timezone
+        newest_redeem = Ticket.objects.latest('date').date + datetime.timedelta(hours=10)
+
+        times = []  # x-axis
+        num_tickets = []    # y-axis
+        while oldest_redeem < newest_redeem:
+            times.append(oldest_redeem.replace(microsecond=0, second=0, minute=0).strftime("%Y-%m-%d %H:%M:%S"))
+            num_tickets.append(Ticket.objects.filter(date__date=oldest_redeem.date(), date__hour=oldest_redeem.hour).count())
+            oldest_redeem += datetime.timedelta(hours=1)
+
+        return Response(
+            data={"success": "true", "xData": times, "yData": num_tickets},
+            status=status.HTTP_200_OK
+        )
 
 
 @staff_member_required
@@ -142,24 +169,47 @@ def page_redeem(request):
                                                      'contact_email': CONTACT_EMAIL, 'fonts': FONTS})
 
 
-@csrf_exempt
-def api_redeem(request):
-    if request.method == 'POST':
-        data = json.loads(request.read())
+class ApiRedeem(APIView):
+    @staticmethod
+    def get(request: Request):
+        """
+        Endpoint for users to check if a code is valid
+        """
+        code = request.query_params.get('inputted_code').upper()
 
-        # validate code
+        # If the code exists, get what item it is. if it doesn't leave it blank
+        data = {
+            'is_exists': is_code_exists(code),
+            'is_unconsumed': is_code_unconsumed(code),
+            'item_type': TicketCode.objects.get(code=code).item_type if is_code_exists(code) else ""
+        }
+
+        return Response(data=data, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def post(request: Request):
+        """
+        Endpoint for users to redeem a ticket
+        """
+        data = request.data
+
+        # Validate code
         if is_code_exists(data['code']):
             ticket_code = TicketCode.objects.get(code=data['code'])
         else:
-            return JsonResponse({"success": "false", "error": "This is not a valid code."})
+            return Response(data={"success": "false", "error": "This is not a valid code."},
+                            status=status.HTTP_200_OK)
+
         if not is_code_unconsumed(data['code']):
-            return JsonResponse({"success": "false", "error": "This code has already been used."})
+            return Response(data={"success": "false", "error": "This code has already been used."},
+                            status=status.HTTP_200_OK)
 
-        # validate recipient
+        # Validate recipient
         if not is_recipient_exists(data['recipient_id']):
-            return JsonResponse({"success": "false", "error": "This recipient does not exist."})
+            return Response(data={"success": "false", "error": "This recipient does not exist."},
+                            status=status.HTTP_200_OK)
 
-        # make the ticket
+        # Create the ticket
         ticket = Ticket(
             recipient_id=data['recipient_id'],
             item_type=ticket_code.item_type,
@@ -171,53 +221,44 @@ def api_redeem(request):
             ticket.ss_period = data['period']
         ticket.save()
 
-        # create the ticket file
+        # Create the ticket file
         with open(f'{DirectoryLocations.REDEEMED_TICKETS}/{ticket.pk}.svg', 'wb') as file:
             file.write(bytes(data['message'], 'utf-8'))
 
-        # mark the ticket code as consumed
+        # Mark the ticket code as consumed
         ticket_code.is_unconsumed = False
         ticket_code.save()
 
-        # redirect to the purchased screen
-        return JsonResponse({"success": "true"})
+        # Redirect to the purchased screen
+        return Response(data={"success": "true"}, status=status.HTTP_200_OK)
 
 
-def api_validate_code(request):
-    code = request.GET['inputted_code'].upper()
+class ApiPrintTicket(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAdminUser]
 
-    data = {
-        'is_exists': is_code_exists(code),
-        'is_unconsumed': is_code_unconsumed(code),
-        'item_type': TicketCode.objects.get(code=code).item_type if is_code_exists(code) else ""
-        # if the code exists, get what item it is. if it doesn't leave it blank
-    }
+    @staticmethod
+    def post(request: Request):
+        pk = request.data['pk']
+        group_code = request.data['group']
+        part = int(request.data['part'])
+        padding = int(request.data['padding'])
+        enforce_boundaries = request.data['boundary'] == "true"
 
-    return JsonResponse(data)
+        group = SortTicketsRequest.objects.get(pk=pk).deliverygroup_set.get(code=group_code)
 
+        if not os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{pk}"):
+            os.mkdir(f"{DirectoryLocations().SORTED_TICKETS}/{pk}")
 
-@staff_member_required
-def api_print_tickets(request):
-    pk = request.GET['pk']
-    group_code = request.GET['group']
-    part = int(request.GET['part'])
-    padding = int(request.GET['padding'])
-    enforce_boundaries = request.GET['boundary'] == "true"
+        TicketsToPDF(group.tickets.all()[(part - 1) * NUM_TICKETS_PER_PDF:
+                                         min(part * NUM_TICKETS_PER_PDF, group.tickets.count())],
+                     f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}_{part}.pdf",
+                     group_code,
+                     starting_index=(part - 1) * NUM_TICKETS_PER_PDF,
+                     padding=padding,
+                     enforce_boundaries=enforce_boundaries)
 
-    group = SortTicketsRequest.objects.get(pk=pk).deliverygroup_set.get(code=group_code)
+        group.parts_printed += f",{part}"
+        group.save()
 
-    if not os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{pk}"):
-        os.mkdir(f"{DirectoryLocations().SORTED_TICKETS}/{pk}")
-
-    TicketsToPDF(group.tickets.all()[(part - 1) * NUM_TICKETS_PER_PDF:
-                                     min(part * NUM_TICKETS_PER_PDF, group.tickets.count())],
-                 f"{DirectoryLocations().SORTED_TICKETS}/{pk}/{group_code}_{part}.pdf",
-                 group_code,
-                 starting_index=(part - 1) * NUM_TICKETS_PER_PDF,
-                 padding=padding,
-                 enforce_boundaries=enforce_boundaries)
-
-    group.parts_printed += f",{part}"
-    group.save()
-
-    return JsonResponse({"success": "true"})
+        return Response(data={"success": "true"}, status=status.HTTP_200_OK)

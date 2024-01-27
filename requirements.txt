@@ -1,8 +1,9 @@
-Django~=4.1.5
-reportlab~=3.6.12
-CairoSVG>=2.7.0
-Pillow~=9.4.0
-lxml~=4.9.2
-python-dotenv~=0.21.1
-svglib~=1.5.1
-pypdf~=3.4.1
+Django
+djangorestframework
+python-dotenv
+reportlab
+CairoSVG
+Pillow
+lxml
+svglib
+pypdf

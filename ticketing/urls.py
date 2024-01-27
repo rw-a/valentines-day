@@ -18,9 +18,9 @@ urlpatterns = [
     path('tickets/<int:pk>', views.page_tickets, name='tickets'),
     path('tickets/<int:pk>/<str:group_id>/<int:part>', views.file_delivery_group, name='delivery_group'),
 
-    path('api/redeem/', views.api_redeem, name='api_redeem'),
-    path('api/validate_code/', views.api_validate_code, name='api_validate_code'),
-    path('api/print/', views.api_print_tickets, name='api_print'),
-    path('api/count', views.api_count, name='api_count'),
-    path('api/graph', views.api_graph, name='api_graph'),
+    path('api/redeem/', views.ApiRedeem.as_view(), name='api_redeem'),
+    path('api/validate_code/', views.ApiRedeem.as_view(), name='api_validate_code'),
+    path('api/print/', views.ApiPrintTicket.as_view(), name='api_print'),
+    path('api/count', views.ApiCount.as_view(), name='api_count'),
+    path('api/graph', views.ApiGraph.as_view(), name='api_graph'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -39,7 +39,7 @@ async function submit_form(event) {
             headers: {
                 'Content-Type': 'application/json',
                 "X-CSRFToken": csrf_token
-        },
+            },
             credentials: 'same-origin',
             body: JSON.stringify({
                 recipient_id: document.getElementById('recipient').value,

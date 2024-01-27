@@ -49,28 +49,36 @@
         const partName = getPartName(group, part);
         generating.push(partName);
         return new Promise((resolve) => {
-            fetch("{% url 'ticketing:api_print' %}?" + new URLSearchParams({
-                'pk': "{{ pk }}",
-                "group": group,
-                "part": part,
-                "padding": document.getElementById('padding').value,
-                "boundary": document.getElementById('boundary').checked,
-            }))
-                .then((response) => {
-                    if (response.ok) {
-                        return response.json();
-                    } else {
-                        throw new Error(`${response.status} ${response.statusText}.`);
-                    }
+            fetch("{% url 'ticketing:api_print' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "X-CSRFToken": "{{csrf_token}}"
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    'pk': "{{ pk }}",
+                    "group": group,
+                    "part": part,
+                    "padding": document.getElementById('padding').value,
+                    "boundary": document.getElementById('boundary').checked,
                 })
-                .then((data) => {
-                    group_data[group].parts.push(String(part));
-                    generating.splice(generating.indexOf(partName), 1);
-                    refresh();
-                    resolve();
-                }).catch((error) => {
-                    document.getElementById('error').hidden = false;
-                    document.getElementById('error').innerText = error;
+            })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`${response.status} ${response.statusText}.`);
+                }
+            })
+            .then((data) => {
+                group_data[group].parts.push(String(part));
+                generating.splice(generating.indexOf(partName), 1);
+                refresh();
+                resolve();
+            }).catch((error) => {
+                document.getElementById('error').hidden = false;
+                document.getElementById('error').innerText = error;
             });
         });
     }
