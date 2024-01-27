@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.utils.html import format_html
 from .constants import DirectoryLocations
 from .models import (Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup,
-                     Recipient, Classroom)
+                     Recipient, Classroom, TicketToSort)
 from .code_generator import CodesToPDF, generate_codes
 from .ticket_sorter import sort_tickets
 from vdaywebsite.settings import ORG_NAME, NUM_TICKETS_PER_PDF
@@ -149,11 +149,9 @@ class TicketCodeAdmin(admin.ModelAdmin):
                 ticket_code.save()
 
 
-@admin.register(Ticket)
-class TicketAdmin(admin.ModelAdmin):
-    list_display = ('recipient', 'item_type', 'is_handwritten', 'template', 'period', 'classroom')
-    actions = ('delete_tickets_and_ticket_codes',)
-    date_hierarchy = "date"
+@admin.register(TicketToSort)
+class TicketToSortAdmin(admin.ModelAdmin):
+    list_display = ('period', 'classroom')
 
     @admin.display(description="Chosen Classroom")
     def classroom(self, obj):
@@ -161,6 +159,13 @@ class TicketAdmin(admin.ModelAdmin):
             return getattr(obj, f'p{obj.period}')
         else:
             return None
+
+
+@admin.register(Ticket)
+class TicketAdmin(admin.ModelAdmin):
+    list_display = ('recipient', 'item_type', 'is_handwritten', 'template')
+    actions = ('delete_tickets_and_ticket_codes',)
+    date_hierarchy = "date"
 
     def delete_model(self, request, obj):
         if os.path.exists(f"{DirectoryLocations().REDEEMED_TICKETS}/{obj.pk}.svg"):

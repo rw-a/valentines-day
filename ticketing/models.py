@@ -16,6 +16,42 @@ PERIOD_CHOICES = [
 ]
 
 
+class SortTicketsRequest(models.Model):
+    num_serenaders = models.IntegerField(
+        default=10, validators=[MaxValueValidator(100), MinValueValidator(1)],
+        verbose_name="Number of serenading delivery groups")
+    num_non_serenaders = models.IntegerField(
+        default=10, validators=[MaxValueValidator(100), MinValueValidator(1)],
+        verbose_name="Number of non-serenading delivery groups")
+
+    date = models.DateTimeField(default=timezone.now, help_text="Date created")
+
+    def __str__(self):
+        return f"Sort Request {self.pk} ({self.date})"
+
+    class Meta:
+        verbose_name = "Sort Tickets Request"
+
+
+class DeliveryGroup(models.Model):
+    code = models.CharField(max_length=10)
+
+    is_serenading_group = models.BooleanField()
+
+    # A JSON list containing which parts have been printed as numbers (e.g. [1, 2, 4])
+    parts_printed = models.JSONField()
+
+    sort_request = models.ForeignKey(SortTicketsRequest, on_delete=models.CASCADE)
+
+    date = models.DateTimeField(default=timezone.now, help_text="Date created")
+
+    def __str__(self):
+        return f"Delivery Group: {self.code}"
+
+    class Meta:
+        verbose_name = "Delivery Group"
+
+
 class Classroom(models.Model):
     period = models.PositiveIntegerField(choices=PERIOD_CHOICES)
 
@@ -138,7 +174,7 @@ class TicketCodePDF(models.Model):
 
     class Meta:
         verbose_name = "Ticket Code PDF"
-        verbose_name_plural = "Ticket Codes PDFs"
+        verbose_name_plural = "Ticket Code PDFs"
 
 
 class TicketCode(models.Model):
@@ -209,6 +245,26 @@ class Ticket(models.Model):
         help_text="Links the ticket to the code which made it. "
                   "Leave it blank if you are manually creating the ticket.")
 
+    date = models.DateTimeField(default=timezone.now, help_text="Date created")
+
+    def __str__(self):
+        return f'{self.recipient_id} ({self.item_type})'
+
+    def clean(self):
+        if self.item_type == "Special Serenade" and self.ss_period is None:
+            raise ValidationError("Must specify a period for special serenade.")
+
+        if self.template != "Blank" and self.template not in TEMPLATES.keys():
+            raise ValidationError(f"Template '{self.template}' not found (case sensitive).")
+
+    class Meta:
+        verbose_name = "Ticket"
+
+
+class TicketToSort(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    delivery_group = models.ForeignKey(DeliveryGroup, on_delete=models.CASCADE)
+
     period = models.PositiveIntegerField(
         null=True, blank=True, editable=False,
         help_text="The period chosen by the ticket sorter. "
@@ -235,48 +291,8 @@ class Ticket(models.Model):
         help_text="Used to determine what order the tickets should be when printing. "
                   "Will be automatically determined so do not touch.")
 
-    date = models.DateTimeField(default=timezone.now, help_text="Date created")
-
     def __str__(self):
-        return f'{self.recipient_id} ({self.item_type})'
-
-    def clean(self):
-        if self.item_type == "Special Serenade" and self.ss_period is None:
-            raise ValidationError("Must specify a period for special serenade.")
-
-        if self.template != "Blank" and self.template not in TEMPLATES.keys():
-            raise ValidationError(f"Template '{self.template}' not found (case sensitive).")
+        return f"Ticket {str(self.ticket)} for request {self.delivery_group.sort_request.pk}"
 
     class Meta:
-        verbose_name = "Ticket"
-
-
-class SortTicketsRequest(models.Model):
-    num_serenaders = models.IntegerField(
-        default=10, validators=[MaxValueValidator(100), MinValueValidator(1)],
-        verbose_name="Number of serenading delivery groups")
-    num_non_serenaders = models.IntegerField(
-        default=10, validators=[MaxValueValidator(100), MinValueValidator(1)],
-        verbose_name="Number of non-serenading delivery groups")
-
-    date = models.DateTimeField(default=timezone.now, help_text="Date created")
-
-    class Meta:
-        verbose_name = "Sort Tickets Request"
-
-
-class DeliveryGroup(models.Model):
-    code = models.CharField(max_length=10)
-
-    is_serenading_group = models.BooleanField()
-
-    # A JSON list containing which parts have been printed as numbers (e.g. [1, 2, 4])
-    parts_printed = models.JSONField()
-
-    sort_request = models.ForeignKey(SortTicketsRequest, on_delete=models.CASCADE)
-    tickets = models.ManyToManyField(Ticket)
-
-    date = models.DateTimeField(default=timezone.now, help_text="Date created")
-
-    class Meta:
-        verbose_name = "Delivery Group"
+        verbose_name = "Sorted Ticket"
