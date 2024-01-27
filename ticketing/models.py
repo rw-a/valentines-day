@@ -146,7 +146,7 @@ class Recipient(models.Model):
     class Meta:
         verbose_name = "Recipient"
         indexes = [
-            Index(fields=['id'])
+            Index(fields=['recipient_id'])
         ]
 
 
@@ -299,3 +299,7 @@ class SortedTicket(models.Model):
 
     class Meta:
         verbose_name = "Sorted Ticket"
+        ordering = ["sort_order"]
+        indexes = [
+            Index(fields=['sort_order'])
+        ]
