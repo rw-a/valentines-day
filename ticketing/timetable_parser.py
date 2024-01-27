@@ -58,7 +58,7 @@ class RecipientType(TypedDict):
     full_name: str
     arc: str
     grade: int
-    id: str
+    recipient_id: str
     p1: str | None
     p2: str | None
     p3: str | None
@@ -92,7 +92,7 @@ def get_recipient_classes(files) -> list[RecipientType]:
                 'last_name': name.group(1),
                 'full_name': full_name,
                 'arc': arc,
-                'id': f"{full_name} [{arc}]",
+                'recipient_id': f"{full_name} [{arc}]",
                 'grade': grade
             }
 
@@ -112,7 +112,7 @@ def get_recipient_classes(files) -> list[RecipientType]:
                     'last_name': name.group(1),
                     'full_name': full_name,
                     'arc': arc,
-                    'id': f"{full_name} [{arc}]",
+                    'recipient_id': f"{full_name} [{arc}]",
                     'grade': grade
                 }
 
