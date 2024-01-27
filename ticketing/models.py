@@ -1,4 +1,6 @@
+from __future__ import annotations
 import re
+from typing import Literal
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -8,7 +10,10 @@ from .constants import MaxLengths, TEMPLATES
 from .timetable_parser import BAD_ROOM_FORMAT
 
 
-PERIOD_CHOICES = [
+PeriodType = Literal[1, 2, 3, 4]
+
+
+PERIOD_CHOICES: list[tuple[PeriodType, PeriodType]] = [
     (1, 1),
     (2, 2),
     (3, 3),
@@ -266,7 +271,7 @@ class SortedTicket(models.Model):
     Represents the information of a ticket based on the sorting results of a SortTicketsRequest.
     """
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
-    delivery_group = models.ForeignKey(DeliveryGroup, on_delete=models.CASCADE)
+    delivery_group = models.ForeignKey(DeliveryGroup, on_delete=models.CASCADE, null=True)
 
     period = models.PositiveIntegerField(
         null=True, blank=True, editable=False,
@@ -295,7 +300,10 @@ class SortedTicket(models.Model):
                   "Will be automatically determined so do not touch.")
 
     @property
-    def has_no_choice(self) -> bool:
+    def num_periods_available(self) -> int:
+        """
+        :return: The number of periods this ticket can be in.
+        """
         num_periods_available = 0
 
         if self.p1 is not None:
@@ -310,10 +318,49 @@ class SortedTicket(models.Model):
         if self.p4 is not None:
             num_periods_available += 1
 
-        return num_periods_available <= 1
+        return num_periods_available
+
+    @property
+    def has_no_choice(self) -> bool:
+        """
+        :return: Whether the ticket only has one classroom it can be in.
+        """
+        return self.num_periods_available <= 1
+
+    @property
+    def chosen_period(self) -> PeriodType:
+        """
+        Gets the chosen period of this ticket.
+
+        Precondition:
+            The period has a chosen period (i.e. has_no_choice == True). If this precondition is not
+            met, the available classroom with the lowest period number will be chosen first every
+            time.
+        """
+        if self.p1:
+            return 1
+        elif self.p2:
+            return 2
+        elif self.p3:
+            return 3
+        elif self.p4:
+            return 4
+
+    def choose_period(self, chosen_period: PeriodType):
+        if chosen_period != 1:
+            self.p1 = None
+        if chosen_period != 2:
+            self.p2 = None
+        if chosen_period != 3:
+            self.p3 = None
+        if chosen_period != 4:
+            self.p4 = None
 
     def __str__(self):
         return f"Ticket {str(self.ticket)} for request {self.delivery_group.sort_request.pk}"
+
+    def __repr__(self):
+        return self.__str__()
 
     class Meta:
         verbose_name = "Sorted Ticket"
