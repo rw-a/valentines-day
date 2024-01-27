@@ -261,7 +261,10 @@ class Ticket(models.Model):
         verbose_name = "Ticket"
 
 
-class TicketToSort(models.Model):
+class SortedTicket(models.Model):
+    """
+    Represents the information of a ticket based on the sorting results of a SortTicketsRequest.
+    """
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
     delivery_group = models.ForeignKey(DeliveryGroup, on_delete=models.CASCADE)
 

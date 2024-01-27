@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.utils.html import format_html
 from .constants import DirectoryLocations
 from .models import (Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup,
-                     Recipient, Classroom, TicketToSort)
+                     Recipient, Classroom, SortedTicket)
 from .code_generator import CodesToPDF, generate_codes
 from .ticket_sorter import sort_tickets
 from vdaywebsite.settings import ORG_NAME, NUM_TICKETS_PER_PDF
@@ -149,7 +149,7 @@ class TicketCodeAdmin(admin.ModelAdmin):
                 ticket_code.save()
 
 
-@admin.register(TicketToSort)
+@admin.register(SortedTicket)
 class TicketToSortAdmin(admin.ModelAdmin):
     list_display = ('period', 'classroom')
 
