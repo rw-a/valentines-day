@@ -20,7 +20,6 @@ from .models import Recipient, SortTicketsRequest, Ticket, TicketCode, Classroom
 from .forms import CSVFileForm
 from .constants import DirectoryLocations, TEMPLATES, FONTS
 from .ticket_printer import TicketsToPDF
-from .ticket_sorter import get_parts
 from .timetable_parser import get_recipient_classes
 
 
@@ -169,7 +168,7 @@ def page_tickets(request, pk):
     for group in sort_tickets_request.deliverygroup_set.all():
         group_data[group.code] = {}
         group_data[group.code]["num_tickets"] = group.tickets.count()
-        group_data[group.code]["parts"] = get_parts(group)
+        group_data[group.code]["parts"] = group.parts_printed
 
     return render(request, 'ticketing/tickets.html', {
         'pk': pk,
