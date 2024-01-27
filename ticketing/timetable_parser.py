@@ -1,27 +1,26 @@
 import csv
-import random
 import re
 
 """Settings"""
-name_half = r"([a-zA-Z\s\'\(\)-]+)"
-name_format = fr"{name_half},\s{name_half},"
-teacher_name_format = r"[A-Z 0]{5,6} - " + name_format[:-1]
+NAME_HALF = r"([a-zA-Z\s\'\(\)-]+)"
+NAME_FORMAT = fr"{NAME_HALF},\s{NAME_HALF},"
+TEACHER_NAME_FORMAT = r"[A-Z 0]{5,6} - " + NAME_FORMAT[:-1]
 
-normal_room_format = r"[A-Z][G\d].?[\d]{1,2}\Z"
-bad_room_format = r"OVAL[A-D]\Z|OVLJ\Z|POOL\Z"    # rooms which are annoying and shouldn't be chosen
-special_room_format = r"LIB[A-D]Y?\Z"             # rooms which don't follow the normal regex
-room_format = normal_room_format + r"|" + special_room_format + r"|" + bad_room_format
+NORMAL_ROOM_FORMAT = r"[A-Z][G\d].?[\d]{1,2}\Z"
+BAD_ROOM_FORMAT = r"OVAL[A-D]\Z|OVLJ\Z|POOL\Z"    # rooms which are annoying and shouldn't be chosen
+SPECIAL_ROOM_FORMAT = r"LIB[A-D]Y?\Z"             # rooms which don't follow the normal regex
+ROOM_FORMAT = NORMAL_ROOM_FORMAT + r"|" + SPECIAL_ROOM_FORMAT + r"|" + BAD_ROOM_FORMAT
 
-arc_class_format = r"([7-9]|10|11|12)[A-Z]"
+ARC_CLASS_FORMAT = r"([7-9]|10|11|12)[A-Z]"
 
-period_columns = 1, 3, 5, 7
+PERIOD_COLUMNS = 1, 3, 5, 7
 
 
 def get_periods(person: dict, rows: list, row_index: int):
     row = rows[row_index]
-    for period, period_column in enumerate(period_columns):
+    for period, period_column in enumerate(PERIOD_COLUMNS):
         period = period + 1
-        room = re.search(room_format, row[period_column])
+        room = re.search(ROOM_FORMAT, row[period_column])
         if room:
             person[f"P{period}"] = room.group(0)
         else:
@@ -31,7 +30,7 @@ def get_periods(person: dict, rows: list, row_index: int):
             next_row = rows[row_index + 1]
             if next_row[0] == "":
                 # checks if the next row is the second half of this row and not a new person
-                room = re.search(room_format, next_row[period_column])
+                room = re.search(ROOM_FORMAT, next_row[period_column])
                 if room:
                     person[f"P{period}"] = room.group(0)
                     # print(person)
@@ -61,20 +60,20 @@ def get_student_classes(files):
         # do a traditional for loop so that the next row can be found
         row = rows[row_index]
 
-        name = re.match(name_format, row[0])
+        name = re.match(NAME_FORMAT, row[0])
         if name:
             # if a student row
             student = {'First Name': name.group(2),
                        'Last Name': name.group(1),
                        'Name': f"{name.group(2)} {name.group(1)}",
-                       'ARC': re.search(arc_class_format, row[0]).group(0)}
+                       'ARC': re.search(ARC_CLASS_FORMAT, row[0]).group(0)}
             student['ID'] = f"{student['Name']} [{student['ARC']}]"
 
             get_periods(student, rows, row_index)
             add_person(people, student)
         else:
             # perhaps it's a teacher instead
-            name = re.match(teacher_name_format, row[0])
+            name = re.match(TEACHER_NAME_FORMAT, row[0])
             if name:
                 teacher = {'First Name': name.group(2),
                            'Last Name': name.group(1),
