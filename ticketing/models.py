@@ -49,12 +49,12 @@ class Classroom(models.Model):
             return self.recipients_p4.all()
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        super().save()
-
         # Derive clean name
         dotless_name = self.original_name.replace('.', '')
         clean_name = re.sub("([A-Z])G", r"\g<1>0", dotless_name)
         self.clean_name = clean_name
+
+        super().save()
 
     def __str__(self):
         return f"{self.period}-{self.clean_name}"
