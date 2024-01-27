@@ -242,7 +242,7 @@ class ApiRedeem(APIView):
 
         # Validate recipient
         try:
-            recipient = Recipient.objects.get(id=data['recipient_id'])
+            recipient = Recipient.objects.get(recipient_id=data['recipient_id'])
         except Recipient.DoesNotExist:
             return Response(data={"success": "false", "error": "This recipient does not exist."},
                             status=status.HTTP_200_OK)
