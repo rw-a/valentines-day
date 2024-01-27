@@ -294,6 +294,24 @@ class SortedTicket(models.Model):
         help_text="Used to determine what order the tickets should be when printing. "
                   "Will be automatically determined so do not touch.")
 
+    @property
+    def has_no_choice(self) -> bool:
+        num_periods_available = 0
+
+        if self.p1 is not None:
+            num_periods_available += 1
+
+        if self.p2 is not None:
+            num_periods_available += 1
+
+        if self.p3 is not None:
+            num_periods_available += 1
+
+        if self.p4 is not None:
+            num_periods_available += 1
+
+        return num_periods_available <= 1
+
     def __str__(self):
         return f"Ticket {str(self.ticket)} for request {self.delivery_group.sort_request.pk}"
 
