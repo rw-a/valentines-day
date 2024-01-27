@@ -16,10 +16,12 @@ CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX" # noqa
 ItemType = Literal["Special Serenade", "Serenade", "Rose", "Chocolate"]
 PeriodType = Literal[1, 2, 3, 4]
 
+STUDENTS = {}
+
 
 if __name__ == "__main__":
     from constants import DirectoryLocations
-    from timetable_parser import room_format, bad_room_format
+    from timetable_parser import ROOM_FORMAT, BAD_ROOM_FORMAT
 
     # Can't import so use a dummy class
     class Ticket:
@@ -30,8 +32,7 @@ if __name__ == "__main__":
 
     random.seed(56)
 else:
-    from .constants import STUDENTS
-    from .timetable_parser import room_format, bad_room_format
+    from .timetable_parser import ROOM_FORMAT, BAD_ROOM_FORMAT
     from .models import Ticket
     from .models import DeliveryGroup as DeliveryGroupModel
 
@@ -83,8 +84,12 @@ class TicketToSort:
         self.is_p3 = True
         self.is_p4 = True
 
-        if item_type == "Special Serenade" and self.ss_period is None:
-            raise AssertionError("SS_period must be specified for special serenades.")
+        # Automatically choose the period if this ticket is a special serenade
+        if item_type == "Special Serenade":
+            if self.ss_period is None:
+                raise AssertionError("SS_period must be specified for special serenades.")
+
+            self.choose_period(self.ss_period)
 
     @classmethod
     def from_sql_ticket(cls, sql_ticket: Ticket):
@@ -126,6 +131,10 @@ class TicketToSort:
     def chosen_classroom(self) -> str:
         if self.has_no_choice:
             return getattr(self, f"p{self.chosen_period}")
+
+    @property
+    def is_bad_classroom(self) -> bool:
+        pass
 
     def choose_period(self, chosen_period: PeriodType):
         """
@@ -317,8 +326,8 @@ class Classroom:
     # the REGEX used to determine what is a valid classroom name
     # if invalid, classroom will not be visited
     # classroom_pattern = r"[A-Z]\d{3}"
-    classroom_pattern = room_format
-    bad_classroom_pattern = bad_room_format
+    classroom_pattern = ROOM_FORMAT
+    bad_classroom_pattern = BAD_ROOM_FORMAT
 
     def __init__(self, original_name: str, period: PeriodType):
         """Variables"""
@@ -968,33 +977,36 @@ class DeliveryGroupList(list):
             raise KeyError("Cannot return min of blank.")
 
 
+class Context:
+    """
+    A "world" in which all the tickets, classrooms, and people live. It may be worth having
+    multiple contexts if you want to do 2 separate passes (e.g. one for serenades and one for
+    non-serenades.
+    """
+    def __init__(self):
+        # Database storing all the tickets, classrooms, people using a key-value store
+        self.people: dict[str, Person] = {}
+
+
 class TicketSorter:
-    def __init__(self, tickets: list, serenading_groups: int, non_serenading_groups: int,
+    def __init__(self, tickets: TicketList, serenading_groups: int, non_serenading_groups: int,
                  max_serenades_per_class: int = 2, max_non_serenades_per_serenading_class: int = 3,
                  extra_special_serenades: bool = True, enforce_distribution: bool = True):
+        """
+        Sorts a given list of tickets into classrooms and assigns them to serenading and
+        non-serenading groups.
+
+        Upon instantiating this class, the sorting is performed. To access the results, read the
+        output_serenading_groups and output_non_serenading_groups variables.
+
+        Note: treat all variables as private unless it is prefixed with "output".
+        """
+
         """Options (Disclaimer: enabling an option does not guarantee that it is always true)"""
         # Special serenades will not be grouped with regular serenades (ignores non-serenades).
         # Less efficient but nicer for those who receive special serenades.
         # Puts more stress on serenading groups.
         self.EXTRA_SPECIAL_SERENADES = extra_special_serenades
-
-        # Will try to ensure that a person will have each of their items done separately
-        # (across periods, not all at once).
-        # When this option is disabled, it is still done but with minimal cost to efficiency.
-        # Enabling this option enforces it to happen whenever possible, which decreases efficiency
-        # but items are more evenly distributed.
-        self.ENFORCE_DISTRIBUTION = enforce_distribution
-
-        # The max number of serenades in a class (ignores non-serenades).
-        # Increasing these values increases the efficiency (decreases class visits required).
-        # However, setting the value too high will make class visits fat (bad for teachers).
-        # Set to 0 to disable limiting.
-        self.MAX_SERENADES_PER_CLASS = max_serenades_per_class
-
-        # the max number of non-serenade items in a class
-        # increasing these values increases the efficiency (decreases class visits required)
-        # set to 0 to disable limiting
-        self.MAX_NON_SERENADES_PER_SERENADING_CLASS = max_non_serenades_per_serenading_class
 
         """Constants"""
         # These two are mutually exclusive
@@ -1009,8 +1021,9 @@ class TicketSorter:
         self.output_non_serenading_groups = DeliveryGroupList()
 
         """Methods"""
-        self.all_tickets = TicketList(tickets)
+        self.all_tickets = tickets
         # Classrooms which are bad (difficult to visit) but have special serenade so must be visited
+        # TODO: Handle bad classrooms
         self.bad_classrooms = ClassroomList()
         # Duplicate classrooms because extra_special_serenades
         self.special_classrooms = ClassroomList()
@@ -1019,15 +1032,10 @@ class TicketSorter:
         self.tickets = self.all_tickets.filter_serenades
         self.classrooms = ClassroomList.from_tickets(self.tickets)
 
-        self.initialise_special_serenades()
-
         if self.EXTRA_SPECIAL_SERENADES:
             self.make_special_serenades_extra_special()
 
         self.distribute_tickets(("Serenade",))
-
-        if not self.ENFORCE_DISTRIBUTION:
-            self.eliminate_classrooms(True)
 
         """Second pass with all item types"""
         self.classrooms = ClassroomList.from_tickets(self.all_tickets, self.tickets)
@@ -1048,29 +1056,20 @@ class TicketSorter:
         self.assign_tickets_to_groups()
         self.print_statistics()
 
-    def initialise_special_serenades(self):
-        for ticket in self.tickets:
-            if ticket.item_type != "Special Serenade":
-                continue
-
-            classroom = getattr(ticket, f"p{ticket.ss_period}")
-
-            if classroom.is_valid:
-                ticket.choose_period(ticket.ss_period)
-
-            elif classroom.is_bad:
-                ticket.choose_period(ticket.ss_period)
-
-                if classroom in self.bad_classrooms:
-                    continue
-
-                self.classrooms.append(classroom)
-                self.bad_classrooms.append(classroom)
-            else:
-                print(f"ERROR: Classroom name unknown: {classroom.extended_name}")
-
     def make_special_serenades_extra_special(self):
-        # removes regular serenades from classrooms that have special serenades
+        """
+        For each special serenade, removes regular serenades from the classroom, so the person
+        receiving the special serenade is the only one.
+
+        This is not enforced in any of these conditions:
+        - There are multiple special serenades for the same class in the same period.
+        - There is a regular serenade where all of its classes contain a special serenade, so it
+            must be shared with at least one of them.
+
+        It is possible to do a separate visit for each special serenade, so this is always
+        guaranteed. However, this is too inefficient and multiple visits per class would be too
+        disruptive.
+        """
         for ticket in self.tickets:
             if ticket.item_type != "Special Serenade":
                 continue
@@ -1177,13 +1176,6 @@ class TicketSorter:
             tickets = classroom.tickets
 
             if classroom.must_keep:
-                if serenade_only_pass:
-                    if self.MAX_SERENADES_PER_CLASS > 0:   # no limit if set to 0
-                        classroom.limit_serenades(self.MAX_SERENADES_PER_CLASS)
-                else:
-                    if self.MAX_NON_SERENADES_PER_SERENADING_CLASS > 0:    # no limit if set to 0
-                        classroom.limit_non_serenades(self.MAX_NON_SERENADES_PER_SERENADING_CLASS)
-
                 # if classroom must be kept, make every other ticket stay in this class
                 for ticket in tickets:
                     ticket.choose_period(period)
@@ -1206,10 +1198,6 @@ class TicketSorter:
         # Adds non-serenades to special classrooms, so it's not just a single special serenade
         for special_classroom in self.special_classrooms:
             for classroom in self.classrooms:
-                if len(special_classroom.tickets) >= \
-                        self.MAX_SERENADES_PER_CLASS + self.MAX_NON_SERENADES_PER_SERENADING_CLASS:
-                    break
-
                 if classroom.period == special_classroom.period and \
                         classroom.clean_name == special_classroom.clean_name:    # If the same class
 

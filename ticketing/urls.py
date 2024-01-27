@@ -11,7 +11,7 @@ urlpatterns = [
     path('redeemed/', views.page_redeem_done, name='redeemed'),
 
     path('stats/', views.page_stats, name='stats'),
-    path('timetables/', views.form_timetables, name='timetables'),
+    path('timetables/', views.FormTimetables.as_view(), name='timetables'),
     path('timetables/success', views.page_timetables_loaded, name='timetables_done'),
 
     path('codes/<int:pk>', views.file_codepdf, name='codepdf'),

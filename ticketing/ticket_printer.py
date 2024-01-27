@@ -19,13 +19,13 @@ if __name__ == "__main__":
     from constants import DirectoryLocations, PICKUP_LINES, TEMPLATES, FONTS
     random.seed(0)
 else:
-    from .constants import DirectoryLocations, STUDENTS, PICKUP_LINES, TEMPLATES, FONTS
+    from .constants import DirectoryLocations, PICKUP_LINES, TEMPLATES, FONTS
 
 
 class TicketsToPDF:
     def __init__(self, tickets, pdf_output_path: str, pdf_name: str, starting_index: int = 0,
                  padding: int = 0, enforce_boundaries: bool = False):
-        self.tickets = tickets
+        self.tickets = tickets.sort_by("sort_order")
         self.pdf_output_path = pdf_output_path  # supports str for filepath or BytesIO
         self.pdf_name = pdf_name
         self.starting_index = starting_index

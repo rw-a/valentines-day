@@ -1,7 +1,9 @@
+from io import StringIO
 from django.http import HttpResponseRedirect, FileResponse
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.views.generic.edit import FormView
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication
@@ -9,47 +11,80 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from vdaywebsite.settings import CONTACT_EMAIL, NUM_TICKETS_PER_PDF
-from .models import Ticket, TicketCode, SortTicketsRequest
+from .models import Recipient, SortTicketsRequest, Ticket, TicketCode
+from .serializers import RecipientSerializer
 from .forms import CSVFileForm
-from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
-from .constants import DirectoryLocations, FileNames, STUDENTS, TEMPLATES, STUDENTS_LIST, FONTS
+from .constants import DirectoryLocations, TEMPLATES, FONTS
 from .ticket_printer import TicketsToPDF
 from .ticket_sorter import get_parts
-from .timetable_parser import get_student_classes
+from .timetable_parser import get_recipient_classes
 import os
-import re
 import csv
 import json
 import datetime
-from io import StringIO
 
 
 def page_index(request):
     return HttpResponseRedirect(reverse('ticketing:redeem'))
 
 
-@staff_member_required
-def form_timetables(request):
-    if request.method == 'POST':
-        form = CSVFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            files = [csv.reader(StringIO(file.read().decode())) for file in request.FILES.getlist('files')]
-            with open(FileNames.PEOPLE, 'w') as file:
-                students = get_student_classes(files)
-                writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'First Name', 'Last Name', 'ARC',
-                                                          'P1', 'P2', 'P3', 'P4'])
-                writer.writeheader()
-                writer.writerows(students)
+class FormTimetables(FormView):
+    form_class = CSVFileForm
+    template_name = "ticketing/timetables.html"
+    success_url = reverse_lazy("ticketing:timetables_done")
 
-            for file in request.FILES.getlist('files'):
-                print(file)
-                with open(f"{DirectoryLocations.TIMETABLES_INPUT}/{file}", 'wb') as csv_file:
-                    for chunk in file.chunks():
-                        csv_file.write(chunk)
-            return HttpResponseRedirect(reverse("ticketing:timetables_done"))
-    else:
-        form = CSVFileForm()
-    return render(request, 'ticketing/timetables.html', {'form': form})
+    def post(self, request, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form):
+        files = form.cleaned_data["files"]
+
+        # Load uploaded timetables to get recipients
+        recipients_json = get_recipient_classes(
+            [csv.reader(StringIO(file.read().decode())) for file in files])
+
+        # Save recipients to disk
+        # TODO: Handle when recipients already exist?
+        recipients = RecipientSerializer(data=recipients_json, many=True)
+        recipients.is_valid()
+        recipients.save()
+
+        # Write files to disk
+        for file in files:
+            with open(f"{DirectoryLocations.TIMETABLES_INPUT}/{file}", 'wb') as csv_file:
+                for chunk in file.chunks():
+                    csv_file.write(chunk)
+
+        return super().form_valid(form)
+
+
+# @staff_member_required
+# def form_timetables(request):
+#     if request.method == 'POST':
+#         form = CSVFileForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             files = [csv.reader(StringIO(file.read().decode())) for file in request.FILES.getlist('files')]
+#             with open(FileNames.PEOPLE, 'w') as file:
+#                 students = get_student_classes(files)
+#                 writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'First Name', 'Last Name', 'ARC',
+#                                                           'P1', 'P2', 'P3', 'P4'])
+#                 writer.writeheader()
+#                 writer.writerows(students)
+#
+#             for file in request.FILES.getlist('files'):
+#                 print(file)
+#                 with open(f"{DirectoryLocations.TIMETABLES_INPUT}/{file}", 'wb') as csv_file:
+#                     for chunk in file.chunks():
+#                         csv_file.write(chunk)
+#             return HttpResponseRedirect(reverse("ticketing:timetables_done"))
+#     else:
+#         form = CSVFileForm()
+#     return render(request, 'ticketing/timetables.html', {'form': form})
 
 
 @staff_member_required
@@ -84,19 +119,9 @@ class ApiCount(APIView):
             redeemed = Ticket.objects.filter(item_type=item_type).count()
             data[f'{item_type_name}s_redeemed'] = redeemed
 
-        # Initialise grades to zero
-        for grade in range(7, 13):
-            data[f"grade_{grade}"] = 0
-
         # Get number of tickers per grade
-        for ticket in Ticket.objects.all():
-            recipient_arc = STUDENTS[ticket.recipient_id]['ARC']
-            recipient_grade = re.match(r"\d+", recipient_arc)
-
-            if recipient_grade is not None and f"grade_{recipient_grade[0]}" in data:
-                data[f"grade_{recipient_grade[0]}"] += 1
-            else:
-                print(f"Stats: Error getting grade of {STUDENTS[ticket.recipient_id]}")
+        for grade in Recipient.grade.field.choices:
+            data[f"grade_{grade}"] = Ticket.objects.filter(recipient__grade=grade).count()
 
         return Response(data=data, status=status.HTTP_200_OK)
 
@@ -164,9 +189,16 @@ def page_redeem_done(request):
 
 def page_redeem(request):
     templates = TEMPLATES
-    students = STUDENTS_LIST
-    return render(request, 'ticketing/redeem.html', {'templates': templates, 'students': students,
-                                                     'contact_email': CONTACT_EMAIL, 'fonts': FONTS})
+    return render(
+        request,
+        'ticketing/redeem.html',
+        {
+            'templates': templates,
+            'students': Recipient.objects.all().values_list('recipient_id', flat=True),
+            'contact_email': CONTACT_EMAIL,
+            'fonts': FONTS
+        }
+    )
 
 
 class ApiRedeem(APIView):
@@ -178,10 +210,14 @@ class ApiRedeem(APIView):
         code = request.query_params.get('inputted_code').upper()
 
         # If the code exists, get what item it is. if it doesn't leave it blank
+        exists = TicketCode.objects.filter(code=code).exists()
+        unconsumed = exists and TicketCode.objects.get(code=code).is_unconsumed
+        item_type = TicketCode.objects.get(code=code).item_type if exists else ""
+
         data = {
-            'is_exists': is_code_exists(code),
-            'is_unconsumed': is_code_unconsumed(code),
-            'item_type': TicketCode.objects.get(code=code).item_type if is_code_exists(code) else ""
+            'is_exists': exists,
+            'is_unconsumed': unconsumed,
+            'item_type': item_type
         }
 
         return Response(data=data, status=status.HTTP_200_OK)
@@ -194,24 +230,26 @@ class ApiRedeem(APIView):
         data = request.data
 
         # Validate code
-        if is_code_exists(data['code']):
+        try:
             ticket_code = TicketCode.objects.get(code=data['code'])
-        else:
+        except TicketCode.DoesNotExist:
             return Response(data={"success": "false", "error": "This is not a valid code."},
                             status=status.HTTP_200_OK)
 
-        if not is_code_unconsumed(data['code']):
+        if not ticket_code.is_unconsumed:
             return Response(data={"success": "false", "error": "This code has already been used."},
                             status=status.HTTP_200_OK)
 
         # Validate recipient
-        if not is_recipient_exists(data['recipient_id']):
+        try:
+            recipient = Recipient.objects.get(id=data['recipient_id'])
+        except Recipient.DoesNotExist:
             return Response(data={"success": "false", "error": "This recipient does not exist."},
                             status=status.HTTP_200_OK)
 
         # Create the ticket
         ticket = Ticket(
-            recipient_id=data['recipient_id'],
+            recipient=recipient,
             item_type=ticket_code.item_type,
             is_handwritten=(data['is_handwritten'] == "True"),
             template=data['template'],
