@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from .constants import DirectoryLocations, STUDENTS
 from .models import Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup
 from .code_generator import CodesToPDF, generate_codes
-from .ticket_sorter import sort_tickets, get_parts
+from .ticket_sorter import sort_tickets
 from vdaywebsite.settings import ORG_NAME, NUM_TICKETS_PER_PDF
 import os
 import math
@@ -80,7 +80,8 @@ class TicketCodeAdmin(admin.ModelAdmin):
                 ticket.delete()
         super().delete_queryset(request=request, queryset=queryset)
 
-    @admin.action(description="Randomly generate tickets from unconsumed TicketCodes. For testing use only!")
+    @admin.action(description="Randomly generate tickets from unconsumed TicketCodes. "
+                              "For testing use only!")
     def generate_tickets(self, request, queryset):
         existing_recipients = [ticket.recipient_id for ticket in Ticket.objects.all()]
         for index, ticket_code in enumerate(queryset):
@@ -172,12 +173,11 @@ class SortTicketAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request=request, obj=obj, form=form, change=change)
+
+        # Sort tickets
         tickets = Ticket.objects.all()
-        groups_split = sort_tickets(tickets, obj.num_serenaders, obj.num_non_serenaders,
-                                    max_serenades_per_class=obj.max_serenades_per_class,
-                                    max_non_serenades_per_serenading_class=obj.max_non_serenades_per_serenading_class,
-                                    extra_special_serenades=obj.extra_special_serenades,
-                                    enforce_distribution=obj.enforce_distribution)
+        groups_split = sort_tickets(tickets, obj.num_serenaders, obj.num_non_serenaders)
+
         for is_serenading, groups in groups_split.items():
             for group_index, group in enumerate(groups):
                 tickets = []
@@ -217,7 +217,8 @@ class SortTicketAdmin(admin.ModelAdmin):
 
 
 class DeliveryGroupAdmin(admin.ModelAdmin):
-    list_display = ('code', 'percentage_printed', 'num_serenades', 'num_non_serenades', 'num_tickets', 'sort_request',)
+    list_display = ('code', 'percentage_printed', 'num_serenades', 'num_non_serenades',
+                    'num_tickets', 'sort_request',)
     readonly_fields = ('parts_printed',)
     actions = ('unprint',)
     date_hierarchy = "date"
@@ -235,15 +236,19 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
         return obj.tickets.count()
 
     @admin.display(description='Percentage of Tickets Printed')
-    def percentage_printed(self, obj):
+    def percentage_printed(self, obj: DeliveryGroup):
         num_tickets = obj.tickets.count()
+
         if num_tickets > 0:
             num_printed_tickets = 0
-            for part in get_parts(obj):
-                part = int(part)
+            for part in obj.parts_printed:
+
                 if part == num_tickets // NUM_TICKETS_PER_PDF + 1:
+                    # If the last part, might not be a multiple of NUM_TICKETS_PER_PDF
+                    # so calculate remainder
                     num_printed_tickets += num_tickets - (part - 1) * NUM_TICKETS_PER_PDF
                 else:
+                    # If not the last part, it's just the NUM_TICKETS_PER_PDF
                     num_printed_tickets += NUM_TICKETS_PER_PDF
             return f"{min(100, round(num_printed_tickets / num_tickets * 100))}%"
         else:
@@ -254,10 +259,12 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
         for obj in queryset:
             sort_request = obj.sort_request
             for part in range(math.ceil(obj.tickets.count() / NUM_TICKETS_PER_PDF)):
-                if os.path.exists(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}_{part + 1}.pdf"):
-                    os.remove(f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}_{part + 1}.pdf")
-            obj.parts_printed = ""
-            obj.save()
+                pdf_path = f"{DirectoryLocations().SORTED_TICKETS}/{sort_request.pk}/{obj.code}_{part + 1}.pdf"
+
+                if os.path.exists(pdf_path):
+                    os.remove(pdf_path)
+
+        queryset.update(parts_printed=[])
 
     def delete_model(self, request, obj):
         sort_request = obj.sort_request

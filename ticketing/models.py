@@ -156,7 +156,6 @@ class SortTicketsRequest(models.Model):
         default=10, validators=[MaxValueValidator(100), MinValueValidator(1)],
         verbose_name="Number of non-serenading delivery groups")
 
-
     date = models.DateTimeField(default=timezone.now, help_text="Date created")
 
     class Meta:
@@ -166,8 +165,11 @@ class SortTicketsRequest(models.Model):
 
 class DeliveryGroup(models.Model):
     code = models.CharField(max_length=10)
+
     is_serenading_group = models.BooleanField()
-    parts_printed = models.TextField()    # the PDF parts which have been printed as a comma delimited str (e.g. "1,2")
+
+    # A JSON list containing which parts have been printed as numbers (e.g. [1, 2, 4])
+    parts_printed = models.JSONField()
 
     sort_request = models.ForeignKey(SortTicketsRequest, on_delete=models.CASCADE)
     tickets = models.ManyToManyField(Ticket)
