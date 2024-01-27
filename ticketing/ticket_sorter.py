@@ -161,9 +161,10 @@ class TicketSorter:
         self.distribute_serenades()
         sort_time = datetime.now()
 
-        # Sort non-serenades
+        # TODO: Sort non-serenades
 
         # Distribute tickets into groups
+        # TODO: should separate into periods first, then combine into delivery groups
         self.serenading_groups = PeriodGroupList(Classroom.objects.all(), sort_request,
                                                  num_serenading_groups)
         distribute_time = datetime.now()
