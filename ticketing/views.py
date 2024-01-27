@@ -120,7 +120,8 @@ class ApiCount(APIView):
             data[f'{item_type_name}s_redeemed'] = redeemed
 
         # Get number of tickers per grade
-        for grade in Recipient.grade.field.choices:
+        for choice in Recipient.grade.field.choices:
+            grade = choice[0]
             data[f"grade_{grade}"] = Ticket.objects.filter(recipient__grade=grade).count()
 
         return Response(data=data, status=status.HTTP_200_OK)
