@@ -1,3 +1,8 @@
+import os
+import csv
+import json
+import datetime
+from typing import Literal
 from io import StringIO
 from django.http import HttpResponseRedirect, FileResponse
 from django.shortcuts import render
@@ -11,17 +16,12 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from vdaywebsite.settings import CONTACT_EMAIL, NUM_TICKETS_PER_PDF
-from .models import Recipient, SortTicketsRequest, Ticket, TicketCode
-from .serializers import RecipientSerializer
+from .models import Recipient, SortTicketsRequest, Ticket, TicketCode, Classroom
 from .forms import CSVFileForm
 from .constants import DirectoryLocations, TEMPLATES, FONTS
 from .ticket_printer import TicketsToPDF
 from .ticket_sorter import get_parts
 from .timetable_parser import get_recipient_classes
-import os
-import csv
-import json
-import datetime
 
 
 def page_index(request):
@@ -48,11 +48,35 @@ class FormTimetables(FormView):
         recipients_json = get_recipient_classes(
             [csv.reader(StringIO(file.read().decode())) for file in files])
 
-        # Save recipients to disk
-        # TODO: Handle when recipients already exist?
-        recipients = RecipientSerializer(data=recipients_json, many=True)
-        recipients.is_valid()
-        recipients.save()
+        # Parse students and save them to the database
+        # Create classrooms if required
+        for recipient_json in recipients_json:
+            recipient, created = Recipient.objects.get_or_create(
+                recipient_id=recipient_json["recipient_id"],
+                first_name=recipient_json["first_name"],
+                last_name=recipient_json["last_name"],
+                full_name=recipient_json["full_name"],
+                arc=recipient_json["arc"],
+                grade=recipient_json["grade"],
+            )
+
+            # If user already exists
+            if not created:
+                continue
+
+            # Set classroom for recipient (create if required)
+            for period in ("p1", "p2", "p3", "p4"):
+                period: Literal["p1", "p2", "p3", "p4"]
+                classroom_original_name = recipient_json[period]
+
+                classroom, created = Classroom.objects.get_or_create(
+                    period=period[1:],
+                    original_name=classroom_original_name
+                )
+
+                setattr(recipient, period, classroom)
+
+            recipient.save()
 
         # Write files to disk
         for file in files:
@@ -61,30 +85,6 @@ class FormTimetables(FormView):
                     csv_file.write(chunk)
 
         return super().form_valid(form)
-
-
-# @staff_member_required
-# def form_timetables(request):
-#     if request.method == 'POST':
-#         form = CSVFileForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             files = [csv.reader(StringIO(file.read().decode())) for file in request.FILES.getlist('files')]
-#             with open(FileNames.PEOPLE, 'w') as file:
-#                 students = get_student_classes(files)
-#                 writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'First Name', 'Last Name', 'ARC',
-#                                                           'P1', 'P2', 'P3', 'P4'])
-#                 writer.writeheader()
-#                 writer.writerows(students)
-#
-#             for file in request.FILES.getlist('files'):
-#                 print(file)
-#                 with open(f"{DirectoryLocations.TIMETABLES_INPUT}/{file}", 'wb') as csv_file:
-#                     for chunk in file.chunks():
-#                         csv_file.write(chunk)
-#             return HttpResponseRedirect(reverse("ticketing:timetables_done"))
-#     else:
-#         form = CSVFileForm()
-#     return render(request, 'ticketing/timetables.html', {'form': form})
 
 
 @staff_member_required
