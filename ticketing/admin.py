@@ -7,7 +7,7 @@ from .constants import DirectoryLocations
 from .models import (Ticket, TicketCode, TicketCodePDF, SortTicketsRequest, DeliveryGroup,
                      Recipient, Classroom, SortedTicket)
 from .code_generator import CodesToPDF, generate_codes
-from .ticket_sorter import sort_tickets
+from .ticket_sorter import TicketSorter
 from vdaywebsite.settings import ORG_NAME, NUM_TICKETS_PER_PDF
 import os
 import math
@@ -150,8 +150,8 @@ class TicketCodeAdmin(admin.ModelAdmin):
 
 
 @admin.register(SortedTicket)
-class TicketToSortAdmin(admin.ModelAdmin):
-    list_display = ('period', 'classroom')
+class SortedTicketAdmin(admin.ModelAdmin):
+    list_display = ('ticket', 'delivery_group', 'period', 'classroom', 'sort_request')
 
     @admin.display(description="Chosen Classroom")
     def classroom(self, obj):
@@ -198,35 +198,11 @@ class SortTicketAdmin(admin.ModelAdmin):
         url = reverse("ticketing:tickets", args=[obj.pk])
         return format_html("<a href='{url}'>{url}</a>", url=url)
 
-    def save_model(self, request, obj, form, change):
+    def save_model(self, request, obj: SortTicketsRequest, form, change):
         super().save_model(request=request, obj=obj, form=form, change=change)
 
         # Sort tickets
-        tickets = Ticket.objects.all()
-        groups_split = sort_tickets(tickets, obj.num_serenaders, obj.num_non_serenaders)
-
-        for is_serenading, groups in groups_split.items():
-            for group_index, group in enumerate(groups):
-                tickets = []
-                for ticket_index, ticket_to_sort in enumerate(group.tickets):
-                    ticket = Ticket.objects.get(pk=ticket_to_sort.pk)
-                    ticket.p1 = ticket_to_sort.p1.original_name
-                    ticket.p2 = ticket_to_sort.p2.original_name
-                    ticket.p3 = ticket_to_sort.p3.original_name
-                    ticket.p4 = ticket_to_sort.p4.original_name
-                    ticket.period = ticket_to_sort.chosen_period
-                    sort_order = int(f"{'1' if is_serenading else '0'}{group_index + 1}{str(ticket_index).zfill(4)}")
-                    ticket.sort_order = sort_order
-                    ticket.save()
-                    tickets.append(ticket)
-
-                delivery_group = DeliveryGroup(
-                    code=group.name,
-                    is_serenading_group=is_serenading,
-                    sort_request=obj
-                )
-                delivery_group.save()
-                delivery_group.tickets.add(*tickets)
+        TicketSorter(Ticket.objects.all(), obj.num_serenaders, obj.num_non_serenaders)
 
     def response_add(self, request, obj, post_url_continue=None):
         return HttpResponseRedirect(reverse(f"ticketing:tickets", args=[obj.pk]))

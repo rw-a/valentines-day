@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from django.db.models.indexes import Index
+from django.db.models import QuerySet
 from .constants import MaxLengths, TEMPLATES
 from .timetable_parser import BAD_ROOM_FORMAT
 
@@ -67,16 +68,15 @@ class Classroom(models.Model):
     def is_bad(self) -> bool:
         return bool(re.match(BAD_ROOM_FORMAT, self.clean_name))
 
-    @property
-    def tickets(self):
+    def tickets(self, sort_request: SortTicketsRequest) -> QuerySet[SortedTicket]:
         if self.period == 1:
-            return self.tickets_p1.all()
+            return self.tickets_p1.filter(sort_request=sort_request)
         elif self.period == 2:
-            return self.tickets_p2.all()
+            return self.tickets_p2.filter(sort_request=sort_request)
         elif self.period == 3:
-            return self.tickets_p3.all()
+            return self.tickets_p3.filter(sort_request=sort_request)
         elif self.period == 4:
-            return self.tickets_p4.all()
+            return self.tickets_p4.filter(sort_request=sort_request)
 
     @property
     def recipients(self):
@@ -104,12 +104,15 @@ class Classroom(models.Model):
         verbose_name = "Classroom"
 
         indexes = [
-            Index(fields=['period', 'original_name'])
+            Index(fields=['period', 'original_name']),
+            Index(fields=['clean_name'])
         ]
 
         unique_together = [
             ['period', 'original_name']
         ]
+
+        ordering = ['clean_name']
 
 
 class Recipient(models.Model):
@@ -272,6 +275,7 @@ class SortedTicket(models.Model):
     """
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
     delivery_group = models.ForeignKey(DeliveryGroup, on_delete=models.CASCADE, null=True)
+    sort_request = models.ForeignKey(SortTicketsRequest, on_delete=models.CASCADE)
 
     period = models.PositiveIntegerField(
         null=True, blank=True, editable=False,
@@ -308,13 +312,10 @@ class SortedTicket(models.Model):
 
         if self.p1 is not None:
             num_periods_available += 1
-
         if self.p2 is not None:
             num_periods_available += 1
-
         if self.p3 is not None:
             num_periods_available += 1
-
         if self.p4 is not None:
             num_periods_available += 1
 
@@ -357,7 +358,7 @@ class SortedTicket(models.Model):
             self.p4 = None
 
     def __str__(self):
-        return f"Ticket {str(self.ticket)} for request {self.delivery_group.sort_request.pk}"
+        return f"Ticket {str(self.ticket)} for request {self.sort_request.pk}"
 
     def __repr__(self):
         return self.__str__()
