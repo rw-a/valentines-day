@@ -202,7 +202,7 @@ class SortTicketAdmin(admin.ModelAdmin):
         super().save_model(request=request, obj=obj, form=form, change=change)
 
         # Sort tickets
-        TicketSorter(Ticket.objects.all(), obj.num_serenaders, obj.num_non_serenaders)
+        TicketSorter(Ticket.objects.all(), obj, obj.num_serenaders, obj.num_non_serenaders)
 
     def response_add(self, request, obj, post_url_continue=None):
         return HttpResponseRedirect(reverse(f"ticketing:tickets", args=[obj.pk]))
@@ -241,7 +241,7 @@ class DeliveryGroupAdmin(admin.ModelAdmin):
 
     @admin.display(description='Percentage of Tickets Printed')
     def percentage_printed(self, obj: DeliveryGroup):
-        num_tickets = obj.tickets.count()
+        num_tickets = obj.sortedticket_set.count()
 
         if num_tickets > 0:
             num_printed_tickets = 0
