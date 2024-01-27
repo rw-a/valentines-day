@@ -74,6 +74,10 @@
         <td>12</td>
         <td id="grade_12"></td>
       </tr>
+      <tr>
+        <td>Teachers</td>
+        <td id="grade_0"></td>
+      </tr>
     </table>
     <button id="refresh">Refresh</button>
     <br/><br/>
@@ -108,6 +112,7 @@
             document.getElementById('grade_10').innerText = data.grade_10;
             document.getElementById('grade_11').innerText = data.grade_11;
             document.getElementById('grade_12').innerText = data.grade_12;
+            document.getElementById('grade_0').innerText = data.grade_0;
         })
         .catch((error) => {
             console.error('Error:', error);
