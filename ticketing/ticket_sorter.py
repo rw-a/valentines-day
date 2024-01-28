@@ -19,7 +19,7 @@ PeriodType = Literal[1, 2, 3, 4]
 
 if __name__ == "__main__":
     from constants import DirectoryLocations
-    from timetable_parser import room_format, bad_room_format
+    from timetable_parser import ROOM_FORMAT, BAD_ROOM_FORMAT
 
     # Can't import so use a dummy class
     class Ticket:
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     random.seed(56)
 else:
     from .constants import STUDENTS
-    from .timetable_parser import room_format, bad_room_format
+    from .timetable_parser import ROOM_FORMAT, BAD_ROOM_FORMAT
     from .models import Ticket
     from .models import DeliveryGroup as DeliveryGroupModel
 
@@ -317,8 +317,8 @@ class Classroom:
     # the REGEX used to determine what is a valid classroom name
     # if invalid, classroom will not be visited
     # classroom_pattern = r"[A-Z]\d{3}"
-    classroom_pattern = room_format
-    bad_classroom_pattern = bad_room_format
+    classroom_pattern = ROOM_FORMAT
+    bad_classroom_pattern = BAD_ROOM_FORMAT
 
     def __init__(self, original_name: str, period: PeriodType):
         """Variables"""
