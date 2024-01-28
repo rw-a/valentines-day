@@ -61,8 +61,17 @@ class DeliveryGroup(models.Model):
 class Classroom(models.Model):
     period = models.PositiveIntegerField(choices=PERIOD_CHOICES)
 
-    original_name = models.CharField(max_length=100)
-    clean_name = models.CharField(max_length=100, blank=True, null=True)
+    original_name = models.CharField(
+        max_length=100,
+        help_text="The name of the classroom as according to the timetable."
+    )
+    clean_name = models.CharField(
+        max_length=100, blank=True, null=True,
+        help_text="The name of the classroom as used by the Valentine's Day system. "
+                  "This value is automatically set when this object is saved "
+                  "(derived from the Original Name), so you do not need to set any value for this "
+                  "field."
+    )
 
     def tickets(self, sort_request: SortTicketsRequest, **kwargs) -> QuerySet[SortedTicket]:
         """
@@ -159,16 +168,16 @@ class Recipient(models.Model):
 
     p1 = models.ForeignKey(
         Classroom, on_delete=models.SET_NULL, related_name='recipients_p1',
-        null=True, blank=True, editable=False, verbose_name="Period 1 Classroom")
+        null=True, blank=True, verbose_name="Period 1 Classroom")
     p2 = models.ForeignKey(
         Classroom, on_delete=models.SET_NULL, related_name='recipients_p2',
-        null=True, blank=True, editable=False, verbose_name="Period 2 Classroom")
+        null=True, blank=True, verbose_name="Period 2 Classroom")
     p3 = models.ForeignKey(
         Classroom, on_delete=models.SET_NULL, related_name='recipients_p3',
-        null=True, blank=True, editable=False, verbose_name="Period 3 Classroom")
+        null=True, blank=True, verbose_name="Period 3 Classroom")
     p4 = models.ForeignKey(
         Classroom, on_delete=models.SET_NULL, related_name='recipients_p4',
-        null=True, blank=True, editable=False, verbose_name="Period 4 Classroom")
+        null=True, blank=True, verbose_name="Period 4 Classroom")
 
     def __str__(self):
         return self.recipient_id
