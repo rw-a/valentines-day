@@ -17,7 +17,8 @@ Last updated March 2023.
 1. Ask a teacher to go on OneSchool and download the PDF timetables for each year level (and also teachers if necessary). The timetable should look like one row per person and should be for a specific day.
 2. Convert PDFs to Excel files. I recommend using Adobe Acrobat. If you don't have it, there's a free online version [here](https://www.adobe.com/au/acrobat/online/pdf-to-excel.html).
 3. Convert Excel files into CSV files.
-4. Go to [timetables](https://statehigh.pythonanywhere.com/timetables/) and upload the CSV files. You should now be able to see the list of students in the [admin page](https://statehigh.pythonanywhere.com/admin/ticketing/recipient/).
+4. Go to [timetables](https://statehigh.pythonanywhere.com/timetables/) and upload the CSV files.
+5. Reload the website by going to [pythonanywhere](https://www.pythonanywhere.com/user/statehigh/webapps/) and pressing the green reload button.
 
 ### Step 2: Create and Sell Ticket Codes
 1. Go the [admin](https://statehigh.pythonanywhere.com/admin/ticketing/ticketcodepdf/) and create a new TicketPDF object (pick the item type and the number of codes you want for that item).

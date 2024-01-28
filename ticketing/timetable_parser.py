@@ -1,9 +1,5 @@
-from __future__ import annotations
-
 import csv
 import re
-from typing import TypedDict
-
 
 """Settings"""
 NAME_HALF = r"([a-zA-Z\s\'\(\)-]+)"
@@ -11,7 +7,7 @@ NAME_FORMAT = fr"{NAME_HALF},\s{NAME_HALF},"
 TEACHER_NAME_FORMAT = r"[A-Z 0]{5,6} - " + NAME_FORMAT[:-1]
 
 NORMAL_ROOM_FORMAT = r"[A-Z][G\d].?[\d]{1,2}\Z"
-BAD_ROOM_FORMAT = r"OVAL[A-D]\Z|OVLJ\Z|POOL\Z|XTN[A-Z]"    # rooms which are annoying and shouldn't be chosen
+BAD_ROOM_FORMAT = r"OVAL[A-D]\Z|OVLJ\Z|POOL\Z"    # rooms which are annoying and shouldn't be chosen
 SPECIAL_ROOM_FORMAT = r"LIB[A-D]Y?\Z"             # rooms which don't follow the normal regex
 ROOM_FORMAT = NORMAL_ROOM_FORMAT + r"|" + SPECIAL_ROOM_FORMAT + r"|" + BAD_ROOM_FORMAT
 
@@ -26,17 +22,17 @@ def get_periods(person: dict, rows: list, row_index: int):
         period = period + 1
         room = re.search(ROOM_FORMAT, row[period_column])
         if room:
-            person[f"p{period}"] = room.group(0)
+            person[f"P{period}"] = room.group(0)
         else:
             # print(row[period_column])
-            person[f"p{period}"] = None
+            person[f"P{period}"] = "NONE"
             # if a person's class got split across two rows, try to find the class in the next row
             next_row = rows[row_index + 1]
             if next_row[0] == "":
                 # checks if the next row is the second half of this row and not a new person
                 room = re.search(ROOM_FORMAT, next_row[period_column])
                 if room:
-                    person[f"p{period}"] = room.group(0)
+                    person[f"P{period}"] = room.group(0)
                     # print(person)
                 else:
                     # print("NO ROOM")
@@ -44,29 +40,15 @@ def get_periods(person: dict, rows: list, row_index: int):
 
 
 def add_person(people: list, person: dict):
-    if (person["p1"] is None and person["p2"] is None
-            and person["p3"] is None and person["p4"] is None):
+    if person["P1"] == "NONE" and person["P2"] == "NONE" and person["P3"] == "NONE" and person["P4"] == "NONE":
         # print(person)
         del person
     else:
         people.append(person)
 
 
-class RecipientType(TypedDict):
-    first_name: str
-    last_name: str
-    full_name: str
-    arc: str
-    grade: int
-    recipient_id: str
-    p1: str | None
-    p2: str | None
-    p3: str | None
-    p4: str | None
-
-
-def get_recipient_classes(files) -> list[RecipientType]:
-    people: list[RecipientType] = []
+def get_student_classes(files):
+    people = []
 
     rows = []
     for file in files:
@@ -79,42 +61,25 @@ def get_recipient_classes(files) -> list[RecipientType]:
         row = rows[row_index]
 
         name = re.match(NAME_FORMAT, row[0])
-
         if name:
-            # If a student row
-
-            full_name = f"{name.group(2)} {name.group(1)}"
-            arc = re.search(ARC_CLASS_FORMAT, row[0]).group(0)
-            grade = int(re.match(r"\d+", arc).group(0))
-
-            student = {
-                'first_name': name.group(2),
-                'last_name': name.group(1),
-                'full_name': full_name,
-                'arc': arc,
-                'recipient_id': f"{full_name} [{arc}]",
-                'grade': grade
-            }
+            # if a student row
+            student = {'First Name': name.group(2),
+                       'Last Name': name.group(1),
+                       'Name': f"{name.group(2)} {name.group(1)}",
+                       'ARC': re.search(ARC_CLASS_FORMAT, row[0]).group(0)}
+            student['ID'] = f"{student['Name']} [{student['ARC']}]"
 
             get_periods(student, rows, row_index)
             add_person(people, student)
         else:
-            # Perhaps it's a teacher - try again with teacher format
+            # perhaps it's a teacher instead
             name = re.match(TEACHER_NAME_FORMAT, row[0])
-
             if name:
-                full_name = f"{name.group(2)} {name.group(1)}"
-                arc = "TEACHER"
-                grade = 0
-
-                teacher = {
-                    'first_name': name.group(2),
-                    'last_name': name.group(1),
-                    'full_name': full_name,
-                    'arc': arc,
-                    'recipient_id': f"{full_name} [{arc}]",
-                    'grade': grade
-                }
+                teacher = {'First Name': name.group(2),
+                           'Last Name': name.group(1),
+                           'Name': f"{name.group(2)} {name.group(1)}",
+                           'ARC': "TEACHER"}
+                teacher['ID'] = f"{teacher['Name']} [{teacher['ARC']}]"
 
                 get_periods(teacher, rows, row_index)
                 add_person(people, teacher)
@@ -130,12 +95,12 @@ def load_csvs_in_folder(folder_dir: str):
 
 
 def main():
-    from constants import DirectoryLocations
+    from constants import DirectoryLocations, FileNames
     files = load_csvs_in_folder(DirectoryLocations.TIMETABLES_INPUT)
-    students = get_recipient_classes(files)
-    with open(f"{DirectoryLocations.DEV_STUFF}/people.csv", 'w') as file:
-        writer = csv.DictWriter(file, fieldnames=[
-            'id', 'full_name', 'first_name', 'last_name', 'arc', 'p1', 'p2', 'p3', 'p4'])
+    students = get_student_classes(files)
+    with open(FileNames.PEOPLE, 'w') as file:
+        writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'First Name', 'Last Name',
+                                                  'ARC', 'P1', 'P2', 'P3', 'P4'])
         writer.writeheader()
         writer.writerows(students)
 
