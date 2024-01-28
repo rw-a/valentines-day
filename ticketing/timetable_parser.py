@@ -11,7 +11,7 @@ NAME_FORMAT = fr"{NAME_HALF},\s{NAME_HALF},"
 TEACHER_NAME_FORMAT = r"[A-Z 0]{5,6} - " + NAME_FORMAT[:-1]
 
 NORMAL_ROOM_FORMAT = r"[A-Z][G\d].?[\d]{1,2}\Z"
-BAD_ROOM_FORMAT = r"OVAL[A-D]\Z|OVLJ\Z|POOL\Z"    # rooms which are annoying and shouldn't be chosen
+BAD_ROOM_FORMAT = r"OVAL[A-D]\Z|OVLJ\Z|POOL\Z|XTN[A-Z]"    # rooms which are annoying and shouldn't be chosen
 SPECIAL_ROOM_FORMAT = r"LIB[A-D]Y?\Z"             # rooms which don't follow the normal regex
 ROOM_FORMAT = NORMAL_ROOM_FORMAT + r"|" + SPECIAL_ROOM_FORMAT + r"|" + BAD_ROOM_FORMAT
 
