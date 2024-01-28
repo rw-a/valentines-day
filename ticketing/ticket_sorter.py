@@ -228,6 +228,7 @@ class TicketSorter:
 
         # Sort serenades
         self._separate_special_serenades()
+        self._remove_bad_classrooms()
         self._distribute_serenades()
 
         sort_time = datetime.now()
@@ -289,6 +290,27 @@ class TicketSorter:
                 if not other_ticket.has_no_choice:
                     setattr(other_ticket, f"p{period}", None)
                     other_ticket.save()
+
+    def _remove_bad_classrooms(self) -> None:
+        """
+        For all bad classrooms (in a bad position like the OVAL or POOL), remove all tickets in that
+        classroom (except special serenades)
+        """
+        # For each bad classroom
+        for classroom in self.classrooms:
+            if not classroom.is_bad:
+                continue
+
+            period = classroom.period
+
+            # For each ticket in the classroom (that has choice)
+            for ticket in classroom.tickets(self._request):
+                if ticket.has_no_choice:
+                    continue
+
+                # Remove the ticket from the bad classroom
+                setattr(ticket, f"p{period}", None)
+                ticket.save()
 
     def _distribute_serenades(self) -> None:
         """
