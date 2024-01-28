@@ -250,7 +250,11 @@ class TicketSorter:
 
         distribute_time = datetime.now()
 
-        print(f"Create: {init_time - start_time} Sort: {sort_time - init_time} Distribute: {distribute_time - sort_time}")
+        print(
+            f"Create: {init_time - start_time} "
+            f"Sort: {sort_time - init_time} "
+            f"Distribute: {distribute_time - sort_time}"
+        )
 
     def _create_sorted_tickets(self, tickets: QuerySet[Ticket]) -> list[SortedTicket]:
         return SortedTicket.objects.bulk_create(
@@ -427,7 +431,10 @@ class TicketSorter:
         for period in (1, 2, 3, 4):
             classrooms_in_period = self.classrooms.filter(period=period)
 
-            serenading_period_groups = PeriodGroupList(classrooms_in_period, self._request, self._num_serenading_groups)
+            # TODO: Also do non-serenading groups and update logic to filter by type
+            serenading_period_groups = PeriodGroupList(
+                classrooms_in_period, self._request, self._num_serenading_groups
+            )
             self._serenading_groups.update(serenading_period_groups, period)
 
     def _distribute_non_serenades(self):
@@ -475,7 +482,8 @@ class TicketSorter:
 
             # If classroom can be eliminated, remove tickets associated with it
             else:
-                for ticket in emptiest_classroom.tickets(self._request, ticket__item_type__in=NON_SERENADES):
+                for ticket in emptiest_classroom.tickets(
+                        self._request, ticket__item_type__in=NON_SERENADES):
                     setattr(ticket, f'p{emptiest_period}', None)
                     ticket.save()
 
