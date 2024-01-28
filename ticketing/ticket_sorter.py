@@ -138,13 +138,27 @@ class PeriodGroupList(list):
 
 # noinspection DuplicatedCode
 class DeliveryGroup:
-    def __init__(self, number: int, is_serenading: bool):
+    def __init__(self, number: int, is_serenading: bool, sort_request: SortTicketsRequest):
         self.is_serenading = is_serenading
         self.number = number
-        self.p1 = None
-        self.p2 = None
-        self.p3 = None
-        self.p4 = None
+        self._request = sort_request
+
+        self.p1 = []
+        self.p2 = []
+        self.p3 = []
+        self.p4 = []
+
+    def get_num_tickets_in_period(self, period: PeriodType) -> int:
+        classrooms = getattr(self, f"p{period}")
+        return sum(map(lambda classroom: classroom.tickets(self._request).count(), classrooms))
+
+    def get_num_tickets(self) -> int:
+        total = 0
+        for period in (1, 2, 3, 4):
+            period: PeriodType
+            total += self.get_num_tickets_in_period(period)
+
+        return total
 
 
 # noinspection DuplicatedCode
@@ -174,7 +188,7 @@ class DeliveryGroupList(list):
     @property
     def fullest_group(self) -> DeliveryGroup:
         if len(self) > 1:
-            return max(self, key=lambda group: len(group.tickets))
+            return max(self, key=lambda group: group.get_num_tickets())
         elif len(self) == 1:
             return self[0]
         else:
@@ -183,7 +197,7 @@ class DeliveryGroupList(list):
     @property
     def emptiest_group(self) -> DeliveryGroup:
         if len(self) > 1:
-            return min(self, key=lambda group: len(group.tickets))
+            return min(self, key=lambda group: group.get_num_tickets())
         elif len(self) == 1:
             return self[0]
         else:
@@ -203,16 +217,19 @@ class TicketSorter:
 
         start_time = datetime.now()
 
-        # Actually a list of SortedTickets (not Tickets)
+        self.classrooms = Classroom.objects.all()
+
         self._serenades: list[SortedTicket] = self._create_sorted_tickets(
             tickets.filter(item_type__in=["Serenade", "Special Serenade"]))
         self._non_serenades: list[SortedTicket] = self._create_sorted_tickets(
             tickets.filter(item_type__in=["Rose", "Chocolate"]))
+
         init_time = datetime.now()
 
         # Sort serenades
         self._separate_special_serenades()
         self._distribute_serenades()
+
         sort_time = datetime.now()
 
         # TODO: Sort non-serenades
@@ -352,20 +369,17 @@ class TicketSorter:
             return super().__repr__()
 
     def _assign_tickets_to_groups(self):
-        self._serenading_groups = DeliveryGroupList(
-            [DeliveryGroup(i + 1, True) for i in range(self._num_serenading_groups)]
-        )
-        self._non_serenading_groups = DeliveryGroupList(
-            [DeliveryGroup(i + 1, False) for i in range(self._num_non_serenading_groups)]
-        )
-
-        classrooms = Classroom.objects.all()
+        self._serenading_groups = DeliveryGroupList([
+            DeliveryGroup(i + 1, True, self._request)
+            for i in range(self._num_serenading_groups)
+        ])
+        self._non_serenading_groups = DeliveryGroupList([
+            DeliveryGroup(i + 1, False, self._request)
+            for i in range(self._num_non_serenading_groups)
+        ])
 
         for period in (1, 2, 3, 4):
-            classrooms_in_period = classrooms.filter(period=period)
+            classrooms_in_period = self.classrooms.filter(period=period)
 
-            serenade_classes = classrooms_in_period.filter_has_serenades
-            no_serenade_classes = classrooms_in_period.filter_has_no_serenades
-
-            serenading_period_groups = PeriodGroupList(serenade_classes, self._request, self._num_serenading_groups)
+            serenading_period_groups = PeriodGroupList(classrooms_in_period, self._request, self._num_serenading_groups)
             self._serenading_groups.update(serenading_period_groups, period)
