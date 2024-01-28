@@ -204,9 +204,9 @@ class TicketSorter:
         start_time = datetime.now()
 
         # Actually a list of SortedTickets (not Tickets)
-        self._serenades: list[SortedTicket] = self.create_sorted_tickets(
+        self._serenades: list[SortedTicket] = self._create_sorted_tickets(
             tickets.filter(item_type__in=["Serenade", "Special Serenade"]))
-        self._non_serenades: list[SortedTicket] = self.create_sorted_tickets(
+        self._non_serenades: list[SortedTicket] = self._create_sorted_tickets(
             tickets.filter(item_type__in=["Rose", "Chocolate"]))
         init_time = datetime.now()
 
@@ -225,7 +225,7 @@ class TicketSorter:
 
         print(f"Create: {init_time - start_time} Sort: {sort_time - init_time} Distribute: {distribute_time - sort_time}")
 
-    def create_sorted_tickets(self, tickets: QuerySet[Ticket]) -> list[SortedTicket]:
+    def _create_sorted_tickets(self, tickets: QuerySet[Ticket]) -> list[SortedTicket]:
         return SortedTicket.objects.bulk_create(
             SortedTicket(
                 ticket=ticket,
