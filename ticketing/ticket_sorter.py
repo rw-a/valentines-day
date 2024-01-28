@@ -261,6 +261,7 @@ class TicketSorter:
 
             # Choose the period of the special serenade
             ticket.choose_period(period)
+            ticket.save()
 
             # Remove any serenades in the same class
             for other_ticket in classroom.tickets(self._request):
@@ -270,6 +271,7 @@ class TicketSorter:
                 # If possible, remove the serenade
                 if not other_ticket.has_no_choice:
                     setattr(other_ticket, f"p{period}", None)
+                    other_ticket.save()
 
     def _distribute_serenades(self) -> None:
         """
@@ -296,6 +298,8 @@ class TicketSorter:
                 for period in periods_available:
                     if hasattr(ticket, f"p{period}"):
                         ticket.choose_period(period)
+                        ticket.save()
+
                         period_distribution[period] += 1
                         periods_available.remove(period)
 
