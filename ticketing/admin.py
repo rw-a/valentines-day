@@ -18,11 +18,15 @@ import random
 @admin.register(Classroom)
 class ClassroomAdmin(admin.ModelAdmin):
     list_display = ('clean_name', 'original_name', 'period')
+    list_filter = ('period',)
+    search_fields = ('clean_name', 'original_name')
 
 
 @admin.register(Recipient)
 class RecipientAdmin(admin.ModelAdmin):
     list_display = ('recipient_id', 'p1', 'p2', 'p3', 'p4')
+    list_filter = ('grade',)
+    search_fields = ('recipient_id',)
 
 
 @admin.register(TicketCodePDF)
