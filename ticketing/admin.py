@@ -106,7 +106,6 @@ class TicketCodeAdmin(admin.ModelAdmin):
                     item_type=ticket_code.item_type,
                     is_handwritten=is_handwritten,
                     template=1,
-                    message=message,
                     code=ticket_code
                 )
                 if ticket.item_type == "Special Serenade":
