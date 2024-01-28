@@ -64,19 +64,41 @@ class Classroom(models.Model):
     original_name = models.CharField(max_length=100)
     clean_name = models.CharField(max_length=100, blank=True, null=True)
 
+    def tickets(self, sort_request: SortTicketsRequest, **kwargs) -> QuerySet[SortedTicket]:
+        """
+        Gets the tickets in this classroom.
+        Any arguments passed as kwargs are applied as a filter on the queryset of tickets.
+        """
+        if self.period == 1:
+            return self.tickets_p1.filter(sort_request=sort_request).filter(**kwargs)
+        elif self.period == 2:
+            return self.tickets_p2.filter(sort_request=sort_request).filter(**kwargs)
+        elif self.period == 3:
+            return self.tickets_p3.filter(sort_request=sort_request).filter(**kwargs)
+        elif self.period == 4:
+            return self.tickets_p4.filter(sort_request=sort_request).filter(**kwargs)
+
+    def num_tickets(self, sort_request: SortTicketsRequest, **kwargs) -> int:
+        """
+        Gets the number of tickets in this classroom.
+        Any arguments passed as kwargs are applied as a filter on the queryset of tickets.
+        """
+        return self.tickets(sort_request, **kwargs).count()
+
+    def must_keep(self, sort_request: SortTicketsRequest, **kwargs) -> bool:
+        """
+        Determines whether the classroom must be kept (a ticket in this classroom can only be here).
+        Any arguments passed as kwargs are applied as a filter on the queryset of tickets that
+        are considered.
+        """
+        for ticket in self.tickets(sort_request, **kwargs):
+            if ticket.has_no_choice and ticket.chosen_period == self.period:
+                return True
+        return False
+
     @property
     def is_bad(self) -> bool:
         return bool(re.match(BAD_ROOM_FORMAT, self.clean_name))
-
-    def tickets(self, sort_request: SortTicketsRequest) -> QuerySet[SortedTicket]:
-        if self.period == 1:
-            return self.tickets_p1.filter(sort_request=sort_request)
-        elif self.period == 2:
-            return self.tickets_p2.filter(sort_request=sort_request)
-        elif self.period == 3:
-            return self.tickets_p3.filter(sort_request=sort_request)
-        elif self.period == 4:
-            return self.tickets_p4.filter(sort_request=sort_request)
 
     @property
     def recipients(self):

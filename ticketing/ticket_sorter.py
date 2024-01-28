@@ -8,6 +8,8 @@ from .models import Ticket, Classroom, SortedTicket, SortTicketsRequest
 # (only linear unfortunately)
 CLASSROOM_GEOGRAPHIC_ORDER = "LBCDAEFGOPTJHIRX" # noqa
 
+NON_SERENADES = ('Rose', 'Chocolate')
+
 
 ItemType = Literal["Special Serenade", "Serenade", "Rose", "Chocolate"]
 PeriodType = Literal[1, 2, 3, 4]
@@ -231,12 +233,19 @@ class TicketSorter:
         self._remove_bad_classrooms()
         self._distribute_serenades()
 
+        # Sort non-serenades
+        self._distribute_non_serenades()
+
         sort_time = datetime.now()
 
-        # TODO: Sort non-serenades
+        # for ticket in self._serenades:
+        #     if not ticket.has_no_choice:
+        #         print(ticket)
+        # for ticket in self._non_serenades:
+        #     if not ticket.has_no_choice:
+        #         print(ticket)
 
         # Distribute tickets into groups
-        # TODO: should separate into periods first, then combine into delivery groups
         self._assign_tickets_to_groups()
 
         distribute_time = datetime.now()
@@ -318,6 +327,12 @@ class TicketSorter:
         1. So an individual receives serenades separately and don't miss out on a serenade.
         2. Distribute evenly across periods so delivery groups have an equal workload regardless of
             which period it is.
+
+        The logic is as follows:
+        1. For each recipient, get their tickets (those with the least number of choices first).
+        2. For each ticket, pick the period with the least number of total tickets.
+        3. However, once a period has been chosen, it cannot be chosen again (but if the recipient
+            has 4 or more tickets, then the period options reset).
         """
         tickets_by_recipient = self._group_tickets_by_recipient(self._serenades)
         period_distribution = self.PeriodDistribution(self._serenades)
@@ -387,6 +402,15 @@ class TicketSorter:
             """
             return sorted(self.keys(), key=lambda k: (self[k], k))
 
+        @property
+        def emptiest_period(self) -> PeriodType:
+            """
+            :return: The period with the least number of tickets in that period.
+            If a tie, the period with the lowest number (i.e., period 1 first, period 4 last)
+            is chosen.
+            """
+            return min(self.keys(), key=lambda k: (self[k], k))
+
         def __repr__(self):
             return super().__repr__()
 
@@ -405,3 +429,59 @@ class TicketSorter:
 
             serenading_period_groups = PeriodGroupList(classrooms_in_period, self._request, self._num_serenading_groups)
             self._serenading_groups.update(serenading_period_groups, period)
+
+    def _distribute_non_serenades(self):
+        """
+        Distribute the non-serenades into classes. Unlike for serenades, the goal in this step is
+        to keep the non-serenades as tightly distributed as possible (as few classroom visits as
+        possible).
+
+        The process is as follows:
+        1. Choose the period with the least number of tickets.
+        2. Within the period, order the classrooms in order how many non-serenades are in them.
+        3. Starting from the emptiest classroom, try to remove all non-serenades in that classroom.
+        4. If it's not possible to eliminate the classroom (a ticket in there has no other choice),
+            the classroom is locked-in and all other tickets in that classroom are moved to that
+            classroom.
+        5. Repeat by choosing the emptiest period and the emptiest classroom in that period again.
+        """
+        # Create an empty period distribution
+        # (since non-serenades haven't been touched yet, so no need to compute it)
+        period_distribution = self.PeriodDistribution([])
+
+        classrooms_to_check = self.classrooms
+        while classrooms_to_check:
+            emptiest_period = period_distribution.emptiest_period
+            classrooms_in_period = classrooms_to_check.filter(period=emptiest_period)
+
+            # If no more classrooms in this period
+            if not classrooms_in_period:
+                del period_distribution[emptiest_period]
+                continue
+
+            # Get the emptiest classroom of the period
+            emptiest_classroom: Classroom = min(
+                classrooms_in_period,
+                key=lambda c: c.num_tickets(self._request, ticket__item_type__in=NON_SERENADES)
+            )
+
+            # If classroom must be kept, make every other ticket stay in this class
+            if emptiest_classroom.must_keep:
+                for ticket in emptiest_classroom.tickets(self._request):
+                    ticket.choose_period(emptiest_period)
+                    ticket.save()
+
+                    period_distribution[emptiest_period] += 1
+
+            # If classroom can be eliminated, remove tickets associated with it
+            else:
+                for ticket in emptiest_classroom.tickets(self._request, ticket__item_type__in=NON_SERENADES):
+                    setattr(ticket, f'p{emptiest_period}', None)
+                    ticket.save()
+
+                    # Update period distribution
+                    if ticket.has_no_choice:
+                        period_distribution[ticket.chosen_period] += 1
+
+            # Remove the classroom from the list to check
+            classrooms_to_check = classrooms_to_check.exclude(pk=emptiest_classroom.pk)
