@@ -68,10 +68,14 @@ class FormTimetables(FormView):
                 period: Literal["p1", "p2", "p3", "p4"]
                 classroom_original_name = recipient_json[period]
 
-                classroom, created = Classroom.objects.get_or_create(
-                    period=period[1:],
-                    original_name=classroom_original_name
-                )
+                if classroom_original_name:
+                    classroom, created = Classroom.objects.get_or_create(
+                        period=period[1:],
+                        original_name=classroom_original_name
+                    )
+                else:
+                    # If classroom couldn't be parsed for some reason
+                    classroom = None
 
                 setattr(recipient, period, classroom)
 
