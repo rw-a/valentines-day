@@ -21,22 +21,16 @@ class PeriodGroup:
         self.classrooms = classrooms
         self.request = sort_request
 
-    def __repr__(self):
-        return f"<PeriodGroup {self.classrooms} s={self.num_serenades} N={self.num_tickets}>"
+        self.num_tickets = self.count_num_tickets()
 
-    @property
-    def num_tickets(self) -> int:
+    def __repr__(self):
+        return f"<PeriodGroup {self.classrooms} N={self.num_tickets}>"
+
+    def count_num_tickets(self) -> int:
         num_tickets = 0
         for classroom in self.classrooms:
             num_tickets += classroom.tickets(self.request).count()
         return num_tickets
-
-    @property
-    def num_serenades(self) -> int:
-        num_serenades = 0
-        for classroom in self.classrooms:
-            num_serenades += classroom.tickets(self.request).filter(ticket__item_type_in=["Serenade", "Special Serenade"]).count()
-        return num_serenades
 
 
 # noinspection DuplicatedCode
@@ -44,11 +38,14 @@ class PeriodGroupList(list):
     def __init__(self, classrooms: list[Classroom], sort_request: SortTicketsRequest,
                  num_groups: int):
         super().__init__(self)
-        # create a list of period groups
+
+        self.request = sort_request
+
+        # Create a list of period groups
         for period_group_classrooms in self.split(classrooms, num_groups):
             self.append(PeriodGroup(period_group_classrooms, sort_request))
 
-        # if some groups will get more than 1 classroom each, try to ensure it's evenly distributed
+        # If some groups will get more than 1 classroom each, try to ensure it's evenly distributed
         if len(classrooms) > num_groups:
             self.distribute_classrooms()
 
@@ -65,26 +62,41 @@ class PeriodGroupList(list):
         state = []
 
         while True:
+            # Get the emptiest and fullest groups
             fullest_group = self.fullest_group
             emptiest_group = self.emptiest_group
-
             fullest_group_index = self.index(fullest_group)
             emptiest_group_index = self.index(emptiest_group)
 
+            # Calculate the difference between the emptiest and fullest group
             if min_group_ticket_range == 0:
                 min_group_ticket_range = fullest_group.num_tickets - emptiest_group.num_tickets
 
+            # Shuffle a class down, from the fullest to the emptiest group
             if fullest_group_index < emptiest_group_index:
                 for index in range(fullest_group_index, emptiest_group_index):
-                    period_group = self[index]
+                    # Shuffle a class up
+                    period_group: PeriodGroup = self[index]
                     last_classroom = period_group.classrooms.pop()
                     self[index + 1].classrooms.insert(0, last_classroom)
+
+                    # Update the number of tickets
+                    last_classroom_num_tickets = last_classroom.tickets(self.request).count()
+                    period_group.num_tickets -= last_classroom_num_tickets
+                    self[index + 1].num_tickets += last_classroom_num_tickets
             elif emptiest_group_index < fullest_group_index:
                 for index in range(fullest_group_index, emptiest_group_index, -1):
+                    # Shuffle a class down
                     period_group = self[index]
                     last_classroom = period_group.classrooms.pop(0)
                     self[index - 1].classrooms.append(last_classroom)
+
+                    # Update the number of tickets
+                    last_classroom_num_tickets = last_classroom.tickets(self.request).count()
+                    period_group.num_tickets -= last_classroom_num_tickets
+                    self[index - 1].num_tickets += last_classroom_num_tickets
             else:
+                # If emptiest and fullest groups are equal (i.e. all groups are same sized)
                 return
 
             fullest_group = self.fullest_group
@@ -94,12 +106,18 @@ class PeriodGroupList(list):
             new_group_ticket_range = fullest_group.num_tickets - emptiest_group.num_tickets
 
             if new_group_ticket_range < min_group_ticket_range:
+                # If the reshuffle improved the evenness of the distribution
+
+                # Update values and try again to improve evenness
                 min_group_ticket_range = new_group_ticket_range
                 search_depth = 0
-                # save state so that any further iterations don't mess it up
+
+                # Save state so that any further iterations don't mess it up
                 state = [tuple(group.classrooms) for group in self]
             else:
-                # algorithm will keep searching 7 iterations after it has found a local min
+                # If the reshuffle didn't help the evenness of the distribution
+
+                # Algorithm will keep searching for 7 iterations after it has found a local min
                 search_depth += 1
                 if search_depth >= 7:
                     break
@@ -108,29 +126,6 @@ class PeriodGroupList(list):
         if len(state) > 0:
             for index, period_group in enumerate(self):
                 period_group.classrooms = list(state[index])
-
-    # def sort_tickets_by_person(self):
-    #     for period_group in self:
-    #         for classroom in period_group.classrooms:
-    #             classroom.tickets.sort(key=lambda ticket: ticket.recipient_id)
-
-    @property
-    def as_classroom_sizes(self) -> list:
-        """
-        :return: Returns itself but all its PeriodGroups have been mapped into a list of their
-            classroom lengths.
-        """
-        return [
-            [len(classroom.tickets) for classroom in period_group.classrooms]
-            for period_group in self
-        ]
-
-    @property
-    def as_classroom_sizes_serenades(self) -> list:
-        return [
-            [classroom.tickets.num_serenades for classroom in period_group.classrooms]
-            for period_group in self
-        ]
 
     @property
     def fullest_group(self):
@@ -142,31 +137,90 @@ class PeriodGroupList(list):
 
 
 # noinspection DuplicatedCode
+class DeliveryGroup:
+    def __init__(self, number: int, is_serenading: bool):
+        self.is_serenading = is_serenading
+        self.number = number
+        self.p1 = None
+        self.p2 = None
+        self.p3 = None
+        self.p4 = None
+
+
+# noinspection DuplicatedCode
+class DeliveryGroupList(list):
+    def update(self, period_groups: PeriodGroupList, period: int):
+        if len(period_groups) > len(self):
+            raise OverflowError(
+                "Length of PeriodGroupList must not be more than length of DeliveryGroupList")
+
+        unassigned_delivery_groups = self.filter_unassigned_delivery_groups(period)
+
+        # Assign the delivery groups a period group
+        for i in range(len(unassigned_delivery_groups)):
+            # Assign the emptiest period group to the fullest delivery group for even distribution
+            emptiest_period_group = period_groups.emptiest_group
+            fullest_delivery_group = unassigned_delivery_groups.fullest_group
+
+            setattr(fullest_delivery_group, f"p{period}", emptiest_period_group.classrooms)
+
+            period_groups.remove(emptiest_period_group)
+            unassigned_delivery_groups.remove(fullest_delivery_group)
+
+    def filter_unassigned_delivery_groups(self, period: int):
+        return DeliveryGroupList([delivery_group for delivery_group in self
+                                  if len(getattr(delivery_group, f"p{period}")) == 0])
+
+    @property
+    def fullest_group(self) -> DeliveryGroup:
+        if len(self) > 1:
+            return max(self, key=lambda group: len(group.tickets))
+        elif len(self) == 1:
+            return self[0]
+        else:
+            raise KeyError("Cannot return max of blank.")
+
+    @property
+    def emptiest_group(self) -> DeliveryGroup:
+        if len(self) > 1:
+            return min(self, key=lambda group: len(group.tickets))
+        elif len(self) == 1:
+            return self[0]
+        else:
+            raise KeyError("Cannot return min of blank.")
+
+
+# noinspection DuplicatedCode
 class TicketSorter:
     def __init__(self, tickets: QuerySet[Ticket], sort_request: SortTicketsRequest,
                  num_serenading_groups: int, num_non_serenading_groups: int) -> None:
-        self.request = sort_request
+        self.serenading_groups = None
+        self.non_serenading_groups = None
+
+        self._request = sort_request
+        self._num_serenading_groups = num_serenading_groups
+        self._num_non_serenading_groups = num_non_serenading_groups
 
         start_time = datetime.now()
 
         # Actually a list of SortedTickets (not Tickets)
-        self.serenades: list[SortedTicket] = self.create_sorted_tickets(
+        self._serenades: list[SortedTicket] = self.create_sorted_tickets(
             tickets.filter(item_type__in=["Serenade", "Special Serenade"]))
-        self.non_serenades: list[SortedTicket] = self.create_sorted_tickets(
+        self._non_serenades: list[SortedTicket] = self.create_sorted_tickets(
             tickets.filter(item_type__in=["Rose", "Chocolate"]))
         init_time = datetime.now()
 
         # Sort serenades
-        self.separate_special_serenades()
-        self.distribute_serenades()
+        self._separate_special_serenades()
+        self._distribute_serenades()
         sort_time = datetime.now()
 
         # TODO: Sort non-serenades
 
         # Distribute tickets into groups
         # TODO: should separate into periods first, then combine into delivery groups
-        self.serenading_groups = PeriodGroupList(Classroom.objects.all(), sort_request,
-                                                 num_serenading_groups)
+        self._assign_tickets_to_groups()
+
         distribute_time = datetime.now()
 
         print(f"Create: {init_time - start_time} Sort: {sort_time - init_time} Distribute: {distribute_time - sort_time}")
@@ -175,7 +229,7 @@ class TicketSorter:
         return SortedTicket.objects.bulk_create(
             SortedTicket(
                 ticket=ticket,
-                sort_request=self.request,
+                sort_request=self._request,
                 p1=ticket.recipient.p1,
                 p2=ticket.recipient.p2,
                 p3=ticket.recipient.p3,
@@ -184,7 +238,7 @@ class TicketSorter:
             for ticket in tickets.prefetch_related("recipient")
         )
 
-    def separate_special_serenades(self) -> None:
+    def _separate_special_serenades(self) -> None:
         """
         For each special serenade, removes regular serenades from the classroom, so the person
         receiving the special serenade is the only one.
@@ -198,7 +252,7 @@ class TicketSorter:
         guaranteed. However, this is too inefficient and multiple visits per class would be too
         disruptive.
         """
-        for ticket in self.serenades:
+        for ticket in self._serenades:
             if ticket.ticket.item_type != "Special Serenade":
                 continue
 
@@ -209,7 +263,7 @@ class TicketSorter:
             ticket.choose_period(period)
 
             # Remove any serenades in the same class
-            for other_ticket in classroom.tickets(self.request):
+            for other_ticket in classroom.tickets(self._request):
                 if other_ticket.ticket.item_type != "Serenade":
                     continue
 
@@ -217,23 +271,15 @@ class TicketSorter:
                 if not other_ticket.has_no_choice:
                     setattr(other_ticket, f"p{period}", None)
 
-    def distribute_serenades(self) -> None:
+    def _distribute_serenades(self) -> None:
         """
         Distribute serenades as evenly as possible across periods. There are two reasons:
         1. So an individual receives serenades separately and don't miss out on a serenade.
         2. Distribute evenly across periods so delivery groups have an equal workload regardless of
             which period it is.
         """
-        # Group serenades based on the recipient
-        tickets_by_recipient = {}
-        for ticket in self.serenades:
-            recipient_id = ticket.ticket.recipient.recipient_id
-            if recipient_id in tickets_by_recipient:
-                tickets_by_recipient[recipient_id].append(ticket)
-            else:
-                tickets_by_recipient[recipient_id] = [ticket]
-
-        period_distribution = self.PeriodDistribution(self.serenades)
+        tickets_by_recipient = self._group_tickets_by_recipient(self._serenades)
+        period_distribution = self.PeriodDistribution(self._serenades)
 
         # For each person, go through their tickets (favouring ones with no choice first),
         # and choose their tickets so that the periods with the least tickets are chosen first.
@@ -259,6 +305,19 @@ class TicketSorter:
                             periods_available = period_distribution.by_num_tickets
 
                         break
+
+    @staticmethod
+    def _group_tickets_by_recipient(tickets: list[SortedTicket]) -> dict[str, list[SortedTicket]]:
+        # Group serenades based on the recipient
+        tickets_by_recipient = {}
+        for ticket in tickets:
+            recipient_id = ticket.ticket.recipient.recipient_id
+            if recipient_id in tickets_by_recipient:
+                tickets_by_recipient[recipient_id].append(ticket)
+            else:
+                tickets_by_recipient[recipient_id] = [ticket]
+
+        return tickets_by_recipient
 
     class PeriodDistribution(dict):
         """
@@ -287,3 +346,22 @@ class TicketSorter:
 
         def __repr__(self):
             return super().__repr__()
+
+    def _assign_tickets_to_groups(self):
+        self._serenading_groups = DeliveryGroupList(
+            [DeliveryGroup(i + 1, True) for i in range(self._num_serenading_groups)]
+        )
+        self._non_serenading_groups = DeliveryGroupList(
+            [DeliveryGroup(i + 1, False) for i in range(self._num_non_serenading_groups)]
+        )
+
+        classrooms = Classroom.objects.all()
+
+        for period in (1, 2, 3, 4):
+            classrooms_in_period = classrooms.filter(period=period)
+
+            serenade_classes = classrooms_in_period.filter_has_serenades
+            no_serenade_classes = classrooms_in_period.filter_has_no_serenades
+
+            serenading_period_groups = PeriodGroupList(serenade_classes, self._request, self._num_serenading_groups)
+            self._serenading_groups.update(serenading_period_groups, period)
