@@ -72,7 +72,7 @@
                 }
             })
             .then((data) => {
-                group_data[group].parts.push(String(part));
+                group_data[group].parts.push(part);
                 generating.splice(generating.indexOf(partName), 1);
                 refresh();
                 resolve();
@@ -174,7 +174,7 @@
         const uncompletedParts = [];
         const num_parts_required = Math.ceil(group_data[group].num_tickets / NUM_TICKETS_PER_PDF);
         for (let part = 1; part <= num_parts_required; part++) {
-            if (!group_data[group].parts.includes(String(part))) {
+            if (!group_data[group].parts.includes(part)) {
                 uncompletedParts.push(part);
             }
         }
