@@ -201,7 +201,8 @@ class SortTicketAdmin(admin.ModelAdmin):
                 delivery_group = DeliveryGroup(
                     code=group.name,
                     is_serenading_group=is_serenading,
-                    sort_request=obj
+                    sort_request=obj,
+                    parts_printed=[]
                 )
                 delivery_group.save()
                 delivery_group.tickets.add(*tickets)

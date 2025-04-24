@@ -258,7 +258,7 @@ class ApiPrintTicket(APIView):
                      padding=padding,
                      enforce_boundaries=enforce_boundaries)
 
-        group.parts_printed += f",{part}"
+        group.parts_printed.append(part)
         group.save()
 
         return Response(data={"success": "true"}, status=status.HTTP_200_OK)
