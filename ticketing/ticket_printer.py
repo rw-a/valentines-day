@@ -119,10 +119,12 @@ class TicketsToPDF:
                         page.merge_transformed_page(message_page, transformation)
                 else:
                     page.merge_page(self.foreground_pdf.pages[page_num])
-            # page.compress_content_streams()
             pdf.add_page(page)
 
-        if type(self.pdf_output_path) == str:
+        pdf.compress_identical_objects(remove_identicals=True,
+                                       remove_orphans=True)
+
+        if isinstance(self.pdf_output_path, str):
             with open(self.pdf_output_path, 'wb') as file:
                 pdf.write(file)
                 print(f"[Ticket Printer] Success: finished printing, writing to file {self.pdf_output_path}")
