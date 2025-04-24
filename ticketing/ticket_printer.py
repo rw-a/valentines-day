@@ -287,6 +287,7 @@ class TicketsToPDF:
                                          # ('LEFTPADDING', (0, 0), (-1, -1), 6 + self.PADDING),
                                          # ('RIGHTPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
                                          # ('BOTTOMPADDING', (-1, 0), (-1, -1), 3),
+                                         ('LEFTPADDING', (0, 0), (0, -1), 6),
                                          ('ALIGN', (0, 0), (0, -1), 'LEFT'),
                                          ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
                                          ('VALIGN', (0, 0), (1, -1), 'BOTTOM'),
@@ -298,7 +299,7 @@ class TicketsToPDF:
             recipient_name_and_pickup = self.create_div([[recipient_name_and_pickup]],
                                                         # ('LEFTPADDING', (0, 0), (-1, -1), 5 + self.PADDING),
                                                         # ('RIGHTPADDING', (0, 0), (-1, -1), 5 + self.PADDING),
-                                                        colWidths=self.CELL_WIDTH)
+                                                        colWidths=self.CELL_WIDTH * 0.9)
 
             vertically_separated_table = self.create_div([[periods], [recipient_name_and_pickup], [bottom_row]],
                                                          # ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
