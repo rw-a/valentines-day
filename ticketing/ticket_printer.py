@@ -119,7 +119,7 @@ class TicketsToPDF:
                         page.merge_transformed_page(message_page, transformation)
                 else:
                     page.merge_page(self.foreground_pdf.pages[page_num])
-            page.compress_content_streams()
+            # page.compress_content_streams()
             pdf.add_page(page)
 
         if type(self.pdf_output_path) == str:
