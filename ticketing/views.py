@@ -14,7 +14,6 @@ from .forms import CSVFileForm
 from .input_validation import is_code_exists, is_code_unconsumed, is_recipient_exists
 from .constants import DirectoryLocations, FileNames, STUDENTS, TEMPLATES, STUDENTS_LIST, FONTS
 from .ticket_printer import TicketsToPDF
-from .ticket_sorter import get_parts
 from .timetable_parser import get_student_classes
 import os
 import re
@@ -143,7 +142,7 @@ def page_tickets(request, pk):
     for group in sort_tickets_request.deliverygroup_set.all():
         group_data[group.code] = {}
         group_data[group.code]["num_tickets"] = group.tickets.count()
-        group_data[group.code]["parts"] = get_parts(group)
+        group_data[group.code]["parts"] = group.parts_printed
 
     return render(request, 'ticketing/tickets.html', {
         'pk': pk,

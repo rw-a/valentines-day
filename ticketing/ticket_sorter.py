@@ -55,11 +55,6 @@ def sort_tickets(tickets: list[Ticket], num_serenading_groups: int, num_non_sere
     return groups
 
 
-def get_parts(group: DeliveryGroupModel) -> list:
-    """Receives a DeliveryGroup obj and returns the parts that have already been printed"""
-    return list(filter(lambda part: len(part) > 0, group.parts_printed.split(",")))
-
-
 class TicketToSort:
     def __init__(self, pk: int, recipient_id: str, item_type: ItemType,
                  p1: str, p2: str, p3: str, p4: str, ss_period: PeriodType | None = None):
