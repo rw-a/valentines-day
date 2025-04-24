@@ -113,7 +113,7 @@
             } else {
                 const num_parts_required = Math.ceil(group_data[group].num_tickets / NUM_TICKETS_PER_PDF);
                 for (let part = 1; part <= num_parts_required; part++) {
-                    if (group_data[group].parts.includes(String(part))) {
+                    if (group_data[group].parts.includes(part)) {
                         // if part has been completed
                         const link = document.createElement('a');
                         const text = document.createTextNode((num_parts_required === 1) ? "Download" : `Part${part} `);
