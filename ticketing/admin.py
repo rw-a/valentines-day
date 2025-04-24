@@ -175,7 +175,13 @@ class SortTicketAdmin(admin.ModelAdmin):
 
         # Sort tickets
         tickets = Ticket.objects.all()
-        groups_split = sort_tickets(tickets, obj.num_serenaders, obj.num_non_serenaders)
+        groups_split = sort_tickets(
+            tickets, obj.num_serenaders, obj.num_non_serenaders,
+            max_serenades_per_class=obj.max_serenades_per_class,
+            max_non_serenades_per_serenading_class=obj.max_non_serenades_per_serenading_class,
+            extra_special_serenades=obj.extra_special_serenades,
+            enforce_distribution=obj.enforce_distribution
+        )
 
         for is_serenading, groups in groups_split.items():
             for group_index, group in enumerate(groups):
