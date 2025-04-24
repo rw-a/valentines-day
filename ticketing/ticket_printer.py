@@ -302,14 +302,14 @@ class TicketsToPDF:
                                                         colWidths=self.CELL_WIDTH * 0.9)
 
             vertically_separated_table = self.create_div([[periods], [recipient_name_and_pickup], [bottom_row]],
-                                                         # ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                                                         ('ALIGN', (0, 0), (-1, 0), 'LEFT'),
                                                          ('VALIGN', (0, 0), (-1, 0), 'TOP'),
                                                          # ('ALIGN', (0, -1), (-1, -1), 'RIGHT'),
                                                          ('VALIGN', (0, -1), (-1, -1), 'BOTTOM'),
-                                                         # ('BOTTOMPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
-                                                         # ('TOPPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
-                                                         # ('LEFTPADDING', (0, 0), (-1, -1), 3),
-                                                         # ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+                                                         ('BOTTOMPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
+                                                         ('TOPPADDING', (0, 0), (-1, -1), 3 + self.PADDING),
+                                                         ('LEFTPADDING', (0, 0), (-1, -1), self.PADDING),
+                                                         ('RIGHTPADDING', (0, 0), (-1, -1), self.PADDING),
                                                          rowHeights=[self.CELL_HEIGHT * 0.3,
                                                                      self.CELL_HEIGHT * 0.4,
                                                                      self.CELL_HEIGHT * 0.3])
